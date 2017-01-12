@@ -1,0 +1,9 @@
+﻿  stdafx.cpp
+  dllmain.cpp
+  EyeLogic.cpp
+     Creating library D:\Documents\EyeLogic\EyeLogic.lib and object D:\Documents\EyeLogic\EyeLogic.exp
+  Generating code
+  All 14 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  EyeLogic.vcxproj -> D:\Documents\EyeLogic\EyeLogic.dll
+  EyeLogic.vcxproj -> D:\Documents\EyeLogic\EyeLogic.pdb (Full PDB)
