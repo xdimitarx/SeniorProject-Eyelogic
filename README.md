@@ -3,22 +3,22 @@
 
 # Setup Instructions
 
-1. Install Unity
+\1. Install Unity
 
-2. (Windows) Install Visual Studio
+\2. (Windows) Install Visual Studio
 
 *** GET THE LATEST VERSION OF OPENCV ***
 
-3. (Windows) Install OpenCV
+\3. (Windows) Install OpenCV
 http://thomasmountainborn.com/2016/09/11/unity-and-opencv-part-one-install/
 
-3. (Mac) Install OpenCV
+\3. (Mac) Install OpenCV
 http://www.pyimagesearch.com/2015/06/15/install-opencv-3-0-and-python-2-7-on-osx/
 
-4. (Windows) Compile EyeLogicAlgorithm dll to root folder
+\4. (Windows) Compile EyeLogicAlgorithm dll to root folder
 http://thomasmountainborn.com/2016/09/12/unity-and-opencv-part-two-project-setup/
 
-4. (Mac) Compile EyeLogicAlgorithm dll to root folder
+\4. (Mac) Compile EyeLogicAlgorithm dll to root folder
 http://yeticrabgames.blogspot.com/2014/03/creating-dll-in-monodevelop.html
 
 
