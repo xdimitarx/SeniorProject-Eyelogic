@@ -6,6 +6,7 @@
 #include <opencv2/imgcodecs.hpp>
 
 //STD
+#include <iostream>
 #include <vector>
 
 using namespace std;

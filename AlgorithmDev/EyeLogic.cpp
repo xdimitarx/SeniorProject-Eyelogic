@@ -15,20 +15,31 @@ void loadReferenceImages()
 bool detectEyes()
 {
 	CascadeClassifier eyeDetector;
-	Mat * eyesDetected = (Mat *)malloc(sizeof(Mat)*2);
-	vector< Rect_<int> > eyes;
+	//Mat * eyesDetected = (Mat *)malloc(sizeof(Mat)*2);
+	vector<Rect_<int> > eyes;
 
 	eyeDetector.load("haarcascade_eye_tree_eyeglasses.xml");
 	string path = "Test1.jpg";
 	Mat * image = loadImageAtPath(path);
 	eyeDetector.detectMultiScale((*image), eyes);
+	cout << eyes.capacity()-1 << endl;
 
-	Mat eyeL, eyeR;
-	eyeL = (*image)(eyes[0]);
-	//eyeR = (*image)(eyes[1]);
+	/*int i = 0;
+	for (vector<Rect>::iterator itr = eyes.begin(); itr != eyes.end(); itr++)
+	{
+		cout << i++ << endl;
+	}
+	*/
 
-	path = "Test2.jpg";
-	imwrite(path, eyeL);
+	for(int i = 0; i < eyes.capacity()-1; i++)
+	{
+		cout << i << "     " << eyes[i] << endl;
+		string path = "Test";
+		path.push_back((i+2)+'0');
+		path.append(".jpg");
+		Mat result = (*image)(eyes[i]);
+		imwrite(path, result);
+	}
 }
 
 void approximateAngle()
