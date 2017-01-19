@@ -6,8 +6,8 @@
 #define EYELOGIC __declspec(dllimport)   
 #endif  
 
-#include <opencv2\core.hpp>
-#include <opencv2\highgui.hpp>
+#include <opencv2/core/core.hpp>
+//#include <opencv2\core\highgui.hpp>
 
 using namespace cv;
 using namespace std;
