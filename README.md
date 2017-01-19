@@ -40,4 +40,8 @@ main.unity
 
 
 
+# OpenCV with XCode
+1. https://www.youtube.com/watch?v=U49CVY8yOxw&t=1s
+2. https://www.youtube.com/watch?v=XJeP1juuHHY
+
 
