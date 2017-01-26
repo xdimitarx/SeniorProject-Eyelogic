@@ -9,18 +9,30 @@
 #include <iostream>
 #include <vector>
 
+//#include <algorithm.cpp>
+//#include <algorithm2.cpp>
+
 using namespace std;
 using namespace cv;
 
-static vector<Mat *> referenceLibrary; //Mat[0] Left Eye, Mat[1] Right Eye
+static vector<Mat> referenceLibrary; //Mat[0] Left Eye, Mat[1] Right Eye
 static Mat * captureEyes; //Mat[0] Left Eye, Mat[1] Right Eye\
 
 static bool referenceLoaded = false;
 
-Mat* loadImageAtPath(string path);
+Mat *loadImageAtPath(string path);
 void loadReferenceImages();
-bool detectEyes();
-void approximateAngle();
+bool detectEyes(string pathToImage, vector<Mat> *eyes, int *eyesFlagged);
+
+class EyeLogicAlg
+{
+public:
+	EyeLogicAlg();
+	virtual bool approximateAngle(Point_<int> xyValues) = 0;
+	virtual void angleToMouseMov();
+	~EyeLogicAlg();
+	
+};
 void angleToMouseMov();
 
 bool initEyeLogic();

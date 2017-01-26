@@ -2,7 +2,7 @@
 
 Mat* loadImageAtPath(string path)
 {
-	Mat * result = new Mat();
+	Mat* result = new Mat();
 	*result = imread(path, CV_LOAD_IMAGE_COLOR);
 	return result;
 }
@@ -12,34 +12,63 @@ void loadReferenceImages()
 
 }
 
-bool detectEyes()
+bool detectEyes(string pathToImage, vector<Mat> *eyes, int *eyesFlagged)
 {
+	//Testing
+	//pathToImage = "Test1.jpg";
+
+	//Code
 	CascadeClassifier eyeDetector;
-	//Mat * eyesDetected = (Mat *)malloc(sizeof(Mat)*2);
-	vector<Rect_<int> > eyes;
-
+	CascadeClassifier faceDetector;
 	eyeDetector.load("haarcascade_eye_tree_eyeglasses.xml");
-	string path = "Test1.jpg";
-	Mat * image = loadImageAtPath(path);
-	eyeDetector.detectMultiScale((*image), eyes);
-	cout << eyes.capacity()-1 << endl;
-
-	/*int i = 0;
-	for (vector<Rect>::iterator itr = eyes.begin(); itr != eyes.end(); itr++)
+	faceDetector.load("haarcascade_frontalface_default.xml");
+	//Mat * eyesDetected = (Mat *)malloc(sizeof(Mat)*2);
+	vector<Rect_<int> > faceCoord;
+	vector<Rect_<int> > eyesCoord;
+	
+	Mat *image = loadImageAtPath(pathToImage);
+	if(image->empty())
 	{
-		cout << i++ << endl;
+		cerr << "Cannot load image" << endl;
+		return false;
 	}
-	*/
 
-	for(int i = 0; i < eyes.capacity()-1; i++)
+	//Detect faces in picture
+	faceDetector.detectMultiScale((*image), faceCoord, 1.2, 3, 0, CvSize(40,40));
+
+	if(faceCoord.capacity() < 1)
 	{
-		cout << i << "     " << eyes[i] << endl;
-		string path = "Test";
-		path.push_back((i+2)+'0');
-		path.append(".jpg");
-		Mat result = (*image)(eyes[i]);
-		imwrite(path, result);
+		cerr << "Did not find any faces" << endl;
+		return false;
 	}
+	Mat cutoutFace = Mat((*image),faceCoord[0]);
+	delete image;
+	Rect roiL(0, cutoutFace.rows*0.4, cutoutFace.cols*0.5, cutoutFace.rows*0.7);
+	Rect roiR(cutoutFace.cols*0.5, cutoutFace.rows*0.4, cutoutFace.cols, cutoutFace.rows*0.7);
+	Mat cutoutLFace = Mat(cutoutFace,roiL);
+	Mat cutoutRFace = Mat(cutoutFace,roiR);
+	
+	eyeDetector.detectMultiScale(cutoutLFace, eyesCoord, 1.1, 3, 0, CvSize(40,40));
+	if(eyesCoord.capacity() < 1)
+	{
+		//Set Left Blink
+	}
+	else
+	{
+		eyes->push_back(Mat(cutoutLFace, Rect(eyesCoord[0].x, eyesCoord[0].height*0.33, eyesCoord[0].width, eyesCoord[0].height*0.67)));
+	}
+	//Clear and reuse matrix
+	eyesCoord.clear();
+	eyeDetector.detectMultiScale(cutoutRFace, eyesCoord, 1.1, 3, 0, CvSize(40,40));
+	if(eyesCoord.capacity() < 1)
+	{
+		//Set Right Blink
+	}
+	else
+	{
+		eyes->push_back(Mat(cutoutRFace, Rect(eyesCoord[0].x, eyesCoord[0].height*0.33, eyesCoord[0].width, eyesCoord[0].height*0.67)));
+	}
+	return true;
 }
 
 void approximateAngle()
@@ -67,7 +96,7 @@ bool runEyeLogic(/* Other Arguments */float * mouseMoveValues)
 {
 	if(referenceLoaded)
 	{
-		detectEyes();
+		//detectEyes();
 		approximateAngle();
 		angleToMouseMov();
 	}
