@@ -5,4 +5,6 @@ Apply Gaussian filter
 Edge detection
 compute gi (gradient) and draw gradient line through whole image (accumulate bins)
 Set bin threshold, get set of possible centers with that threshold 
-apply argmax dot thing from papaer
+apply argmax dot thing from paper
+TADA CENTER
+draw circle on center of eye
