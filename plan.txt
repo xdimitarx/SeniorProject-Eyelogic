@@ -1,0 +1,8 @@
+Detect eyes
+Matrix with eye (isolated)
+Apply grayscale
+Apply Gaussian filter
+Edge detection
+compute gi (gradient) and draw gradient line through whole image (accumulate bins)
+Set bin threshold, get set of possible centers with that threshold 
+apply argmax dot thing from papaer
