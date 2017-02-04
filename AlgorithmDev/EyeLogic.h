@@ -4,9 +4,11 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/objdetect.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 //STD
 #include <iostream>
+#include <string>
 #include <vector>
 
 using namespace std;
