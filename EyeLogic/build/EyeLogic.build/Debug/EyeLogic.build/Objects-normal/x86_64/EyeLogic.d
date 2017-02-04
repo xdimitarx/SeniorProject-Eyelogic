@@ -1,7 +1,6 @@
 dependencies: \
-  /Users/Dimitar/Documents/SeniorProject-EyeLogic/EyeLogic/EyeLogic/main.cpp \
-  /usr/local/include/opencv2/highgui/highgui.hpp \
-  /usr/local/include/opencv2/highgui.hpp \
+  /Users/Dimitar/Documents/SeniorProject/EyeLogic/EyeLogic/EyeLogic/EyeLogic.cpp \
+  /Users/Dimitar/Documents/SeniorProject/EyeLogic/EyeLogic/EyeLogic/EyeLogic.h \
   /usr/local/include/opencv2/core.hpp \
   /usr/local/include/opencv2/core/cvdef.h \
   /usr/local/include/opencv2/hal/defs.h \
@@ -24,6 +23,7 @@ dependencies: \
   /usr/local/include/opencv2/core/core_c.h \
   /usr/local/include/opencv2/core/types_c.h \
   /usr/local/include/opencv2/core/optim.hpp \
+  /usr/local/include/opencv2/highgui.hpp \
   /usr/local/include/opencv2/imgcodecs.hpp \
   /usr/local/include/opencv2/videoio.hpp \
   /usr/local/include/opencv2/highgui/highgui_c.h \
@@ -31,6 +31,6 @@ dependencies: \
   /usr/local/include/opencv2/imgproc/types_c.h \
   /usr/local/include/opencv2/imgcodecs/imgcodecs_c.h \
   /usr/local/include/opencv2/videoio/videoio_c.h \
-  /usr/local/include/opencv2/imgproc/imgproc.hpp \
-  /usr/local/include/opencv2/imgproc.hpp \
-  /usr/local/include/opencv2/core/core.hpp
+  /usr/local/include/opencv2/objdetect.hpp \
+  /usr/local/include/opencv2/objdetect/detection_based_tracker.hpp \
+  /usr/local/include/opencv2/objdetect/objdetect_c.h

@@ -8,9 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		431625A61E2EB90C00C9F318 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431625A51E2EB90C00C9F318 /* main.cpp */; };
-		431625AF1E2ED29700C9F318 /* libopencv_core.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 431625AE1E2ED29700C9F318 /* libopencv_core.3.0.0.dylib */; };
-		431625B11E2ED2D400C9F318 /* libopencv_highgui.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 431625B01E2ED2D400C9F318 /* libopencv_highgui.3.0.0.dylib */; };
-		431625B31E2ED30400C9F318 /* libopencv_imgproc.3.0.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 431625B21E2ED30400C9F318 /* libopencv_imgproc.3.0.0.dylib */; };
+		43B2E1201E45768A00F34F13 /* EyeLogic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43B2E11C1E45768A00F34F13 /* EyeLogic.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -28,9 +26,11 @@
 /* Begin PBXFileReference section */
 		431625A21E2EB90C00C9F318 /* EyeLogic */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = EyeLogic; sourceTree = BUILT_PRODUCTS_DIR; };
 		431625A51E2EB90C00C9F318 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		431625AE1E2ED29700C9F318 /* libopencv_core.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libopencv_core.3.0.0.dylib; sourceTree = "<group>"; };
-		431625B01E2ED2D400C9F318 /* libopencv_highgui.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libopencv_highgui.3.0.0.dylib; sourceTree = "<group>"; };
-		431625B21E2ED30400C9F318 /* libopencv_imgproc.3.0.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libopencv_imgproc.3.0.0.dylib; sourceTree = "<group>"; };
+		43B2E11B1E45768A00F34F13 /* camera.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = camera.jpg; sourceTree = "<group>"; };
+		43B2E11C1E45768A00F34F13 /* EyeLogic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EyeLogic.cpp; sourceTree = "<group>"; };
+		43B2E11D1E45768A00F34F13 /* EyeLogic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyeLogic.h; sourceTree = "<group>"; };
+		43B2E11E1E45768A00F34F13 /* haarcascade_eye_tree_eyeglasses.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = haarcascade_eye_tree_eyeglasses.xml; sourceTree = "<group>"; };
+		43B2E11F1E45768A00F34F13 /* haarcascade_frontalface_default.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = haarcascade_frontalface_default.xml; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,9 +38,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				431625B11E2ED2D400C9F318 /* libopencv_highgui.3.0.0.dylib in Frameworks */,
-				431625AF1E2ED29700C9F318 /* libopencv_core.3.0.0.dylib in Frameworks */,
-				431625B31E2ED30400C9F318 /* libopencv_imgproc.3.0.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -50,9 +47,6 @@
 		431625991E2EB90C00C9F318 = {
 			isa = PBXGroup;
 			children = (
-				431625B01E2ED2D400C9F318 /* libopencv_highgui.3.0.0.dylib */,
-				431625B21E2ED30400C9F318 /* libopencv_imgproc.3.0.0.dylib */,
-				431625AE1E2ED29700C9F318 /* libopencv_core.3.0.0.dylib */,
 				431625A41E2EB90C00C9F318 /* EyeLogic */,
 				431625A31E2EB90C00C9F318 /* Products */,
 			);
@@ -70,6 +64,11 @@
 			isa = PBXGroup;
 			children = (
 				431625A51E2EB90C00C9F318 /* main.cpp */,
+				43B2E11B1E45768A00F34F13 /* camera.jpg */,
+				43B2E11C1E45768A00F34F13 /* EyeLogic.cpp */,
+				43B2E11D1E45768A00F34F13 /* EyeLogic.h */,
+				43B2E11E1E45768A00F34F13 /* haarcascade_eye_tree_eyeglasses.xml */,
+				43B2E11F1E45768A00F34F13 /* haarcascade_frontalface_default.xml */,
 			);
 			path = EyeLogic;
 			sourceTree = "<group>";
@@ -131,6 +130,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				43B2E1201E45768A00F34F13 /* EyeLogic.cpp in Sources */,
 				431625A61E2EB90C00C9F318 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -252,6 +252,7 @@
 					"-lopencv_videoio",
 					"-lopencv_videostab",
 				);
+				"OTHER_LIBTOOLFLAGS[arch=*]" = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -283,6 +284,7 @@
 					"-lopencv_videoio",
 					"-lopencv_videostab",
 				);
+				"OTHER_LIBTOOLFLAGS[arch=*]" = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -306,6 +308,7 @@
 				431625AB1E2EB90C00C9F318 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
