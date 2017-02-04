@@ -9,7 +9,7 @@
 #include <iostream>
 #include <vector>
 
-//#include <algorithm.cpp>
+//#include <ddapproach.cpp>
 //#include <algorithm2.cpp>
 
 using namespace std;
@@ -28,11 +28,12 @@ class EyeLogicAlg
 {
 public:
 	EyeLogicAlg();
-	virtual bool approximateAngle(Point_<int> xyValues) = 0;
-	virtual void angleToMouseMov();
+	bool approximateAngle(Point_<int> xyValues);
+	void angleToMouseMov();
 	~EyeLogicAlg();
 	
 };
+
 void angleToMouseMov();
 
 bool initEyeLogic();

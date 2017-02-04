@@ -34,7 +34,10 @@ bool detectEyes(string pathToImage, vector<Mat> *eyes, int *eyesFlagged)
 	}
 
 	//Detect faces in picture
-	faceDetector.detectMultiScale((*image), faceCoord, 1.2, 3, 0, CvSize(40,40));
+	double myTime = getTickCount();
+	faceDetector.detectMultiScale((*image), faceCoord, 1.2, 3, 0, CvSize(150,150));
+	myTime = getTickCount() - myTime;
+	cout << myTime/getTickFrequency() << endl;
 
 	if(faceCoord.capacity() < 1)
 	{
@@ -42,12 +45,16 @@ bool detectEyes(string pathToImage, vector<Mat> *eyes, int *eyesFlagged)
 		return false;
 	}
 	Mat cutoutFace = Mat((*image),faceCoord[0]);
+	imshow("My face", cutoutFace);
+	waitKey(0);
 	delete image;
-	Rect roiL(0, cutoutFace.rows*0.4, cutoutFace.cols*0.5, cutoutFace.rows*0.7);
-	Rect roiR(cutoutFace.cols*0.5, cutoutFace.rows*0.4, cutoutFace.cols, cutoutFace.rows*0.7);
+	Rect roiL = Rect((size_t)(cutoutFace.cols*0.1), (size_t)(cutoutFace.rows*0.2), (size_t)(cutoutFace.cols*0.4), (size_t)(cutoutFace.rows*0.30));
+	Rect roiR = Rect((size_t)(cutoutFace.cols*0.5), (size_t)(cutoutFace.rows*0.2), (size_t)(cutoutFace.cols*0.4), (size_t)(cutoutFace.rows*0.30));
 	Mat cutoutLFace = Mat(cutoutFace,roiL);
 	Mat cutoutRFace = Mat(cutoutFace,roiR);
-	
+	imshow("Winning", cutoutLFace);
+	imshow("Winning Right", cutoutRFace);
+	waitKey(0);
 	eyeDetector.detectMultiScale(cutoutLFace, eyesCoord, 1.1, 3, 0, CvSize(40,40));
 	if(eyesCoord.capacity() < 1)
 	{
@@ -55,7 +62,9 @@ bool detectEyes(string pathToImage, vector<Mat> *eyes, int *eyesFlagged)
 	}
 	else
 	{
-		eyes->push_back(Mat(cutoutLFace, Rect(eyesCoord[0].x, eyesCoord[0].height*0.33, eyesCoord[0].width, eyesCoord[0].height*0.67)));
+		Rect eyeRoiL = Rect();
+		imshow("EyeL", (cutoutLFace)(eyesCoord[0]));
+		//eyes->push_back(Mat(cutoutLFace, ));
 	}
 	//Clear and reuse matrix
 	eyesCoord.clear();
@@ -66,30 +75,25 @@ bool detectEyes(string pathToImage, vector<Mat> *eyes, int *eyesFlagged)
 	}
 	else
 	{
-		eyes->push_back(Mat(cutoutRFace, Rect(eyesCoord[0].x, eyesCoord[0].height*0.33, eyesCoord[0].width, eyesCoord[0].height*0.67)));
+		Rect eyeRoiR = Rect();
+		imshow("EyeR", (cutoutRFace)(eyesCoord[0]));
+		waitKey(0);
+		//eyes->push_back(Mat(cutoutRFace, Rect(eyesCoord[0].x, eyesCoord[0].height*0.33, eyesCoord[0].width, eyesCoord[0].height*0.67)));
 	}
 	return true;
-}
-
-void approximateAngle()
-{
-
-}
-
-void angleToMouseMov()
-{
-
 }
 
 bool initEyeLogic()
 {
 	//If previous storage
 	loadReferenceImages();
+	return false;
 }
 
 bool setupEyeLogic()
 {
 	//runs setup sequence
+	return false;
 }
 
 bool runEyeLogic(/* Other Arguments */float * mouseMoveValues)
@@ -97,7 +101,8 @@ bool runEyeLogic(/* Other Arguments */float * mouseMoveValues)
 	if(referenceLoaded)
 	{
 		//detectEyes();
-		approximateAngle();
-		angleToMouseMov();
+		//approximateAngle();
+		//angleToMouseMov();
 	}
+	return false;
 }
