@@ -18,9 +18,10 @@ bool detectEyes(string pathToImage, vector<Mat> *eyes, int *eyesFlagged)
 	//pathToImage = "Test1.jpg";
 
 	//Code
-	CascadeClassifier eyeDetector;
+	CascadeClassifier eyeLDetector, eyeRDetector;
 	CascadeClassifier faceDetector;
-	eyeDetector.load("haarcascade_eye_tree_eyeglasses.xml");
+	eyeLDetector.load("haarcascade_lefteye_2splits.xml");
+	eyeRDetector.load("haarcascade_righteye_2splits.xml");
 	faceDetector.load("haarcascade_frontalface_default.xml");
 	//Mat * eyesDetected = (Mat *)malloc(sizeof(Mat)*2);
 	vector<Rect_<int> > faceCoord;
@@ -45,40 +46,34 @@ bool detectEyes(string pathToImage, vector<Mat> *eyes, int *eyesFlagged)
 		return false;
 	}
 	Mat cutoutFace = Mat((*image),faceCoord[0]);
-	imshow("My face", cutoutFace);
-	waitKey(0);
 	delete image;
 	Rect roiL = Rect((size_t)(cutoutFace.cols*0.1), (size_t)(cutoutFace.rows*0.2), (size_t)(cutoutFace.cols*0.4), (size_t)(cutoutFace.rows*0.30));
 	Rect roiR = Rect((size_t)(cutoutFace.cols*0.5), (size_t)(cutoutFace.rows*0.2), (size_t)(cutoutFace.cols*0.4), (size_t)(cutoutFace.rows*0.30));
 	Mat cutoutLFace = Mat(cutoutFace,roiL);
 	Mat cutoutRFace = Mat(cutoutFace,roiR);
-	imshow("Winning", cutoutLFace);
-	imshow("Winning Right", cutoutRFace);
-	waitKey(0);
-	eyeDetector.detectMultiScale(cutoutLFace, eyesCoord, 1.1, 3, 0, CvSize(40,40));
+	eyeLDetector.detectMultiScale(cutoutLFace, eyesCoord, 1.1, 3, 0, CvSize(40,40));
 	if(eyesCoord.capacity() < 1)
 	{
 		//Set Left Blink
 	}
 	else
 	{
-		Rect eyeRoiL = Rect();
-		imshow("EyeL", (cutoutLFace)(eyesCoord[0]));
-		//eyes->push_back(Mat(cutoutLFace, ));
+		Mat leftEye = Mat(cutoutLFace,eyesCoord[0]);
+		Rect eyeRoiL = Rect(0,(size_t)(leftEye.rows*0.18), leftEye.cols, (size_t)(leftEye.rows-(leftEye.rows*0.18)));
+		eyes->push_back(Mat(leftEye, eyeRoiL));
 	}
 	//Clear and reuse matrix
 	eyesCoord.clear();
-	eyeDetector.detectMultiScale(cutoutRFace, eyesCoord, 1.1, 3, 0, CvSize(40,40));
+	eyeRDetector.detectMultiScale(cutoutRFace, eyesCoord, 1.1, 3, 0, CvSize(40,40));
 	if(eyesCoord.capacity() < 1)
 	{
 		//Set Right Blink
 	}
 	else
 	{
-		Rect eyeRoiR = Rect();
-		imshow("EyeR", (cutoutRFace)(eyesCoord[0]));
-		waitKey(0);
-		//eyes->push_back(Mat(cutoutRFace, Rect(eyesCoord[0].x, eyesCoord[0].height*0.33, eyesCoord[0].width, eyesCoord[0].height*0.67)));
+		Mat rightEye = Mat(cutoutRFace,eyesCoord[0]);
+		Rect eyeRoiR = Rect(0,(size_t)(rightEye.rows*0.18), rightEye.cols, (size_t)(rightEye.rows-(rightEye.rows*0.18)));
+		eyes->push_back(Mat(rightEye,eyeRoiR));
 	}
 	return true;
 }
