@@ -12,18 +12,41 @@ void loadReferenceImages()
 
 }
 
-bool detectEyes(string pathToImage, vector<Mat> *eyes, int *eyesFlagged)
-{
-	//Testing
-	//pathToImage = "Test1.jpg";
 
-	//Code
-	CascadeClassifier eyeLDetector, eyeRDetector;
-	CascadeClassifier faceDetector;
+
+bool initEyeLogic()
+{
+	//If previous storage
+	loadReferenceImages();
+	return false;
+}
+
+bool setupEyeLogic()
+{
+	//runs setup sequence
+	return false;
+}
+
+bool runEyeLogic(/* Other Arguments */float * mouseMoveValues)
+{
+	if(referenceLoaded)
+	{
+		//detectEyes();
+		//approximateAngle();
+		//angleToMouseMov();
+	}
+	return false;
+}
+
+EyeLogicAlg::EyeLogicAlg()
+{
 	eyeLDetector.load("haarcascade_lefteye_2splits.xml");
 	eyeRDetector.load("haarcascade_righteye_2splits.xml");
 	faceDetector.load("haarcascade_frontalface_default.xml");
-	//Mat * eyesDetected = (Mat *)malloc(sizeof(Mat)*2);
+}
+
+bool EyeLogicAlg::detectEyes(string pathToImage)
+{
 	vector<Rect_<int> > faceCoord;
 	vector<Rect_<int> > eyesCoord;
 	
@@ -60,7 +83,7 @@ bool detectEyes(string pathToImage, vector<Mat> *eyes, int *eyesFlagged)
 	{
 		Mat leftEye = Mat(cutoutLFace,eyesCoord[0]);
 		Rect eyeRoiL = Rect(0,(size_t)(leftEye.rows*0.18), leftEye.cols, (size_t)(leftEye.rows-(leftEye.rows*0.18)));
-		eyes->push_back(Mat(leftEye, eyeRoiL));
+		captureEyes.push_back(Mat(leftEye, eyeRoiL));
 	}
 	//Clear and reuse matrix
 	eyesCoord.clear();
@@ -73,31 +96,7 @@ bool detectEyes(string pathToImage, vector<Mat> *eyes, int *eyesFlagged)
 	{
 		Mat rightEye = Mat(cutoutRFace,eyesCoord[0]);
 		Rect eyeRoiR = Rect(0,(size_t)(rightEye.rows*0.18), rightEye.cols, (size_t)(rightEye.rows-(rightEye.rows*0.18)));
-		eyes->push_back(Mat(rightEye,eyeRoiR));
+		captureEyes.push_back(Mat(rightEye,eyeRoiR));
 	}
 	return true;
-}
-
-bool initEyeLogic()
-{
-	//If previous storage
-	loadReferenceImages();
-	return false;
-}
-
-bool setupEyeLogic()
-{
-	//runs setup sequence
-	return false;
-}
-
-bool runEyeLogic(/* Other Arguments */float * mouseMoveValues)
-{
-	if(referenceLoaded)
-	{
-		//detectEyes();
-		//approximateAngle();
-		//angleToMouseMov();
-	}
-	return false;
 }
