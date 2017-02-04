@@ -9,28 +9,32 @@
 #include <iostream>
 #include <vector>
 
-//#include <ddapproach.cpp>
-//#include <algorithm2.cpp>
-
 using namespace std;
 using namespace cv;
-
-static vector<Mat> referenceLibrary; //Mat[0] Left Eye, Mat[1] Right Eye
-static Mat * captureEyes; //Mat[0] Left Eye, Mat[1] Right Eye\
 
 static bool referenceLoaded = false;
 
 Mat *loadImageAtPath(string path);
 void loadReferenceImages();
-bool detectEyes(string pathToImage, vector<Mat> *eyes, int *eyesFlagged);
+
 
 class EyeLogicAlg
 {
+
 public:
+	vector<Mat> referenceLibrary;
+	vector<Mat> captureEyes; //Mat[0] Left Eye, Mat[1] Right Eye
+
 	EyeLogicAlg();
-	bool approximateAngle(Point_<int> xyValues);
+	~EyeLogicAlg() {};
+	bool detectEyes(string pathToImage);
+	bool approximateAngle(Point_<int> *xyValues);
 	void angleToMouseMov();
-	~EyeLogicAlg();
+	
+
+private:
+	CascadeClassifier eyeLDetector, eyeRDetector;
+	CascadeClassifier faceDetector;
 	
 };
 
