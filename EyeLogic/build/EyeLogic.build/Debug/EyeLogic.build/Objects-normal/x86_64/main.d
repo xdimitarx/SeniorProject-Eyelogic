@@ -1,5 +1,5 @@
 dependencies: \
-  /Users/Dimitar/Documents/SeniorProject/EyeLogic/EyeLogic/EyeLogic/EyeLogic.cpp \
+  /Users/Dimitar/Documents/SeniorProject/EyeLogic/EyeLogic/EyeLogic/main.cpp \
   /Users/Dimitar/Documents/SeniorProject/EyeLogic/EyeLogic/EyeLogic/EyeLogic.h \
   /usr/local/include/opencv2/core/core.hpp \
   /usr/local/include/opencv2/core.hpp \

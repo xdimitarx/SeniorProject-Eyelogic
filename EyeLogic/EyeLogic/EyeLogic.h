@@ -1,38 +1,44 @@
 
 //OPENCV
-#include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/objdetect.hpp>
-#include <opencv2/imgcodecs.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/objdetect/objdetect.hpp>
+#include <opencv2/imgcodecs/imgcodecs.hpp>
+#include <opencv2/imgproc/imgproc.hpp>  
 
 //STD
 #include <iostream>
 #include <vector>
 
-//#include <algorithm.cpp>
-//#include <algorithm2.cpp>
-
 using namespace std;
 using namespace cv;
-
-static vector<Mat> referenceLibrary; //Mat[0] Left Eye, Mat[1] Right Eye
-static Mat * captureEyes; //Mat[0] Left Eye, Mat[1] Right Eye\
 
 static bool referenceLoaded = false;
 
 Mat *loadImageAtPath(string path);
 void loadReferenceImages();
-bool detectEyes(string pathToImage, vector<Mat> *eyes, int *eyesFlagged);
+
 
 class EyeLogicAlg
 {
+    
 public:
-	EyeLogicAlg();
-	virtual bool approximateAngle(Point_<int> xyValues) = 0;
-	virtual void angleToMouseMov();
-	~EyeLogicAlg();
-	
+    vector<Mat> referenceLibrary;
+    vector<Mat> captureEyes; //Mat[0] Left Eye, Mat[1] Right Eye
+    
+    EyeLogicAlg();
+    ~EyeLogicAlg() {};
+    bool detectEyes(string pathToImage);
+    //bool approximateAngle(Point_<int> *xyValues);
+    //void angleToMouseMov();
+    
+    
+private:
+    CascadeClassifier eyeLDetector, eyeRDetector;
+    CascadeClassifier faceDetector;
+    
 };
+
 void angleToMouseMov();
 
 bool initEyeLogic();

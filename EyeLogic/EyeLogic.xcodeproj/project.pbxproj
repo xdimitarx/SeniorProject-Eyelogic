@@ -31,6 +31,8 @@
 		43B2E11D1E45768A00F34F13 /* EyeLogic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EyeLogic.h; sourceTree = "<group>"; };
 		43B2E11E1E45768A00F34F13 /* haarcascade_eye_tree_eyeglasses.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = haarcascade_eye_tree_eyeglasses.xml; sourceTree = "<group>"; };
 		43B2E11F1E45768A00F34F13 /* haarcascade_frontalface_default.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = haarcascade_frontalface_default.xml; sourceTree = "<group>"; };
+		43B2E1211E45968D00F34F13 /* haarcascade_lefteye_2splits.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = haarcascade_lefteye_2splits.xml; sourceTree = "<group>"; };
+		43B2E1221E45968D00F34F13 /* haarcascade_righteye_2splits.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = haarcascade_righteye_2splits.xml; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +70,8 @@
 				43B2E11C1E45768A00F34F13 /* EyeLogic.cpp */,
 				43B2E11D1E45768A00F34F13 /* EyeLogic.h */,
 				43B2E11E1E45768A00F34F13 /* haarcascade_eye_tree_eyeglasses.xml */,
+				43B2E1211E45968D00F34F13 /* haarcascade_lefteye_2splits.xml */,
+				43B2E1221E45968D00F34F13 /* haarcascade_righteye_2splits.xml */,
 				43B2E11F1E45768A00F34F13 /* haarcascade_frontalface_default.xml */,
 			);
 			path = EyeLogic;
@@ -262,7 +266,7 @@
 			buildSettings = {
 				HEADER_SEARCH_PATHS = /usr/local/include;
 				LIBRARY_SEARCH_PATHS = (
-					/usr/local/lib,
+					"/usr/local/lib/**",
 					"$(PROJECT_DIR)",
 				);
 				OTHER_LDFLAGS = (
