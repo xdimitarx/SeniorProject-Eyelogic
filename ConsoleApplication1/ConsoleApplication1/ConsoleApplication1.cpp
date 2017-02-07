@@ -30,6 +30,7 @@ int main(int argc, char** argv)
 	ksize.width = ksize.height;
 	int sigmax = 5;
 	int sigmay = 0;
+	double lowthresh = 20;
 
 	for (;;)
 	{
@@ -44,8 +45,13 @@ int main(int argc, char** argv)
 		cvtColor(frame, framegray, CV_BGR2GRAY);
 		GaussianBlur(framegray, framegray, ksize, sigmax, sigmay);
 
+		//detect eyes using Haas classification
 		eyeDetector.detectMultiScale(framegray, eyes);
+
 		cout << eyes.size() << endl;
+
+		Canny(framegray, framegray, lowthresh, lowthresh * 3);
+
 		for (int i = 0; i < eyes.size(); i++) {
 			rectangle(framegray, Point(eyes[i].x, eyes[i].y), Point(eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height), Scalar(255));
 		}		
