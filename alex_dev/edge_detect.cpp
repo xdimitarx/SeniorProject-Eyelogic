@@ -30,7 +30,7 @@ void detectfaces(Mat img) {
   int lowthresh = 20;
   GaussianBlur(image, image, ksize, sigmax, sigmay);
 
-  Canny(image, image, lowthresh, lowthresh * 3);
+  Canny(image, image, lowthresh, lowthresh*2.5);
   // load cascade files 
   face_cascade.load("haarcascade_frontalface_default.xml");
   eye_cascade.load("haarcascade_eye.xml");
