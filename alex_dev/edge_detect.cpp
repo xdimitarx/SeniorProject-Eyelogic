@@ -27,7 +27,7 @@ void detectfaces(Mat img) {
   ksize.width = ksize.height;
   int sigmax = 10; 
   int sigmay = 0;
-  int lowthresh = 20;
+  int lowthresh = 15;
   GaussianBlur(image, image, ksize, sigmax, sigmay);
 
   Canny(image, image, lowthresh, lowthresh*2.5);
