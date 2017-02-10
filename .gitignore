@@ -34,3 +34,18 @@ sysinfo.txt
 *.dll
 *.o
 *.out
+
+
+## Xcode 
+
+## Build generated
+build/
+DerivedData/
+
+## Other
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+EyeLogic.xcodeproj/
+ipch/
