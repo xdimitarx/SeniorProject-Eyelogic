@@ -1,0 +1,21 @@
+OBJS = main.o EyeLogicAlg.o
+CC = g++
+DEBUG = -g
+CFLAGS = -Wall -w -c -std=c++11 -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_objdetect -lopencv_imgcodecs
+LIBS= -Iusr/local/lib/ 
+INC = -Iusr/local/include/ 
+
+main.out: $(OBJS)
+	$(CC) $(LIBS) $(INC) $(CFLAGS) $(OBJS) -o $@ 
+
+main.o: main.cpp EyeLogic.h
+	$(CC) $(CFLAGS) -o $@ main.cpp
+
+ddapproach.o: ddapproach.cpp EyeLogic.h
+	$(CC) $(CFLAGS) -o $@ ddapproach.cpp
+
+EyeLogicAlg.o: EyeLogic.cpp EyeLogic.h
+	$(CC) $(CFLAGS) -o $@ EyeLogic.cpp 
+
+
+
