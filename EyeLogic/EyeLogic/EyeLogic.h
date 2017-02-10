@@ -28,10 +28,12 @@ public:
     
     EyeLogicAlg();
     ~EyeLogicAlg() {};
-    bool detectEyes(string pathToImage);
+    bool detectEyes(Mat *image);
     //bool approximateAngle(Point_<int> *xyValues);
     //void angleToMouseMov();
-    
+    bool approximateAngle(Point_<int> *xyValues);
+    void angleToMouseMov();
+    Mat *cameraCapture();
     
 private:
     CascadeClassifier eyeLDetector, eyeRDetector;

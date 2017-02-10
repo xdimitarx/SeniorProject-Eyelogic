@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		431625A61E2EB90C00C9F318 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 431625A51E2EB90C00C9F318 /* main.cpp */; };
 		43B2E1201E45768A00F34F13 /* EyeLogic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43B2E11C1E45768A00F34F13 /* EyeLogic.cpp */; };
+		43FE2C2C1E4A60D500CE1074 /* ddapproach.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 43FE2C2A1E4A60D500CE1074 /* ddapproach.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -33,6 +34,7 @@
 		43B2E11F1E45768A00F34F13 /* haarcascade_frontalface_default.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = haarcascade_frontalface_default.xml; sourceTree = "<group>"; };
 		43B2E1211E45968D00F34F13 /* haarcascade_lefteye_2splits.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = haarcascade_lefteye_2splits.xml; sourceTree = "<group>"; };
 		43B2E1221E45968D00F34F13 /* haarcascade_righteye_2splits.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = haarcascade_righteye_2splits.xml; sourceTree = "<group>"; };
+		43FE2C2A1E4A60D500CE1074 /* ddapproach.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ddapproach.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,6 +68,7 @@
 			isa = PBXGroup;
 			children = (
 				431625A51E2EB90C00C9F318 /* main.cpp */,
+				43FE2C2A1E4A60D500CE1074 /* ddapproach.cpp */,
 				43B2E11B1E45768A00F34F13 /* camera.jpg */,
 				43B2E11C1E45768A00F34F13 /* EyeLogic.cpp */,
 				43B2E11D1E45768A00F34F13 /* EyeLogic.h */,
@@ -136,6 +139,7 @@
 			files = (
 				43B2E1201E45768A00F34F13 /* EyeLogic.cpp in Sources */,
 				431625A61E2EB90C00C9F318 /* main.cpp in Sources */,
+				43FE2C2C1E4A60D500CE1074 /* ddapproach.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

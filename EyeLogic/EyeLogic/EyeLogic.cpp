@@ -39,6 +39,19 @@ bool runEyeLogic(/* Other Arguments */float * mouseMoveValues)
     return false;
 }
 
+Mat *EyeLogicAlg::cameraCapture(){
+    Mat capture;
+    VideoCapture cap(0);
+    sleep(2);
+    cap.read(capture);
+    Mat *image = new Mat();
+    *image = capture;
+    imshow("ma face", *image);
+    waitKey(0);
+    return image;
+}
+
+
 EyeLogicAlg::EyeLogicAlg()
 {
     eyeLDetector.load("haarcascade_lefteye_2splits.xml");
@@ -46,24 +59,24 @@ EyeLogicAlg::EyeLogicAlg()
     faceDetector.load("haarcascade_frontalface_default.xml");
 }
 
-bool EyeLogicAlg::detectEyes(string pathToImage)
+bool EyeLogicAlg::detectEyes(Mat *image)
 {
-    
-    VideoCapture cap(0);
-    Mat capture;
-    sleep(5);
-    cap.read(capture);
-    
-    imshow("ma face", capture);
-    waitKey(0);
-    Mat *image = &capture;
-    
+
     vector<Rect_<int> > faceCoord;
     vector<Rect_<int> > eyesCoord;
 
+//    image = loadImageAtPath(pathToImage);
+//    if(image->empty())
+//    {
+//        cerr << "Cannot load image" << endl;
+//        return false;
+//    }
+    
     //Detect faces in picture
     double myTime = getTickCount();
-    faceDetector.detectMultiScale((*image), faceCoord, 1.2, 3, 0, CvSize(150,150));
+    imshow("face", *image);
+    waitKey(0);
+    faceDetector.detectMultiScale(*image, faceCoord, 1.2, 3, 0, CvSize(150,150));
     myTime = getTickCount() - myTime;
     cout << myTime/getTickFrequency() << endl;
     
@@ -72,7 +85,7 @@ bool EyeLogicAlg::detectEyes(string pathToImage)
         cerr << "Did not find any faces" << endl;
         return false;
     }
-    Mat cutoutFace = Mat((*image),faceCoord[0]);
+    Mat cutoutFace = Mat(*image,faceCoord[0]);
     Rect roiL = Rect((size_t)(cutoutFace.cols*0.1), (size_t)(cutoutFace.rows*0.2), (size_t)(cutoutFace.cols*0.4), (size_t)(cutoutFace.rows*0.30));
     Rect roiR = Rect((size_t)(cutoutFace.cols*0.5), (size_t)(cutoutFace.rows*0.2), (size_t)(cutoutFace.cols*0.4), (size_t)(cutoutFace.rows*0.30));
     Mat cutoutLFace = Mat(cutoutFace,roiL);

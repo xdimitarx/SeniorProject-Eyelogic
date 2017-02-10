@@ -4,8 +4,10 @@
 int main()
 {
     EyeLogicAlg eyeAlg;
-    if(!eyeAlg.detectEyes("camera.jpg"))
+    Mat *image = eyeAlg.cameraCapture();
+    if(!eyeAlg.detectEyes(image)){
         return 1;
+    }
     
     cout << "nope" << endl;
     
@@ -14,7 +16,7 @@ int main()
     imwrite("Test3.jpg", eyeAlg.captureEyes.at(1));
     
     Point_<int> xyValues;
-    //eyeAlg.approximateAngle(&xyValues);
+    eyeAlg.approximateAngle(&xyValues);
     
     cout << "finito" << endl;
     return 0;
