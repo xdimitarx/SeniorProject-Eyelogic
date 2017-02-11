@@ -1,3 +1,15 @@
+update Saturday Feb 11 
+- implement algorithm on still image:...
+- figure out how to get accummulator bins
+- detecting circle
+- finding argmax within circle 
+- apply to live camera feed
+
+
+
+
+
+-------------------------
 Detect eyes
 Matrix with eye (isolated)
 Apply grayscale
