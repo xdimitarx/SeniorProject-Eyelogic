@@ -74,7 +74,7 @@ bool EyeLogicAlg::detectEyes(Mat *image)
     
     //Detect faces in picture
     double myTime = getTickCount();
-    imshow("face", *image);
+    //imshow("face", *image);
     faceDetector.detectMultiScale(*image, faceCoord, 1.2, 3, 0, CvSize(150,150));
     myTime = getTickCount() - myTime;
     cout << myTime/getTickFrequency() << endl;
