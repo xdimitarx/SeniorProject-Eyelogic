@@ -1,9 +1,0 @@
-﻿  stdafx.cpp
-  dllmain.cpp
-  EyeLogic.cpp
-     Creating library d:\documents\visual studio 2015\Projects\EyeLogic\Release\EyeLogic.lib and object d:\documents\visual studio 2015\Projects\EyeLogic\Release\EyeLogic.exp
-  Generating code
-  All 4 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
-  Finished generating code
-  EyeLogic.vcxproj -> d:\documents\visual studio 2015\Projects\EyeLogic\Release\EyeLogic.dll
-  EyeLogic.vcxproj -> d:\documents\visual studio 2015\Projects\EyeLogic\Release\EyeLogic.pdb (Full PDB)
