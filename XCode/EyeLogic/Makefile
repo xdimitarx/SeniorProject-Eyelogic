@@ -1,4 +1,4 @@
-OBJS = main.o EyeLogic.o ddapproach.o
+OBJS = main.o EyeLogic.o
 CC = g++
 LIBS= -L /usr/local/lib/ 
 INC = -I /usr/local/include/ 
@@ -11,9 +11,6 @@ main.out: $(OBJS)
 
 main.o: main.cpp EyeLogic.h
 	$(CC) $(INC) $(CFLAGS) -c main.cpp
-
-ddapproach.o: ddapproach.cpp EyeLogic.h
-	$(CC) $(INC) $(CFLAGS) -c ddapproach.cpp
 
 EyeLogic.o: EyeLogic.cpp EyeLogic.h
 	$(CC) $(INC) $(CFLAGS) -c EyeLogic.cpp 
