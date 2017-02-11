@@ -2,19 +2,18 @@
 
 #include <iostream>
 
-int main()
+int main(int argc, char *argv[])
 {
     ImgFrame mainEntryPoint(Point(1920,1080));
-    if(true)
+
+    if(argc == 2)
     {
-        mainEntryPoint.insertFrame(loadImageAtPath("camera.jpg"));
+        mainEntryPoint.insertFrame(loadImageAtPath(argv[1]));
     }
     else
     {
         mainEntryPoint.insertFrame(cameraCapture());
     }
-    
-
     
     cout << "finito" << endl;
     return 0;

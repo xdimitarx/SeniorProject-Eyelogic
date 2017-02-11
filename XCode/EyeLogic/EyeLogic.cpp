@@ -48,6 +48,8 @@ bool Eye::detectKeyFeatures(Mat input)
     applyGaussian();
     if(findPupil())
     {
+        imshow("cropped1", filtered);
+        waitKey(0);
         findEyeCorner();
     }
     else
@@ -86,6 +88,8 @@ void Eye::applyGaussian()
 bool Eye::findPupil()
 {
     vector<Vec3f> circles;
+    imshow("pupil", filtered);
+    waitKey(0);
     HoughCircles(filtered, circles, CV_HOUGH_GRADIENT, 2, filtered.rows, 70, 50, 20, filtered.rows/3.0);
     if(circles.capacity() > 0)
     {
