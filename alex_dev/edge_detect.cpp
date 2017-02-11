@@ -30,7 +30,7 @@ void detectfaces(Mat img) {
   int lowthresh = 15;
   GaussianBlur(image, image, ksize, sigmax, sigmay);
 
-  Canny(image, image, lowthresh, lowthresh*2.5);
+  Canny(image, image, lowthresh, lowthresh*2);
   // load cascade files 
   face_cascade.load("haarcascade_frontalface_default.xml");
   eye_cascade.load("haarcascade_eye.xml");
@@ -43,25 +43,25 @@ void detectfaces(Mat img) {
   eye_cascade.detectMultiScale(image, eyes, 1.1, 3, 0, Size(30, 30) );
  
 
-  for (size_t i = 0; i < faces.size(); i++) {
-    Point center( faces[i].x + faces[i].width*0.5, faces[i].y + faces[i].height*0.5 );
-    // Point eye_center( eyes[i].x + eyes[i].width*0.5, eyes[i].y + eyes[i].height*0.5 );
+  // for (size_t i = 0; i < faces.size(); i++) {
+  //   Point center( faces[i].x + faces[i].width*0.5, faces[i].y + faces[i].height*0.5 );
+  //   // Point eye_center( eyes[i].x + eyes[i].width*0.5, eyes[i].y + eyes[i].height*0.5 );
 
-    Mat face = image(faces[i]);
-    // vector<Rect> eyes;
+  //   Mat face = image(faces[i]);
+  //   // vector<Rect> eyes;
 
-    // eye_cascade.detectMultiScale(image, eyes, 1.1, 3, 0, Size(30, 30) );
+  //   // eye_cascade.detectMultiScale(image, eyes, 1.1, 3, 0, Size(30, 30) );
 
-    if (eyes.size() > 0) {
-      // ellipse( image, center, Size( faces[i].width*0.5, faces[i].height*0.5), 0, 0, 360, Scalar( 255, 0, 255 ), 4, 8, 0 );
-      Point eye_center( eyes[i].x + eyes[i].width*0.5, eyes[i].y + eyes[i].height*0.5 );
-      Point face_center(faces[i].x + faces[i].width*0.5, faces[i].y + faces[i].height*0.5 );
-      ellipse( image, face_center, Size( faces[i].width*0.5, faces[i].height*0.5), 0, 0, 360, Scalar( 255, 100, 100), 4, 8, 0 );
+  //   if (eyes.size() > 0) {
+  //     // ellipse( image, center, Size( faces[i].width*0.5, faces[i].height*0.5), 0, 0, 360, Scalar( 255, 0, 255 ), 4, 8, 0 );
+  //     Point eye_center( eyes[i].x + eyes[i].width*0.5, eyes[i].y + eyes[i].height*0.5 );
+  //     Point face_center(faces[i].x + faces[i].width*0.5, faces[i].y + faces[i].height*0.5 );
+  //     ellipse( image, face_center, Size( faces[i].width*0.5, faces[i].height*0.5), 0, 0, 360, Scalar( 255, 100, 100), 4, 8, 0 );
 
-      rectangle(image, Point(eyes[i].x, eyes[i].y), Point(eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height), Scalar(255));
-    }
+  //     rectangle(image, Point(eyes[i].x, eyes[i].y), Point(eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height), Scalar(255));
+  //   }
 
-  }
+  // }
 
   imshow("Detected Face", image);
   char key = (char)waitKey(5);

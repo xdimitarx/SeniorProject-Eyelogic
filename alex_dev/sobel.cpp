@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <cmath>
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -44,8 +45,19 @@ int main()
   Mat dest;
   int gx, gy, sum;
   // Load an image
-  source = imread("img1.jpg", CV_LOAD_IMAGE_GRAYSCALE);
+  source = imread("noah.jpg", CV_LOAD_IMAGE_GRAYSCALE);
   dest = source.clone();
+
+  // Size ksize;
+  // ksize.height = 5;
+  // ksize.width = ksize.height;
+  // int sigmax = 10; 
+  // int sigmay = 0;
+  // int lowthresh = 15;
+  // GaussianBlur(dest, dest, ksize, sigmax, sigmay);
+
+
+
   if( !source.data )
   { 
     return -1; 
