@@ -12,7 +12,11 @@ int main()
 		cerr << "Failed to get camera feed" << endl;
 	}
 	*/
-	testSobel();
+	
+
+	drawBlankMat();
+
+	//testSobel();
 
 
 	return 0;
