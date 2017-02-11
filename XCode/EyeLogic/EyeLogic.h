@@ -19,6 +19,7 @@
 //STD
 #include <iostream>
 #include <vector>
+#include <math.h>
 
 using namespace std;
 using namespace cv;

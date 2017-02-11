@@ -75,7 +75,6 @@ bool EyeLogicAlg::detectEyes(Mat *image)
     //Detect faces in picture
     double myTime = getTickCount();
     imshow("face", *image);
-    waitKey(0);
     faceDetector.detectMultiScale(*image, faceCoord, 1.2, 3, 0, CvSize(150,150));
     myTime = getTickCount() - myTime;
     cout << myTime/getTickFrequency() << endl;
@@ -114,5 +113,19 @@ bool EyeLogicAlg::detectEyes(Mat *image)
         Rect eyeRoiR = Rect(0,(size_t)(rightEye.rows*0.18), rightEye.cols, (size_t)(rightEye.rows-(rightEye.rows*0.18)));
         captureEyes.push_back(Mat(rightEye,eyeRoiR));
     }
+    int minSize = min(captureEyes.at(0).rows, captureEyes.at(1).rows);
+    if(captureEyes.at(0).rows != minSize)
+    {
+        Rect cutout = Rect(0, captureEyes.at(0).rows-minSize, captureEyes.at(0).cols, minSize);
+        captureEyes.at(0) = Mat(captureEyes.at(0),cutout);
+    }
+    if(captureEyes.at(1).rows != minSize)
+    {
+        Rect cutout = Rect(0, captureEyes.at(1).rows-minSize, captureEyes.at(1).cols, minSize);
+        captureEyes.at(1) = Mat(captureEyes.at(1),cutout);
+    }
+    
+
+
     return true;
 }

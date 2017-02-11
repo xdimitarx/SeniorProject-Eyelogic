@@ -9,11 +9,10 @@ int main()
         return 1;
     }
     
-    cout << "nope" << endl;
     
     //check flags and print accordingly?
-    imwrite("Test2.jpg", eyeAlg.captureEyes.at(0));
-    imwrite("Test3.jpg", eyeAlg.captureEyes.at(1));
+    // imwrite("Test2.jpg", eyeAlg.captureEyes.at(0));
+    // imwrite("Test3.jpg", eyeAlg.captureEyes.at(1));
     
     Point_<int> xyValues;
     eyeAlg.approximateAngle(&xyValues);
