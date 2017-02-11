@@ -46,8 +46,6 @@ Mat *EyeLogicAlg::cameraCapture(){
     cap.read(capture);
     Mat *image = new Mat();
     *image = capture;
-    imshow("ma face", *image);
-    waitKey(0);
     return image;
 }
 
@@ -65,12 +63,14 @@ bool EyeLogicAlg::detectEyes(Mat *image)
     vector<Rect_<int> > faceCoord;
     vector<Rect_<int> > eyesCoord;
 
-//    image = loadImageAtPath(pathToImage);
-//    if(image->empty())
-//    {
-//        cerr << "Cannot load image" << endl;
-//        return false;
-//    }
+
+    //DOM ONLY NO WEBCAM
+   image = loadImageAtPath("camera.jpg");
+   if(image->empty())
+   {
+       cerr << "Cannot load image" << endl;
+       return false;
+   }
     
     //Detect faces in picture
     double myTime = getTickCount();
