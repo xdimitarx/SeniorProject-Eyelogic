@@ -60,6 +60,7 @@ private:
 
     Point eyeCorner;
     Point eyeCenter;
+    size_t eyeRadius;
 
     bool blink;
 
