@@ -46,6 +46,8 @@ Mat Sobel(Mat eyebox) {
 			}
 			else { val = 0; }
 			edge.at<uchar>(Point(y, x)) = (uchar)(int)val;
+
+			//(x, y) to top point is (
 		}
 	}
 
