@@ -29,6 +29,7 @@ Eye::~Eye()
 bool Eye::detectKeyFeatures(Mat input)
 {
     vector<Rect_<int> > eyesCoord;
+
     detector.detectMultiScale(input, eyesCoord, 1.1, 3, 0, CvSize(40,40));
     if(eyesCoord.capacity() <= 0)
     {
@@ -43,9 +44,10 @@ bool Eye::detectKeyFeatures(Mat input)
     original = Mat(input, eyesCoord[0]);
     cvtColor(original, filtered, CV_BGR2GRAY);
     equalHist();
-    addLighting(10);
+    addLighting(40);
     binaryThresh();
     applyGaussian();
+
     if(findPupil())
     {
         findEyeCorner();
@@ -54,7 +56,7 @@ bool Eye::detectKeyFeatures(Mat input)
     {
         //Blink??
     }
-
+    return true;
 }
 
 bool Eye::getBlink()
@@ -85,11 +87,18 @@ void Eye::applyGaussian()
 
 bool Eye::findPupil()
 {
+    Rect eyebrowCrop = Rect(0, (size_t)filtered.rows*0.4, (size_t)filtered.cols, (size_t)filtered.rows*0.5);
+    filtered = Mat(filtered, eyebrowCrop);
+
     vector<Vec3f> circles;
-    HoughCircles(filtered, circles, CV_HOUGH_GRADIENT, 2, filtered.rows, 70, 50, 20, filtered.rows/3.0);
+    HoughCircles(filtered, circles, CV_HOUGH_GRADIENT, 1.5, filtered.rows/10.0);
     if(circles.capacity() > 0)
     {
         eyeCenter = Point(cvRound(circles[0][0]), cvRound(circles[0][1]));
+        eyeRadius = cvRound(circles[0][2]);
+        circle(filtered, eyeCenter, eyeRadius, Scalar(255,255,255), 2);
+        imshow("eye", filtered);
+        waitKey(0);
         return true;
     }
     cerr << "findPupil: COULDN'T DETERMINE IRIS" << endl;
@@ -99,52 +108,95 @@ bool Eye::findPupil()
 
 bool Eye::findEyeCorner()
 {
-    /*
-    *
-    * Need to accurately determine ROI for Eye
-    *
-    */
-    Mat corner; // <------ NEED TO REPLACE
-    vector<vector<Point> > contours;
-    vector<Vec4i> hierarchy;
-    findContours(corner, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
-    for (int i = 0; i < contours.capacity(); ++i)
+    circle(filtered, eyeCenter, eyeRadius, Scalar(0,0,0), -2);
+    size_t extreme = eyeCenter.x;
+    size_t rowVal = 0;
+    if(leftEye)
     {
-        if(contourArea(contours[i]) > 30)
+        bool white = false;
+        for(int i = eyeCenter.y-eyeRadius; i > eyeCenter.y+eyeRadius; i++)
         {
-            size_t extreme;
-            if(leftEye)
+            for(int j = eyeCenter.x; j < filtered.cols; j++)
             {
-                extreme = 0;
-            }
-            else
-            {
-                extreme = corner.cols;
-            }
-            
-            for (int j = 0; j < contours[i].capacity(); ++j)
-            {
-                Point pt = contours[i][j];
-                if(leftEye)
+                if(white)
                 {
-                    if(pt.x > extreme)
+                    if(filtered.at<int>(i,j) == 0)
                     {
-                        extreme = pt.x;
-                        eyeCorner = contours[i][j];
+                        // If setting the extreme, don't check for past eyecorner
+                        if(j > extreme)
+                        {
+                            extreme = j;
+                            rowVal = i;
+                        }
+                        else if(extreme != eyeCenter.x)
+                        {
+                            if(j < extreme - (extreme - eyeCenter.x)/3)
+                            {
+                                j = filtered.cols;
+                                i = eyeCenter.y-eyeRadius;
+                            }
+                        }
+                        break;
                     }
                 }
                 else
                 {
-                    if(pt.x < extreme)
+                    if(filtered.at<int>(i,j) == 255)
                     {
-                        extreme = pt.x;
-                        eyeCorner = contours[i][j];
+                        white = true;
                     }
                 }
-                
             }
+            
         }
     }
+    else
+    {
+        bool white = false;
+        for(int i = eyeCenter.y-eyeRadius; i > eyeCenter.y+eyeRadius; i++)
+        {
+            for(int j = eyeCenter.x; j > 0; j--)
+            {
+                if(white)
+                {
+                    if(filtered.at<int>(i,j) == 0)
+                    {
+                        if(j < extreme)
+                        {
+                            extreme = j;
+                            rowVal = i;
+                        }
+                        else if(extreme != eyeCenter.x)
+                        {
+                            if(j > extreme + (eyeCenter.x - extreme)/3)
+                            {
+                                j = filtered.cols;
+                                i = eyeCenter.y-eyeRadius;
+                            }
+                        }
+                        break;
+                    }
+                }
+                else
+                {
+                    if(filtered.at<int>(i,j) == 255)
+                    {
+                        white = true;
+                    }
+                }
+            }
+            
+        }
+    }
+    if(rowVal == 0)
+    {
+        return false;
+    }
+    eyeCorner = Point(extreme, rowVal);
+    circle(filtered, eyeCorner, 4, Scalar(255,255,255), 1);
+    imshow("Final", filtered);
+    waitKey(0);
+    return true;
 }
 
 ImgFrame::ImgFrame(Point resolution) : leftEye("haarcascade_lefteye_2splits.xml", true), rightEye("haarcascade_righteye_2splits.xml", false)
@@ -182,6 +234,7 @@ Point ImgFrame:: getCursorXY()
     * To be implemented
     *
     */
+    return Point();
 }
 
 int ImgFrame::getBlink()
