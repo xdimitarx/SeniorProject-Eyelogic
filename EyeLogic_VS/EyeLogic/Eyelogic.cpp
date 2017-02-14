@@ -7,14 +7,15 @@
 
 int main()
 {
-	
+	/*
 	if (-1 == gradientAlgo()) {
 		cerr << "Failed to get camera feed" << endl;
 	}
+	*/
 
 	//testSobel();
 
-
+	irisdetect();
 	return 0;
 }
 

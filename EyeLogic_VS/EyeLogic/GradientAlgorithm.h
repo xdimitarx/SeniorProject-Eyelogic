@@ -70,6 +70,67 @@ void testSobel() {
 }
 
 void irisdetect() {
+	VideoCapture cap;
+	if (!cap.open(0))
+		return;
+
+	CascadeClassifier eyeDetector;
+	eyeDetector.load("haarcascade_eye_tree_eyeglasses.xml");
+	vector<Rect_<int>> eyes;
+
+	//Gaussian filter parameters
+	Size ksize(9,9);
+	//ksize.height = 5;
+	//ksize.width = ksize.height;
+	int sigmax = 5;
+	int sigmay = 0;
+	double lowthresh = 15;
+
+	vector<Vec3f> circles;
+
+	//Loop for getting continuous image feed and processing it
+	for (;;)
+	{
+		Mat framegray, frame, canny, roi;
+		eyes.clear();
+		cap >> frame;
+		//cap >> frameColor;
+		if (frame.empty()) break; // end of video stream	
+								  //if (frameColor.empty()) break; // end of video stream	
+
+		cvtColor(frame, framegray, CV_BGR2GRAY);
+		GaussianBlur(framegray, framegray, ksize, sigmax, sigmay);
+		circle(frame, Point(100, 100), 3, Scalar(255, 0, 166), -3);
+
+		
+		//detect eyes using Haas classification
+		eyeDetector.detectMultiScale(framegray, eyes);
+
+		cout << eyes.size() << endl;
+		//draw rectangles around eyes
+		for (int i = 0; i < eyes.size(); i++) {
+			Rect roiRect = Rect(eyes[i].x, eyes[i].y, eyes[i].width, eyes[i].height);
+			HoughCircles(roiRect, circles, CV_HOUGH_GRADIENT, 1, 10, 20, 20, 0, framegray.cols);
+			circles.size();
+
+			for (size_t i = 0; i < circles.size(); i++)
+			{
+				Point center(cvRound(circles[i][0]) + eyes[i].x, cvRound(circles[i][1]) + eyes[i].y);
+				int radius = cvRound(circles[i][2]);
+				// circle center
+				circle(frame, center, 3, Scalar(0, 255, 0), -1, 8, 0);
+				// circle outline
+				circle(frame, center, radius, Scalar(0, 0, 255), 3, 8, 0);
+			}
+			//roi.copyTo(framegray.rowRange(eyes[i].y, eyes[i].y + eyes[i].height).colRange(eyes[i].x, eyes[i].x + eyes[i].width));
+		}
+		
+
+		imshow("this is you, smile! :)", frame);
+		if (waitKey(10) == 27) break; // stop capturing by pressing ESC 
+	}
+
+
 
 }
 
