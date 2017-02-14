@@ -15,11 +15,7 @@ using namespace std;
 //Sobel filter kernelx
 float kernelx[3][3] = { { -1,  0,  1 },{ -2,  0,  2 },{ -1, 0, 1 } };
 float kernely[3][3] = { { -1, -2, -1 },{ 0,  0,  0 },{ 1, 2, 1 } };
-<<<<<<< HEAD
 int valueThresh = 20;
-=======
-int valueThresh = 100;
->>>>>>> 0001a78e24b31ac193080e1a7f52f6e596fb609d
 
 
 Mat Sobel(Mat eyebox) {
@@ -32,10 +28,6 @@ Mat Sobel(Mat eyebox) {
 
 	//Point 
 	// line( img,	start,		end,		Scalar(0, 0, 0),		thickness,		8 );
-<<<<<<< HEAD
-=======
-	cout << eyebox.rows << "      " << eyebox.cols << endl;
->>>>>>> 0001a78e24b31ac193080e1a7f52f6e596fb609d
 
 	for ( int x = 1; x < eyebox.rows - 2; x++) {
 		for (int y = 1; y < eyebox.cols - 2; y ++) {
@@ -53,11 +45,6 @@ Mat Sobel(Mat eyebox) {
 			}
 			else { val = 0; }
 			edge.at<uchar>(Point(y, x)) = (uchar)(int)val;
-<<<<<<< HEAD
-
-			//(x, y) to top point is (
-=======
->>>>>>> 0001a78e24b31ac193080e1a7f52f6e596fb609d
 		}
 	}
 
@@ -81,13 +68,10 @@ void testSobel() {
 	}
 	return;
 }
-<<<<<<< HEAD
 
 void irisdetect() {
 
 }
-=======
->>>>>>> 0001a78e24b31ac193080e1a7f52f6e596fb609d
 
 int gradientAlgo()
 {
@@ -126,13 +110,7 @@ int gradientAlgo()
 		eyeDetector.detectMultiScale(framegray, eyes);
 
 		cout << eyes.size() << endl;
-<<<<<<< HEAD
-=======
 
-		//Edge detection
-		//Canny(framegray, canny, lowthresh, lowthresh * 3);
->>>>>>> 0001a78e24b31ac193080e1a7f52f6e596fb609d
-		
 		//draw rectangles around eyes
 		for (int i = 0; i < eyes.size(); i++) {
 			Rect roiRect = Rect(eyes[i].x, eyes[i].y, eyes[i].width, eyes[i].height);
