@@ -7,14 +7,12 @@
 
 int main()
 {
-	/*
+	
 	if (-1 == gradientAlgo()) {
 		cerr << "Failed to get camera feed" << endl;
 	}
-	*/
 	
 
-	drawBlankMat();
 
 	//testSobel();
 

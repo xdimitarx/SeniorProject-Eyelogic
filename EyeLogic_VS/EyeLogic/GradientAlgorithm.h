@@ -15,7 +15,7 @@ using namespace std;
 //Sobel filter kernelx
 float kernelx[3][3] = { { -1,  0,  1 },{ -2,  0,  2 },{ -1, 0, 1 } };
 float kernely[3][3] = { { -1, -2, -1 },{ 0,  0,  0 },{ 1, 2, 1 } };
-int valueThresh = 100;
+int valueThresh = 20;
 
 
 Mat Sobel(Mat eyebox) {
@@ -28,7 +28,6 @@ Mat Sobel(Mat eyebox) {
 
 	//Point 
 	// line( img,	start,		end,		Scalar(0, 0, 0),		thickness,		8 );
-	cout << eyebox.rows << "      " << eyebox.cols << endl;
 
 	for ( int x = 1; x < eyebox.rows - 2; x++) {
 		for (int y = 1; y < eyebox.cols - 2; y ++) {
@@ -72,6 +71,10 @@ void testSobel() {
 	return;
 }
 
+void irisdetect() {
+
+}
+
 int gradientAlgo()
 {
 	VideoCapture cap;
@@ -109,9 +112,6 @@ int gradientAlgo()
 		eyeDetector.detectMultiScale(framegray, eyes);
 
 		cout << eyes.size() << endl;
-
-		//Edge detection
-		//Canny(framegray, canny, lowthresh, lowthresh * 3);
 		
 		//draw rectangles around eyes
 		for (int i = 0; i < eyes.size(); i++) {
@@ -120,7 +120,6 @@ int gradientAlgo()
 			roi.copyTo(framegray.rowRange(eyes[i].y, eyes[i].y + eyes[i].height).colRange(eyes[i].x, eyes[i].x + eyes[i].width));
 		}
 		imshow("this is you, smile! :)", framegray);
-		//imshow("this is you, smile! :)", frameColor);
 		if (waitKey(10) == 27) break; // stop capturing by pressing ESC 
 	}
 	return 0;
