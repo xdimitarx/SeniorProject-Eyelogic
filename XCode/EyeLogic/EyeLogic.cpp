@@ -56,7 +56,7 @@ bool Eye::detectKeyFeatures(Mat input)
     {
         //Blink??
     }
-    return true;
+
 }
 
 bool Eye::getBlink()
@@ -234,7 +234,6 @@ Point ImgFrame:: getCursorXY()
     * To be implemented
     *
     */
-    return Point();
 }
 
 int ImgFrame::getBlink()
