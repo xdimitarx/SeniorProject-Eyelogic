@@ -89,7 +89,7 @@ void Eye::binaryThresh()
 
 void Eye::binaryThreshForIris()
 {
-    threshold(filtered, filtforIris, 30, 255, THRESH_BINARY);
+    threshold(filtered, filtforIris, 5, 255, THRESH_BINARY_INV);
 }
 
 void Eye::applyGaussian()
@@ -99,25 +99,37 @@ void Eye::applyGaussian()
 
 bool Eye::findPupil()
 {
-    vector<Vec3f> circles;
-    HoughCircles(filtforIris, circles, CV_HOUGH_GRADIENT, 2, 10, 100, 50, filtered.rows/10.0, filtered.rows);
-    if(circles.capacity() > 0)
+    vector<Vec4i> hierarchy;
+    vector<vector<Point> > contours;
+    findContours(filtforIris, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
+    if(contours.size() != 0)
     {
-        eyeCenter = Point(cvRound(circles[1][0]), cvRound(circles[1][1]));
-        eyeRadius = cvRound(circles[1][2]);
-        circle(filtforIris, eyeCenter, eyeRadius, Scalar(0,0,0), 2);
-        imshow("eye", filtforIris);
+        double area = 0;
+        int largest = 0;
+        for (int i = 0; i < contours.size(); ++i)
+        {
+            double calculatedArea = contourArea(contours[i], false);
+            if(calculatedArea > area)
+            {
+                largest = i;
+                area = calculatedArea;
+            }
+        }
+        Rect bounding = boundingRect(contours[largest]);
+        eyeCenter = Point(cvRound(bounding.x+bounding.width/2), cvRound(bounding.y+bounding.height/2));
+        eyeRadius = cvRound(bounding.height*1.2);
+        circle(filtered, eyeCenter, eyeRadius, Scalar(122,122,122), 2);
+        rectangle(filtered, bounding,  Scalar(122,122,122),2, 8,0);
+        imshow("eye", filtered);
         waitKey(0);
         return true;
     }
     cerr << "findPupil: COULDN'T DETERMINE IRIS" << endl;
     return false;
-
 }
 
 bool Eye::findEyeCorner()
 {
-    circle(filtered, eyeCenter, eyeRadius, Scalar(0,0,0), -2);
     size_t extreme = eyeCenter.x;
     size_t rowVal = 0;
     if(leftEye)
@@ -197,12 +209,13 @@ bool Eye::findEyeCorner()
             
         }
     }
+    cout << rowVal << endl;
     if(rowVal == 0)
     {
         return false;
     }
     eyeCorner = Point(extreme, rowVal);
-    circle(filtered, eyeCorner, 4, Scalar(255,255,255), 1);
+    circle(filtered, eyeCorner, 4, Scalar(122,122,122), 1);
     imshow("Final", filtered);
     waitKey(0);
     return true;
