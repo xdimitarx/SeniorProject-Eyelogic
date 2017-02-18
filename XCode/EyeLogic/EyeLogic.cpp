@@ -42,15 +42,16 @@ bool Eye::detectKeyFeatures(Mat input)
         return false;
     }
     original = Mat(input, eyesCoord[0]);
-    cvtColor(original, filtered, CV_BGR2GRAY);
-    
+
     //Cutout Eyebrow
-    Rect eyebrowCrop = Rect(0, (size_t)filtered.rows*0.4, (size_t)filtered.cols, (size_t)filtered.rows*0.5);
-    filtered = Mat(filtered, eyebrowCrop);
-    
+    Rect eyebrowCrop = Rect(0, (size_t)original.rows*0.4, (size_t)original.cols, (size_t)original.rows*0.5);
+    original = Mat(original, eyebrowCrop);
+
+    cvtColor(original, filtered, CV_BGR2GRAY);
     equalHist();
     binaryThreshForIris();
     applyGaussian();
+    imshow("original", original);
     imshow("yaymofo", filtforIris);
     waitKey(0);
     addLighting(40);
@@ -118,9 +119,9 @@ bool Eye::findPupil()
         Rect bounding = boundingRect(contours[largest]);
         eyeCenter = Point(cvRound(bounding.x+bounding.width/2), cvRound(bounding.y+bounding.height/2));
         eyeRadius = cvRound(bounding.height*1.2);
-        circle(filtered, eyeCenter, eyeRadius, Scalar(122,122,122), 2);
+        circle(original, eyeCenter, eyeRadius, Scalar(122,122,122), 2);
         rectangle(filtered, bounding,  Scalar(122,122,122),2, 8,0);
-        imshow("eye", filtered);
+        imshow("eye", original);
         waitKey(0);
         return true;
     }
