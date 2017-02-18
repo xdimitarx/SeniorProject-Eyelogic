@@ -51,9 +51,9 @@ bool Eye::detectKeyFeatures(Mat input)
     equalHist();
     binaryThreshForIris();
     applyGaussian();
-    imshow("original", original);
-    imshow("yaymofo", filtforIris);
-    waitKey(0);
+    // imshow("original", original);
+    // imshow("yaymofo", filtforIris);
+    // waitKey(0);
     addLighting(40);
     binaryThresh();
 
@@ -118,11 +118,11 @@ bool Eye::findPupil()
         }
         Rect bounding = boundingRect(contours[largest]);
         eyeCenter = Point(cvRound(bounding.x+bounding.width/2), cvRound(bounding.y+bounding.height/2));
-        eyeRadius = cvRound(bounding.height*1.2);
-        circle(original, eyeCenter, eyeRadius, Scalar(122,122,122), 2);
+        eyeRadius = cvRound(bounding.height*1.05);
+        circle(filtered, eyeCenter, eyeRadius, Scalar(122,122,122), 2);
         rectangle(filtered, bounding,  Scalar(122,122,122),2, 8,0);
-        imshow("eye", original);
-        waitKey(0);
+        // imshow("eye", original);
+        // waitKey(0);
         return true;
     }
     cerr << "findPupil: COULDN'T DETERMINE IRIS" << endl;
@@ -131,14 +131,18 @@ bool Eye::findPupil()
 
 bool Eye::findEyeCorner()
 {
-    size_t extreme = eyeCenter.x;
+    imshow("eyeCorner", filtered);
+    waitKey(0);
+    cout << eyeCenter.y << " " << eyeRadius << endl;
+    size_t extreme;
     size_t rowVal = 0;
     if(leftEye)
     {
-        bool white = false;
-        for(int i = eyeCenter.y-eyeRadius; i > eyeCenter.y+eyeRadius; i++)
+        extreme = eyeCenter.x+eyeRadius;
+        for(int i = eyeCenter.y; i < eyeCenter.y+eyeRadius; i++)
         {
-            for(int j = eyeCenter.x; j < filtered.cols; j++)
+            bool white = false;
+            for(int j = eyeCenter.x+eyeRadius; j < filtered.cols; j++)
             {
                 if(white)
                 {
@@ -150,15 +154,15 @@ bool Eye::findEyeCorner()
                             extreme = j;
                             rowVal = i;
                         }
-                        else if(extreme != eyeCenter.x)
+                        else if(extreme != eyeCenter.x+eyeRadius)
                         {
-                            if(j < extreme - (extreme - eyeCenter.x)/3)
+                            if(j < extreme - (extreme - (eyeCenter.x+eyeRadius))/3)
                             {
                                 j = filtered.cols;
-                                i = eyeCenter.y-eyeRadius;
+                                i = eyeCenter.y+eyeRadius;
                             }
                         }
-                        break;
+                        j = filtered.cols;
                     }
                 }
                 else
@@ -175,7 +179,7 @@ bool Eye::findEyeCorner()
     else
     {
         bool white = false;
-        for(int i = eyeCenter.y-eyeRadius; i > eyeCenter.y+eyeRadius; i++)
+        for(int i = eyeCenter.y-eyeRadius; i < eyeCenter.y+eyeRadius; i++)
         {
             for(int j = eyeCenter.x; j > 0; j--)
             {
