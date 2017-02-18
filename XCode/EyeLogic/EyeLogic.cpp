@@ -43,10 +43,18 @@ bool Eye::detectKeyFeatures(Mat input)
     }
     original = Mat(input, eyesCoord[0]);
     cvtColor(original, filtered, CV_BGR2GRAY);
+    
+    //Cutout Eyebrow
+    Rect eyebrowCrop = Rect(0, (size_t)filtered.rows*0.4, (size_t)filtered.cols, (size_t)filtered.rows*0.5);
+    filtered = Mat(filtered, eyebrowCrop);
+    
     equalHist();
+    binaryThreshForIris();
+    applyGaussian();
+    imshow("yaymofo", filtforIris);
+    waitKey(0);
     addLighting(40);
     binaryThresh();
-    applyGaussian();
 
     if(findPupil())
     {
@@ -79,25 +87,26 @@ void Eye::binaryThresh()
     threshold(filtered, filtered, 122, 255, THRESH_BINARY);
 }
 
+void Eye::binaryThreshForIris()
+{
+    threshold(filtered, filtforIris, 30, 255, THRESH_BINARY);
+}
 
 void Eye::applyGaussian()
 {
-    GaussianBlur(filtered, filtered, CvSize(3,3), 0, 0);
+    GaussianBlur(filtforIris, filtforIris, CvSize(3,3), 0, 0);
 }
 
 bool Eye::findPupil()
 {
-    Rect eyebrowCrop = Rect(0, (size_t)filtered.rows*0.4, (size_t)filtered.cols, (size_t)filtered.rows*0.5);
-    filtered = Mat(filtered, eyebrowCrop);
-
     vector<Vec3f> circles;
-    HoughCircles(filtered, circles, CV_HOUGH_GRADIENT, 1.5, filtered.rows/10.0);
+    HoughCircles(filtforIris, circles, CV_HOUGH_GRADIENT, 2, 10, 100, 50, filtered.rows/10.0, filtered.rows);
     if(circles.capacity() > 0)
     {
-        eyeCenter = Point(cvRound(circles[0][0]), cvRound(circles[0][1]));
-        eyeRadius = cvRound(circles[0][2]);
-        circle(filtered, eyeCenter, eyeRadius, Scalar(255,255,255), 2);
-        imshow("eye", filtered);
+        eyeCenter = Point(cvRound(circles[1][0]), cvRound(circles[1][1]));
+        eyeRadius = cvRound(circles[1][2]);
+        circle(filtforIris, eyeCenter, eyeRadius, Scalar(0,0,0), 2);
+        imshow("eye", filtforIris);
         waitKey(0);
         return true;
     }

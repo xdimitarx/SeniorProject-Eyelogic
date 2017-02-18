@@ -57,6 +57,7 @@ private:
 
     Mat original;
     Mat filtered;
+    Mat filtforIris;
 
     Point eyeCorner;
     Point eyeCenter;
@@ -70,6 +71,8 @@ private:
     void addLighting(int intensity);
 
     void binaryThresh();
+
+    void binaryThreshForIris();
 
     void applyGaussian();
 
