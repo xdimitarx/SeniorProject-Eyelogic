@@ -135,39 +135,39 @@ bool Eye::findEyeCorner()
     waitKey(0);
     cout << eyeCenter.y << " " << eyeRadius << endl;
     size_t extreme;
-    size_t rowVal = 0;
+    size_t rowVal;
     if(leftEye)
     {
         extreme = eyeCenter.x+eyeRadius;
-        for(int i = eyeCenter.y; i < eyeCenter.y+eyeRadius; i++)
+        for(int y = eyeCenter.y; y < eyeCenter.y+eyeRadius; y++)
         {
             bool white = false;
-            for(int j = eyeCenter.x+eyeRadius; j < filtered.cols; j++)
+            for(int x = eyeCenter.x+eyeRadius; x < filtered.cols; x++)
             {
                 if(white)
                 {
-                    if(filtered.at<int>(i,j) == 0)
+                    if(filtered.at<uchar>(y,x) == 0)
                     {
                         // If setting the extreme, don't check for past eyecorner
-                        if(j > extreme)
+                        if(x > extreme)
                         {
-                            extreme = j;
-                            rowVal = i;
+                            extreme = x;
+                            rowVal = y;
                         }
-                        else if(extreme != eyeCenter.x+eyeRadius)
-                        {
-                            if(j < extreme - (extreme - (eyeCenter.x+eyeRadius))/3)
-                            {
-                                j = filtered.cols;
-                                i = eyeCenter.y+eyeRadius;
-                            }
-                        }
-                        j = filtered.cols;
+//                        else if(extreme != eyeCenter.x+eyeRadius)
+//                        {
+//                            if(x < extreme - (extreme - (eyeCenter.x+eyeRadius))/3)
+//                            {
+//                                x = filtered.cols;
+//                                y = eyeCenter.y+eyeRadius;
+//                            }
+//                        }
+                        x = filtered.cols;
                     }
                 }
                 else
                 {
-                    if(filtered.at<int>(i,j) == 255)
+                    if(filtered.at<uchar>(y,x) == 255)
                     {
                         white = true;
                     }
@@ -178,34 +178,35 @@ bool Eye::findEyeCorner()
     }
     else
     {
-        bool white = false;
-        for(int i = eyeCenter.y-eyeRadius; i < eyeCenter.y+eyeRadius; i++)
+        extreme = eyeCenter.x-eyeRadius;
+        for(int y = eyeCenter.y; y < eyeCenter.y+eyeRadius; y++)
         {
-            for(int j = eyeCenter.x; j > 0; j--)
+            bool white = false;
+            for(int x = eyeCenter.x - eyeRadius; x > 0; x--)
             {
                 if(white)
                 {
-                    if(filtered.at<int>(i,j) == 0)
+                    if(filtered.at<uchar>(y,x) == 0)
                     {
-                        if(j < extreme)
+                        if(x < extreme)
                         {
-                            extreme = j;
-                            rowVal = i;
+                            extreme = x;
+                            rowVal = y;
                         }
-                        else if(extreme != eyeCenter.x)
-                        {
-                            if(j > extreme + (eyeCenter.x - extreme)/3)
-                            {
-                                j = filtered.cols;
-                                i = eyeCenter.y-eyeRadius;
-                            }
-                        }
+//                        else if(extreme != eyeCenter.x)
+//                        {
+//                            if(x > extreme + (eyeCenter.x - extreme)/3)
+//                            {
+//                                x = filtered.cols;
+//                                y = eyeCenter.y-eyeRadius;
+//                            }
+//                        }
                         break;
                     }
                 }
                 else
                 {
-                    if(filtered.at<int>(i,j) == 255)
+                    if(filtered.at<uchar>(y, x) == 255)
                     {
                         white = true;
                     }
@@ -220,6 +221,8 @@ bool Eye::findEyeCorner()
         return false;
     }
     eyeCorner = Point(extreme, rowVal);
+    cout << "extreme = " << extreme << endl;
+    cout << "rowVal = " << rowVal << endl;
     circle(filtered, eyeCorner, 4, Scalar(122,122,122), 1);
     imshow("Final", filtered);
     waitKey(0);
