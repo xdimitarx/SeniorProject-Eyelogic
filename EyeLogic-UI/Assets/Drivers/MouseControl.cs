@@ -29,6 +29,7 @@ public class MouseControl : MonoBehaviour
 
     public static MouseControl handle;
     public static Resolution screenResolution;
+    public static POINT pastLoc;
 
     //Starting from bottome left in 0-100%;
     public void MoveMousePercent(float x, float y)
@@ -48,15 +49,29 @@ public class MouseControl : MonoBehaviour
 
     public void click()
     {
-        POINT currentLoc;
-        GetCursorPos(out currentLoc);
-        mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_LEFTDOWN, (uint)currentLoc.X, (uint)currentLoc.Y, 0, UIntPtr.Zero);
-        Thread.Sleep(200);
-        mouse_event(MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_LEFTUP, (uint)currentLoc.X, (uint)currentLoc.Y, 0, UIntPtr.Zero);
+        mouse_event(MOUSEEVENTF_LEFTDOWN,0,0,0,UIntPtr.Zero);
+        mouse_event(MOUSEEVENTF_LEFTUP,0,0,0,UIntPtr.Zero);
+    }
+
+    public void startdrag()
+    {
+        mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, UIntPtr.Zero);
+    }
+
+    public void stopdrag()
+    {
+        mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, UIntPtr.Zero);
+    }
+
+    public void rightclick()
+    {
+        mouse_event(MOUSEEVENTF_RIGHTDOWN,0,0,0,UIntPtr.Zero);
+        mouse_event(MOUSEEVENTF_RIGHTUP,0,0,0,UIntPtr.Zero);
     }
 
     private void Start()
     {
         handle = this;
+        Application.runInBackground = true;
     }
 }

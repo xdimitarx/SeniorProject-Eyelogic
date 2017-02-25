@@ -6,7 +6,7 @@ public  class WebcamCapture : MonoBehaviour {
 
     public static WebcamCapture handle;
 
-    public static WebCamTexture webcamTexture;
+    private WebCamTexture webcamTexture;
     private Color32[] data;
      
 	// Use this for initialization
@@ -18,8 +18,14 @@ public  class WebcamCapture : MonoBehaviour {
     }
 	
 	// Update is called once per frame
-	public Color32[] GetRawImage () {
+	public Color32[] GetRawImage ()
+    {
         webcamTexture.GetPixels32(data);
         return data;
 	}
+
+    public Texture GetUnityImage()
+    {
+        return webcamTexture;
+    }
 }
