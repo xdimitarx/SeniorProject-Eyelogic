@@ -1,4 +1,6 @@
 #include "EyeLogic.h"
+#include "wtypes.h"
+#include "windows.h"
 
 Mat loadImageAtPath(string path)
 {
@@ -9,7 +11,7 @@ Mat loadImageAtPath(string path)
 Mat cameraCapture(){
     Mat capture;
     VideoCapture cap(0);
-    sleep(2);
+    waitKey(2000);
     cap.read(capture);
     return capture;
 }
@@ -17,6 +19,82 @@ Mat cameraCapture(){
 //Pouneh Aghababazadeh
 Point eyeVectorDifference(Point currentFrameEye, Point referenceFrameEye){
     return Point (currentFrameEye.x - referenceFrameEye.x, currentFrameEye.y - referenceFrameEye.y);
+}
+
+//Pouneh Aghababazadeh (whole function for getting reference images)
+void getReferenceImages()
+{
+	
+	SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
+
+	VideoCapture cap;
+	if (!cap.open(0)) {
+		cerr << "FAIL" << endl;
+		return ;
+	}
+
+	int horizontal = 0;
+	int vertical = 0;
+	RECT desktop;
+	const HWND hDesktop = GetDesktopWindow();
+	GetWindowRect(hDesktop, &desktop);
+	horizontal = desktop.right;
+	vertical = desktop.bottom;
+
+	Mat cue(vertical, horizontal, CV_8UC3);
+	Mat flash(vertical, horizontal, CV_8UC3);
+	flash = Scalar(255, 255, 255);
+
+	//Top Left
+	cue = Scalar(0, 0, 0);
+	circle(cue, Point(0 + horizontal / 20, 0 + horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+	imshow("", cue);
+	waitKey(2000);
+	imshow("", flash);
+	cap >> ref_topLeft;
+	imshow("", ref_topLeft);
+	waitKey(1000);
+
+	//Bottom Left
+	cue = Scalar(0, 0, 0);
+	circle(cue, Point(0 + horizontal / 20, vertical - horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+	imshow("", cue);
+	waitKey(2000);
+	imshow("", flash);
+	cap >> ref_bottomLeft;
+	imshow("", ref_bottomLeft);
+	waitKey(1000);
+
+	//Center
+	cue = Scalar(0, 0, 0);
+	circle(cue, Point(horizontal / 2, vertical / 2), horizontal / 20, Scalar(0, 255, 0), -1);
+	imshow("", cue);
+	waitKey(2000);
+	imshow("", flash);
+	cap >> ref_center;
+	imshow("", ref_center);
+	waitKey(1000);
+
+	//Top Right
+	cue = Scalar(0, 0, 0);
+	circle(cue, Point(horizontal - horizontal / 20, 0 + vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+	imshow("", cue);
+	waitKey(2000);
+	imshow("", flash);
+	cap >> ref_topRight;
+	imshow("", ref_topRight);
+	waitKey(1000);
+
+	//Bottom Right
+	cue = Scalar(0, 0, 0);
+	circle(cue, Point(horizontal - horizontal / 20, vertical - vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+	imshow("", cue);
+	waitKey(2000);
+	imshow("", flash);
+	cap >> ref_bottomRight;
+	imshow("", ref_bottomRight);
+	waitKey(1000);
+	
 }
 
 Eye::Eye(string pathToClassifier, bool left)
@@ -34,7 +112,7 @@ Eye::~Eye()
 Point Eye::pupilToCornerVector(Point pupil, Point corner){
     double deltaX = pupil.x - corner.x;
     double deltaY = pupil.y - corner.y;
-    return Point(deltaX, deltaY);
+    return Point((int)deltaX, (int)deltaY);
 }
 
 bool Eye::detectKeyFeatures(Mat input)

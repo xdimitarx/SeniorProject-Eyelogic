@@ -9,7 +9,7 @@
 
 #include <iostream>
 #include <cmath>
-#include<algorithm>
+#include <algorithm>
 using namespace cv;
 using namespace std;
 
@@ -203,9 +203,6 @@ void testCanny() {
 		imshow("contour", edges);
 		waitKey(10000);
 	}
-
-	
-
 }
 
 
