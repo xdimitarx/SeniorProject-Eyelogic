@@ -39,7 +39,6 @@
 using namespace std;
 using namespace cv;
 
-Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 Mat loadImageAtPath(string path);
 Mat cameraCapture();
 //Pouneh Aghababazadeh

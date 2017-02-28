@@ -1,6 +1,9 @@
+#include "stdafx.h"
 #include "EyeLogic.h"
-#include "wtypes.h"
-#include "windows.h"
+//#include "wtypes.h"
+//#include "windows.h"
+
+Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 
 Mat loadImageAtPath(string path)
 {
