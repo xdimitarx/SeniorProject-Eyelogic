@@ -13,9 +13,9 @@ int main()
 	}
 	*/
 
-	testSobel();
+	//testSobel();
 
-	//irisdetect();
+	testCanny();
 	return 0;
 }
 

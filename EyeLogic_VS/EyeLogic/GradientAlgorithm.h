@@ -9,13 +9,15 @@
 
 #include <iostream>
 #include <cmath>
+#include<algorithm>
 using namespace cv;
 using namespace std;
 
 //Sobel filter kernelx
 float kernelx[3][3] = { { -1,  0,  1 },{ -2,  0,  2 },{ -1, 0, 1 } };
 float kernely[3][3] = { { -1, -2, -1 },{ 0,  0,  0 },{ 1, 2, 1 } };
-int	valueThresh = 50;
+int	maxThresh = 20;
+int minThresh = 20;
 
 
 Mat Sobel(Mat eyebox) {
@@ -31,23 +33,26 @@ Mat Sobel(Mat eyebox) {
 	LineIterator gradLine(eyebox, Point(0,0), Point(0,0), 8);
 
 	for ( int x = 1; x <= eyebox.cols - 2; x++) {
+		//cout << x << endl;
 		for (int y = 1; y <= eyebox.rows - 2; y++) {
 			//pixel_x = eyebox.at<char>(y, x+1);
 			
 			firstPointSet = false;
 			//cout << "   " << x << "    " << y << endl;
 
-			pixel_x = (kernelx[0][0] * eyebox.at<char>(y - 1, x - 1)) + (kernelx[0][1] * eyebox.at<char>(y, x - 1)) + (kernelx[0][2] * eyebox.at<char>(y + 1, x - 1)) +
-				(kernelx[1][0] * eyebox.at<char>(y - 1, x)) + (kernelx[1][1] * eyebox.at<char>(y, x)) + (kernelx[1][2] * eyebox.at<char>(y + 1, x)) +
-				(kernelx[2][0] * eyebox.at<char>(y - 1, x + 1)) + (kernelx[2][1] * eyebox.at<char>(y, x + 1)) + (kernelx[2][2] * eyebox.at<char>(y + 1, x + 1));
+			pixel_x = (kernelx[0][0] * eyebox.at<char>(y - 1, x - 1)) + (kernelx[0][1] * eyebox.at<char>(y - 1, x )) + (kernelx[0][2] * eyebox.at<char>(y - 1, x + 1)) +
+				(kernelx[1][0] * eyebox.at<char>(y , x - 1)) + (kernelx[1][1] * eyebox.at<char>(y, x)) + (kernelx[1][2] * eyebox.at<char>(y , x + 1)) +
+				(kernelx[2][0] * eyebox.at<char>(y + 1, x - 1)) + (kernelx[2][1] * eyebox.at<char>(y + 1, x )) + (kernelx[2][2] * eyebox.at<char>(y + 1, x + 1));
 			
 
-			pixel_y = (kernely[0][0] * eyebox.at<char>(y - 1, x - 1)) + (kernely[0][1] * eyebox.at<char>(y, x - 1)) + (kernely[0][2] * eyebox.at<char>(y + 1, y - 1)) +
+			pixel_y = (kernely[0][0] * eyebox.at<char>(y - 1, x - 1)) + (kernely[0][1] * eyebox.at<char>(y, x - 1)) + (kernely[0][2] * eyebox.at<char>(y + 1, x - 1)) +
 				(kernely[1][0] * eyebox.at<char>(y - 1, x)) + (kernely[1][1] * eyebox.at<char>(y, x)) + (kernely[1][2] * eyebox.at<char>(y + 1, x)) +
 				(kernely[2][0] * eyebox.at<char>(y - 1, x + 1)) + (kernely[2][1] * eyebox.at<char>(y, x + 1)) + (kernely[2][2] * eyebox.at<char>(y + 1, x + 1));
 			
-			if (abs(pixel_x) + abs(pixel_y) > valueThresh) {
-			
+
+			val = abs(pixel_x) + abs(pixel_y);
+			if ( val > maxThresh) {
+				
 				m = (pixel_y) / (pixel_x);
 				yalpha = (int)(m*(0 - x) + y);
 				ybeta = (int)(m*(eyebox.cols - x) + y);
@@ -98,10 +103,12 @@ Mat Sobel(Mat eyebox) {
 					{
 						bins.at<uchar>(gradLine.pos()) = (bins.at<uchar>(gradLine.pos()) + 1);
 					}
+					
 			} // value threshold condition
-
-		
-
+			else {
+				val = 0;
+			}
+			edge.at<uchar>(Point(x, y)) = (uchar)(int)val;
 
 			/*
 			val = (abs(pixel_x) + abs(pixel_y));
@@ -111,36 +118,96 @@ Mat Sobel(Mat eyebox) {
 			else { val = 0; }
 			edge.at<uchar>(Point(y, x)) = (uchar)(int)val;
 			*/
-
 		}//inner for
 	}//outer for
+
+	/*
+	for (int x = 1; x <= edge.cols - 2; x++) {
+		for (int y = 1; y <= edge.rows - 2; y++) {
+			if (edge.at<uchar>(y, x) == max(edge.at<uchar>(y - 1, x - 1), max(edge.at<uchar>(y - 1, x), max(edge.at<uchar>(y - 1, x + 1), max(edge.at<uchar>(y, x - 1), max(edge.at<uchar>(y, x), max(edge.at<uchar>(y, x + 1), max(edge.at<uchar>(y + 1, x - 1), max(edge.at<uchar>(y + 1, x), edge.at<uchar>(y + 1, x + 1)))))))))) {
+				bins.at<uchar>(y, x) = edge.at<uchar>(y, x);
+				//bins.at<uchar>(y - 1, x - 1) = (uchar)0;
+				//bins.at<uchar>(y - 1, x) = (uchar)0;
+				bins.at<uchar>(y - 1, x + 1) = (uchar)0;
+				//bins.at<uchar>(y, x - 1) = (uchar)0;
+				bins.at<uchar>(y, x + 1) = (uchar)0;
+				bins.at<uchar>(y + 1, x - 1) = (uchar)0;
+				bins.at<uchar>(y + 1, x) = (uchar)0;
+				bins.at<uchar>(y + 1, x + 1) = (uchar)0;
+			}
+		}
+	}
+	*/
+
+	//imshow("", bins);
 	cout << "Exit Sobel function" << endl;
 
+	imshow("first", edge);
+	//imshow("second", bins);
 
-	return bins;
-	//return edge;
+	waitKey(10000);
+
+	//return bins;
+	return edge;
 }
 
 void testSobel() {
+	VideoCapture cap;
+	if (!cap.open(0))
+		return;
+	namedWindow("", WINDOW_NORMAL);
+	Mat color, gray, edges;
+		cap >> color;
+		cvtColor(color, gray, CV_BGR2GRAY);
+		edges = Sobel(gray);
+		waitKey(10000);
+
+	return;
+}
+
+Mat cannyEye(Mat eyebox) {
+	Mat edge;
+	Canny(eyebox, edge, 50, 80, 3);
+	return edge;
+}
+
+void testCanny() {
+	double alpha = 1.2;
 	
 	VideoCapture cap;
 	if (!cap.open(0))
 		return;
 	namedWindow("", WINDOW_NORMAL);
 	Mat color, gray, edges;
-	//for (;;) {
-		cap >> color;
-		cvtColor(color, gray, CV_BGR2GRAY);
-		edges = Sobel(gray);
-		imshow("this is you, smile! :)", edges);
-		imshow("original", color);
+	cap >> color;
+
+	CascadeClassifier eyeDetector;
+	eyeDetector.load("haarcascade_eye_tree_eyeglasses.xml");
+	vector<Rect_<int>> eyes;
+
+	cvtColor(color, gray, CV_BGR2GRAY);
+	GaussianBlur(gray, gray, Size(6,6), 7,7);
+
+	for (int x = 0; x < gray.cols; x++) {
+		for (int y = 0; y < gray.rows; y++) {
+			gray.at<uchar>(y, x) = alpha* gray.at<uchar>(y, x);
+		}
+	}
+
+	//detect eyes using Haas classification
+	eyeDetector.detectMultiScale(gray, eyes);
+	for (int i = 0; i < eyes.size(); i++) {
+		Rect roiRect = Rect(eyes[i].x, eyes[i].y, eyes[i].width, eyes[i].height);
+		edges = cannyEye(Mat(gray,roiRect));
+		imshow("orig", Mat(gray, roiRect));
+		imshow("contour", edges);
 		waitKey(10000);
-	//	if (waitKey(10) == 27) break;
-	//}
+	}
+
 	
 
-	return;
 }
+
 
 
 int gradientAlgo()

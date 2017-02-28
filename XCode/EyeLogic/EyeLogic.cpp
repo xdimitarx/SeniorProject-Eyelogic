@@ -14,6 +14,10 @@ Mat cameraCapture(){
     return capture;
 }
 
+//Pouneh Aghababazadeh
+Point eyeVectorDifference(Point currentFrameEye, Point referenceFrameEye){
+    return Point (currentFrameEye.x - referenceFrameEye.x, currentFrameEye.y - referenceFrameEye.y);
+}
 
 Eye::Eye(string pathToClassifier, bool left)
 {
@@ -24,6 +28,13 @@ Eye::Eye(string pathToClassifier, bool left)
 Eye::~Eye()
 {
 
+}
+
+//Pouneh Aghababazadeh
+Point Eye::pupilToCornerVector(Point pupil, Point corner){
+    double deltaX = pupil.x - corner.x;
+    double deltaY = pupil.y - corner.y;
+    return Point(deltaX, deltaY);
 }
 
 bool Eye::detectKeyFeatures(Mat input)
@@ -57,7 +68,9 @@ bool Eye::detectKeyFeatures(Mat input)
     addLighting(40);
     binaryThresh();
 
-    if(findPupil())
+    //Pouneh Aghababazadeh
+    if(findPupil().x > -1)
+    //if(findPupil())
     {
         findEyeCorner();
     }
@@ -98,8 +111,11 @@ void Eye::applyGaussian()
     GaussianBlur(filtforIris, filtforIris, CvSize(3,3), 0, 0);
 }
 
-bool Eye::findPupil()
+//bool Eye::findPupil()
+//Pouneh Aghababazadeh - changed function header from bool to point and modified lines in function accordingly
+Point Eye::findPupil()
 {
+    Point eyeCenter = Point( -1, -1);
     vector<Vec4i> hierarchy;
     vector<vector<Point> > contours;
     findContours(filtforIris, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
@@ -123,19 +139,28 @@ bool Eye::findPupil()
         rectangle(filtered, bounding,  Scalar(122,122,122),2, 8,0);
         // imshow("eye", original);
         // waitKey(0);
-        return true;
+
+        //Pouneh Aghababazadeh
+        return eyeCenter;
+        //return true;
     }
     cerr << "findPupil: COULDN'T DETERMINE IRIS" << endl;
-    return false;
+    //Pouneh Aghababazadeh
+    return eyeCenter;
+    //return false;
 }
 
-bool Eye::findEyeCorner()
+//bool Eye::findEyeCorner()
+Point Eye::findEyeCorner()
 {
     imshow("eyeCorner", filtered);
     waitKey(0);
     cout << eyeCenter.y << " " << eyeRadius << endl;
     size_t extreme;
     size_t rowVal;
+
+    //line added by pouneh
+    eyeCorner = Point(-1, -1);
     if(leftEye)
     {
         extreme = eyeCenter.x+eyeRadius;
@@ -218,7 +243,8 @@ bool Eye::findEyeCorner()
     cout << rowVal << endl;
     if(rowVal == 0)
     {
-        return false;
+        return eyeCorner;
+        //return false;
     }
     eyeCorner = Point(extreme, rowVal);
     cout << "extreme = " << extreme << endl;
@@ -226,7 +252,9 @@ bool Eye::findEyeCorner()
     circle(filtered, eyeCorner, 4, Scalar(122,122,122), 1);
     imshow("Final", filtered);
     waitKey(0);
-    return true;
+    //Pouneh Aghababazadeh
+    return eyeCorner;
+    //return true;
 }
 
 ImgFrame::ImgFrame(Point resolution) : leftEye("haarcascade_lefteye_2splits.xml", true), rightEye("haarcascade_righteye_2splits.xml", false)

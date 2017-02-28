@@ -35,12 +35,17 @@ using namespace cv;
 
 Mat loadImageAtPath(string path);
 Mat cameraCapture();
+//Pouneh Aghababazadeh
+Point eyeVectorDifference(Point currentFrameEye, Point referenceFrameEye);
 
 class Eye
 {
 public:
     Eye(string pathToClassifier, bool left);
     ~Eye();
+
+    //Pouneh Aghababazadeh
+    Point pupilToCornerVector(Point pupil, Point corner)
 
     //Cuts Out Eye from half image
     //left is true if using the users left half
@@ -76,9 +81,13 @@ private:
 
     void applyGaussian();
 
-    bool findPupil();
+    //Pouneh Aghababazadeh
+    Point findPupil();
+    //bool findPupil();
 
-    bool findEyeCorner();
+    //Pouneh Aghababazadeh
+    Point findEyeCorner();
+    //bool findEyeCorner();
 };
 
 class ImgFrame
