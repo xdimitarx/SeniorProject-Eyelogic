@@ -1,4 +1,9 @@
+#include "stdafx.h"
 #include "EyeLogic.h"
+//#include "wtypes.h"
+//#include "windows.h"
+
+Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 
 Mat loadImageAtPath(string path)
 {
@@ -9,11 +14,91 @@ Mat loadImageAtPath(string path)
 Mat cameraCapture(){
     Mat capture;
     VideoCapture cap(0);
-    sleep(2);
+    waitKey(2000);
     cap.read(capture);
     return capture;
 }
 
+//Pouneh Aghababazadeh
+Point eyeVectorDifference(Point currentFrameEye, Point referenceFrameEye){
+    return Point (currentFrameEye.x - referenceFrameEye.x, currentFrameEye.y - referenceFrameEye.y);
+}
+
+//Pouneh Aghababazadeh (whole function for getting reference images)
+void getReferenceImages()
+{
+	
+	SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
+
+	VideoCapture cap;
+	if (!cap.open(0)) {
+		cerr << "FAIL" << endl;
+		return ;
+	}
+
+	int horizontal = 0;
+	int vertical = 0;
+	RECT desktop;
+	const HWND hDesktop = GetDesktopWindow();
+	GetWindowRect(hDesktop, &desktop);
+	horizontal = desktop.right;
+	vertical = desktop.bottom;
+
+	Mat cue(vertical, horizontal, CV_8UC3);
+	Mat flash(vertical, horizontal, CV_8UC3);
+	flash = Scalar(255, 255, 255);
+
+	//Top Left
+	cue = Scalar(0, 0, 0);
+	circle(cue, Point(0 + horizontal / 20, 0 + horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+	imshow("", cue);
+	waitKey(2000);
+	imshow("", flash);
+	cap >> ref_topLeft;
+	imshow("", ref_topLeft);
+	waitKey(1000);
+
+	//Bottom Left
+	cue = Scalar(0, 0, 0);
+	circle(cue, Point(0 + horizontal / 20, vertical - horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+	imshow("", cue);
+	waitKey(2000);
+	imshow("", flash);
+	cap >> ref_bottomLeft;
+	imshow("", ref_bottomLeft);
+	waitKey(1000);
+
+	//Center
+	cue = Scalar(0, 0, 0);
+	circle(cue, Point(horizontal / 2, vertical / 2), horizontal / 20, Scalar(0, 255, 0), -1);
+	imshow("", cue);
+	waitKey(2000);
+	imshow("", flash);
+	cap >> ref_center;
+	imshow("", ref_center);
+	waitKey(1000);
+
+	//Top Right
+	cue = Scalar(0, 0, 0);
+	circle(cue, Point(horizontal - horizontal / 20, 0 + vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+	imshow("", cue);
+	waitKey(2000);
+	imshow("", flash);
+	cap >> ref_topRight;
+	imshow("", ref_topRight);
+	waitKey(1000);
+
+	//Bottom Right
+	cue = Scalar(0, 0, 0);
+	circle(cue, Point(horizontal - horizontal / 20, vertical - vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+	imshow("", cue);
+	waitKey(2000);
+	imshow("", flash);
+	cap >> ref_bottomRight;
+	imshow("", ref_bottomRight);
+	waitKey(1000);
+	
+}
 
 Eye::Eye(string pathToClassifier, bool left)
 {
@@ -24,6 +109,13 @@ Eye::Eye(string pathToClassifier, bool left)
 Eye::~Eye()
 {
 
+}
+
+//Pouneh Aghababazadeh
+Point Eye::pupilToCornerVector(Point pupil, Point corner){
+    double deltaX = pupil.x - corner.x;
+    double deltaY = pupil.y - corner.y;
+    return Point((int)deltaX, (int)deltaY);
 }
 
 bool Eye::detectKeyFeatures(Mat input)
@@ -57,7 +149,9 @@ bool Eye::detectKeyFeatures(Mat input)
     addLighting(40);
     binaryThresh();
 
-    if(findPupil())
+    //Pouneh Aghababazadeh
+    if(findPupil().x > -1)
+    //if(findPupil())
     {
         findEyeCorner();
     }
@@ -98,8 +192,11 @@ void Eye::applyGaussian()
     GaussianBlur(filtforIris, filtforIris, CvSize(3,3), 0, 0);
 }
 
-bool Eye::findPupil()
+//bool Eye::findPupil()
+//Pouneh Aghababazadeh - changed function header from bool to point and modified lines in function accordingly
+Point Eye::findPupil()
 {
+    Point eyeCenter = Point( -1, -1);
     vector<Vec4i> hierarchy;
     vector<vector<Point> > contours;
     findContours(filtforIris, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
@@ -123,19 +220,28 @@ bool Eye::findPupil()
         rectangle(filtered, bounding,  Scalar(122,122,122),2, 8,0);
         // imshow("eye", original);
         // waitKey(0);
-        return true;
+
+        //Pouneh Aghababazadeh
+        return eyeCenter;
+        //return true;
     }
     cerr << "findPupil: COULDN'T DETERMINE IRIS" << endl;
-    return false;
+    //Pouneh Aghababazadeh
+    return eyeCenter;
+    //return false;
 }
 
-bool Eye::findEyeCorner()
+//bool Eye::findEyeCorner()
+Point Eye::findEyeCorner()
 {
     imshow("eyeCorner", filtered);
     waitKey(0);
     cout << eyeCenter.y << " " << eyeRadius << endl;
     size_t extreme;
     size_t rowVal;
+
+    //line added by pouneh
+    eyeCorner = Point(-1, -1);
     if(leftEye)
     {
         extreme = eyeCenter.x+eyeRadius;
@@ -218,7 +324,8 @@ bool Eye::findEyeCorner()
     cout << rowVal << endl;
     if(rowVal == 0)
     {
-        return false;
+        return eyeCorner;
+        //return false;
     }
     eyeCorner = Point(extreme, rowVal);
     cout << "extreme = " << extreme << endl;
@@ -226,7 +333,9 @@ bool Eye::findEyeCorner()
     circle(filtered, eyeCorner, 4, Scalar(122,122,122), 1);
     imshow("Final", filtered);
     waitKey(0);
-    return true;
+    //Pouneh Aghababazadeh
+    return eyeCorner;
+    //return true;
 }
 
 ImgFrame::ImgFrame(Point resolution) : leftEye("haarcascade_lefteye_2splits.xml", true), rightEye("haarcascade_righteye_2splits.xml", false)

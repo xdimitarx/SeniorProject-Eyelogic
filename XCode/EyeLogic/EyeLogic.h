@@ -21,13 +21,19 @@
 #include <opencv2/objdetect.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+
+#include "wtypes.h"
+#include "windows.h"
 #endif
 
 //STD
 #include <iostream>
 #include <vector>
 #include <math.h>
-#include <unistd.h>
+//Pouneh Aghababazadeh - please let me know if the usage of quotation marks breaks the program. I'm hoping it's a solution
+//	that will allow me to compile in VS without changing this header file.
+#include "unistd.h"
+//
 
 
 using namespace std;
@@ -35,12 +41,18 @@ using namespace cv;
 
 Mat loadImageAtPath(string path);
 Mat cameraCapture();
+//Pouneh Aghababazadeh
+Point eyeVectorDifference(Point currentFrameEye, Point referenceFrameEye);
+void getReferenceImages();
 
 class Eye
 {
 public:
     Eye(string pathToClassifier, bool left);
     ~Eye();
+
+    //Pouneh Aghababazadeh
+	Point pupilToCornerVector(Point pupil, Point corner);
 
     //Cuts Out Eye from half image
     //left is true if using the users left half
@@ -76,9 +88,13 @@ private:
 
     void applyGaussian();
 
-    bool findPupil();
+    //Pouneh Aghababazadeh
+    Point findPupil();
+    //bool findPupil();
 
-    bool findEyeCorner();
+    //Pouneh Aghababazadeh
+    Point findEyeCorner();
+    //bool findEyeCorner();
 };
 
 class ImgFrame
