@@ -1,7 +1,7 @@
 #include "EyeLogic.hpp"
 
 extern Point screenres;
-Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
+extern Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 
 
 Mat loadImageAtPath(string path)
@@ -97,6 +97,7 @@ void getReferenceImages()
     
 }
 
+Eye::Eye(){return;};
 
 Eye::Eye(string pathToClassifier, bool left)
 {
@@ -120,6 +121,10 @@ void Eye::createEyeVector(){
     }
 }
 
+void Eye::setEyeVector(float x, float y){
+    eyeVector.x = x;
+    eyeVector.y = y;
+}
 bool Eye::detectKeyFeatures(Mat input)
 {
     vector<Rect_<int> > eyesCoord;

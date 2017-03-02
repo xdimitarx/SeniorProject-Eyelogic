@@ -43,6 +43,7 @@ class Eye
 {
 public:
     Eye(string pathToClassifier, bool left);
+    Eye();
     ~Eye();
     
     //Cuts Out Eye from half image
@@ -51,13 +52,15 @@ public:
     bool detectKeyFeatures(Mat input);
     
     Point getEyeVector(){return eyeVector;};
+    void setEyeVector(float x, float y);
     bool getBlink();
     
+    bool leftEye;
 private:
     CascadeClassifier detector;
     
     //technically right eye ---> ;)
-    bool leftEye;
+
     
     Mat original;
     Mat filtered;
