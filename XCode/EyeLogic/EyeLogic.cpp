@@ -1,9 +1,8 @@
-#include "stdafx.h"
-#include "EyeLogic.h"
-//#include "wtypes.h"
-//#include "windows.h"
+#include "EyeLogic.hpp"
 
+extern Point screenres;
 Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
+
 
 Mat loadImageAtPath(string path)
 {
@@ -14,91 +13,90 @@ Mat loadImageAtPath(string path)
 Mat cameraCapture(){
     Mat capture;
     VideoCapture cap(0);
-    waitKey(2000);
+    sleep(2);
     cap.read(capture);
     return capture;
-}
-
-//Pouneh Aghababazadeh
-Point eyeVectorDifference(Point currentFrameEye, Point referenceFrameEye){
-    return Point (currentFrameEye.x - referenceFrameEye.x, currentFrameEye.y - referenceFrameEye.y);
 }
 
 //Pouneh Aghababazadeh (whole function for getting reference images)
 void getReferenceImages()
 {
-	
-	SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
-
-	VideoCapture cap;
-	if (!cap.open(0)) {
-		cerr << "FAIL" << endl;
-		return ;
-	}
-
-	int horizontal = 0;
-	int vertical = 0;
-	RECT desktop;
-	const HWND hDesktop = GetDesktopWindow();
-	GetWindowRect(hDesktop, &desktop);
-	horizontal = desktop.right;
-	vertical = desktop.bottom;
-
-	Mat cue(vertical, horizontal, CV_8UC3);
-	Mat flash(vertical, horizontal, CV_8UC3);
-	flash = Scalar(255, 255, 255);
-
-	//Top Left
-	cue = Scalar(0, 0, 0);
-	circle(cue, Point(0 + horizontal / 20, 0 + horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
-	imshow("", cue);
-	waitKey(2000);
-	imshow("", flash);
-	cap >> ref_topLeft;
-	imshow("", ref_topLeft);
-	waitKey(1000);
-
-	//Bottom Left
-	cue = Scalar(0, 0, 0);
-	circle(cue, Point(0 + horizontal / 20, vertical - horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
-	imshow("", cue);
-	waitKey(2000);
-	imshow("", flash);
-	cap >> ref_bottomLeft;
-	imshow("", ref_bottomLeft);
-	waitKey(1000);
-
-	//Center
-	cue = Scalar(0, 0, 0);
-	circle(cue, Point(horizontal / 2, vertical / 2), horizontal / 20, Scalar(0, 255, 0), -1);
-	imshow("", cue);
-	waitKey(2000);
-	imshow("", flash);
-	cap >> ref_center;
-	imshow("", ref_center);
-	waitKey(1000);
-
-	//Top Right
-	cue = Scalar(0, 0, 0);
-	circle(cue, Point(horizontal - horizontal / 20, 0 + vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
-	imshow("", cue);
-	waitKey(2000);
-	imshow("", flash);
-	cap >> ref_topRight;
-	imshow("", ref_topRight);
-	waitKey(1000);
-
-	//Bottom Right
-	cue = Scalar(0, 0, 0);
-	circle(cue, Point(horizontal - horizontal / 20, vertical - vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
-	imshow("", cue);
-	waitKey(2000);
-	imshow("", flash);
-	cap >> ref_bottomRight;
-	imshow("", ref_bottomRight);
-	waitKey(1000);
-	
+    
+    //    SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
+    
+    VideoCapture cap;
+    if (!cap.open(0)) {
+        cerr << "FAIL" << endl;
+        return ;
+    }
+    
+    int horizontal = 0;
+    int vertical = 0;
+    //    RECT desktop;
+    //    const HWND hDesktop = GetDesktopWindow();
+    //    GetWindowRect(hDesktop, &desktop);
+    //    horizontal = desktop.right;
+    //    vertical = desktop.bottom;
+    
+    horizontal = screenres.x;
+    vertical = screenres.y;
+    
+    Mat cue(vertical, horizontal, CV_8UC3);
+    Mat flash(vertical, horizontal, CV_8UC3);
+    flash = Scalar(255, 255, 255);
+    
+    //Top Left
+    cue = Scalar(0, 0, 0);
+    circle(cue, Point(0 + horizontal / 20, 0 + horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+    imshow("", cue);
+    waitKey(2000);
+    imshow("", flash);
+    cap >> ref_topLeft;
+    imshow("", ref_topLeft);
+    waitKey(1000);
+    
+    //Bottom Left
+    cue = Scalar(0, 0, 0);
+    circle(cue, Point(0 + horizontal / 20, vertical - horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+    imshow("", cue);
+    waitKey(2000);
+    imshow("", flash);
+    cap >> ref_bottomLeft;
+    imshow("", ref_bottomLeft);
+    waitKey(1000);
+    
+    //Center
+    cue = Scalar(0, 0, 0);
+    circle(cue, Point(horizontal / 2, vertical / 2), horizontal / 20, Scalar(0, 255, 0), -1);
+    imshow("", cue);
+    waitKey(2000);
+    imshow("", flash);
+    cap >> ref_center;
+    imshow("", ref_center);
+    waitKey(1000);
+    
+    //Top Right
+    cue = Scalar(0, 0, 0);
+    circle(cue, Point(horizontal - horizontal / 20, 0 + vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+    imshow("", cue);
+    waitKey(2000);
+    imshow("", flash);
+    cap >> ref_topRight;
+    imshow("", ref_topRight);
+    waitKey(1000);
+    
+    //Bottom Right
+    cue = Scalar(0, 0, 0);
+    circle(cue, Point(horizontal - horizontal / 20, vertical - vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+    imshow("", cue);
+    waitKey(2000);
+    imshow("", flash);
+    cap >> ref_bottomRight;
+    imshow("", ref_bottomRight);
+    waitKey(1000);
+    
 }
+
 
 Eye::Eye(string pathToClassifier, bool left)
 {
@@ -108,20 +106,24 @@ Eye::Eye(string pathToClassifier, bool left)
 
 Eye::~Eye()
 {
-
+    
 }
 
-//Pouneh Aghababazadeh
-Point Eye::pupilToCornerVector(Point pupil, Point corner){
-    double deltaX = pupil.x - corner.x;
-    double deltaY = pupil.y - corner.y;
-    return Point((int)deltaX, (int)deltaY);
+void Eye::createEyeVector(){
+    if(leftEye){
+        eyeVector.x = eyeCenter.x - eyeCorner.x;
+        eyeVector.y = eyeCenter.y - eyeCenter.y;
+    }
+    else {
+        eyeVector.x = eyeCorner.x - eyeCenter.x;
+        eyeVector.y = eyeCorner.y - eyeCenter.y;
+    }
 }
 
 bool Eye::detectKeyFeatures(Mat input)
 {
     vector<Rect_<int> > eyesCoord;
-
+    
     detector.detectMultiScale(input, eyesCoord, 1.1, 3, 0, CvSize(40,40));
     if(eyesCoord.capacity() <= 0)
     {
@@ -134,26 +136,34 @@ bool Eye::detectKeyFeatures(Mat input)
         return false;
     }
     original = Mat(input, eyesCoord[0]);
-
+    
     //Cutout Eyebrow
     Rect eyebrowCrop = Rect(0, (size_t)original.rows*0.4, (size_t)original.cols, (size_t)original.rows*0.5);
     original = Mat(original, eyebrowCrop);
-
+    
     cvtColor(original, filtered, CV_BGR2GRAY);
     equalHist();
+    
     binaryThreshForIris();
     applyGaussian();
-    // imshow("original", original);
-    // imshow("yaymofo", filtforIris);
-    // waitKey(0);
+    //    equalHist();
+    imshow("original", original);
+    imshow("before dilate", filtforIris);
+    Mat erodeElement = getStructuringElement( MORPH_ELLIPSE,Size(4,4));
+    dilate(filtforIris,filtforIris,erodeElement);
+    equalHist();
+    equalHist();
+    imshow("after dilate", filtforIris);
+    waitKey(0);
     addLighting(40);
     binaryThresh();
-
-    //Pouneh Aghababazadeh
-    if(findPupil().x > -1)
-    //if(findPupil())
+    
+    if(findPupil())
     {
-        findEyeCorner();
+        if(findEyeCorner()){
+            createEyeVector();
+        }
+        
     }
     else
     {
@@ -184,7 +194,7 @@ void Eye::binaryThresh()
 
 void Eye::binaryThreshForIris()
 {
-    threshold(filtered, filtforIris, 5, 255, THRESH_BINARY_INV);
+    threshold(filtered, filtforIris, 10, 255, THRESH_BINARY_INV);
 }
 
 void Eye::applyGaussian()
@@ -192,21 +202,21 @@ void Eye::applyGaussian()
     GaussianBlur(filtforIris, filtforIris, CvSize(3,3), 0, 0);
 }
 
-//bool Eye::findPupil()
-//Pouneh Aghababazadeh - changed function header from bool to point and modified lines in function accordingly
-Point Eye::findPupil()
+
+
+bool Eye::findPupil()
 {
-    Point eyeCenter = Point( -1, -1);
     vector<Vec4i> hierarchy;
     vector<vector<Point> > contours;
     findContours(filtforIris, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
+    waitKey(0);
     if(contours.size() != 0)
     {
         double area = 0;
         int largest = 0;
         for (int i = 0; i < contours.size(); ++i)
         {
-            double calculatedArea = contourArea(contours[i], false);
+            double calculatedArea = contourArea(contours[i]);
             if(calculatedArea > area)
             {
                 largest = i;
@@ -220,28 +230,19 @@ Point Eye::findPupil()
         rectangle(filtered, bounding,  Scalar(122,122,122),2, 8,0);
         // imshow("eye", original);
         // waitKey(0);
-
-        //Pouneh Aghababazadeh
-        return eyeCenter;
-        //return true;
+        return true;
     }
     cerr << "findPupil: COULDN'T DETERMINE IRIS" << endl;
-    //Pouneh Aghababazadeh
-    return eyeCenter;
-    //return false;
+    return false;
 }
 
-//bool Eye::findEyeCorner()
-Point Eye::findEyeCorner()
+bool Eye::findEyeCorner()
 {
     imshow("eyeCorner", filtered);
     waitKey(0);
     cout << eyeCenter.y << " " << eyeRadius << endl;
     size_t extreme;
     size_t rowVal;
-
-    //line added by pouneh
-    eyeCorner = Point(-1, -1);
     if(leftEye)
     {
         extreme = eyeCenter.x+eyeRadius;
@@ -260,14 +261,14 @@ Point Eye::findEyeCorner()
                             extreme = x;
                             rowVal = y;
                         }
-//                        else if(extreme != eyeCenter.x+eyeRadius)
-//                        {
-//                            if(x < extreme - (extreme - (eyeCenter.x+eyeRadius))/3)
-//                            {
-//                                x = filtered.cols;
-//                                y = eyeCenter.y+eyeRadius;
-//                            }
-//                        }
+                        //                        else if(extreme != eyeCenter.x+eyeRadius)
+                        //                        {
+                        //                            if(x < extreme - (extreme - (eyeCenter.x+eyeRadius))/3)
+                        //                            {
+                        //                                x = filtered.cols;
+                        //                                y = eyeCenter.y+eyeRadius;
+                        //                            }
+                        //                        }
                         x = filtered.cols;
                     }
                 }
@@ -299,14 +300,14 @@ Point Eye::findEyeCorner()
                             extreme = x;
                             rowVal = y;
                         }
-//                        else if(extreme != eyeCenter.x)
-//                        {
-//                            if(x > extreme + (eyeCenter.x - extreme)/3)
-//                            {
-//                                x = filtered.cols;
-//                                y = eyeCenter.y-eyeRadius;
-//                            }
-//                        }
+                        //                        else if(extreme != eyeCenter.x)
+                        //                        {
+                        //                            if(x > extreme + (eyeCenter.x - extreme)/3)
+                        //                            {
+                        //                                x = filtered.cols;
+                        //                                y = eyeCenter.y-eyeRadius;
+                        //                            }
+                        //                        }
                         break;
                     }
                 }
@@ -324,8 +325,7 @@ Point Eye::findEyeCorner()
     cout << rowVal << endl;
     if(rowVal == 0)
     {
-        return eyeCorner;
-        //return false;
+        return false;
     }
     eyeCorner = Point(extreme, rowVal);
     cout << "extreme = " << extreme << endl;
@@ -333,9 +333,7 @@ Point Eye::findEyeCorner()
     circle(filtered, eyeCorner, 4, Scalar(122,122,122), 1);
     imshow("Final", filtered);
     waitKey(0);
-    //Pouneh Aghababazadeh
-    return eyeCorner;
-    //return true;
+    return true;
 }
 
 ImgFrame::ImgFrame(Point resolution) : leftEye("haarcascade_lefteye_2splits.xml", true), rightEye("haarcascade_righteye_2splits.xml", false)
@@ -346,7 +344,7 @@ ImgFrame::ImgFrame(Point resolution) : leftEye("haarcascade_lefteye_2splits.xml"
 
 ImgFrame::~ImgFrame()
 {
-
+    
 }
 
 bool ImgFrame::insertFrame(Mat frame)
@@ -369,10 +367,10 @@ bool ImgFrame::insertFrame(Mat frame)
 Point ImgFrame:: getCursorXY()
 {
     /*
-    *
-    * To be implemented
-    *
-    */
+     *
+     * To be implemented
+     *
+     */
     return Point();
 }
 
