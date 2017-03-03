@@ -15,6 +15,7 @@ class User {
 public:
     int user_id;
     std::vector<RefImage> user_images;
+
 };
 
 #endif /* User_h */

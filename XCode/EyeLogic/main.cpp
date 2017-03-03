@@ -15,6 +15,7 @@ Mat *refArray [] {new Mat(ref_topLeft), new Mat(ref_bottomLeft), new Mat(ref_cen
 int numRefs = 6;
 Point screenres(1920, 1080);
 std::string filenames [] {"camera.jpg", "topleft.jpg", "bottomleft.jpg", "center.jpg", "topright.jpg", "bottomright.jpg"};
+User *user = nullptr;
 
 
 

@@ -14,10 +14,12 @@
 #include <opencv2/core.hpp>
 #endif
 
+#include "EyePair.hpp"
+
 struct RefImage {
     Mat *image;
-    Point loc;
-    Point coord;
+    EyePair pair;
+    
 };
 
 #endif /* RefImage_h */
