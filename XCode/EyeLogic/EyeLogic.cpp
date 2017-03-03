@@ -150,18 +150,18 @@ bool Eye::detectKeyFeatures(Mat input)
     equalHist();
     
     binaryThreshForIris();
-    applyGaussian();
-    //    equalHist();
-    imshow("original", original);
-    imshow("before dilate", filtforIris);
     Mat erodeElement = getStructuringElement( MORPH_ELLIPSE,Size(4,4));
     dilate(filtforIris,filtforIris,erodeElement);
+
+
+    //applyGaussian();    
     equalHist();
-    equalHist();
+    addLighting(-80);
+    binaryThreshForSc();
     imshow("after dilate", filtforIris);
+    imshow("filtered", filtered);
     waitKey(0);
-    addLighting(40);
-    binaryThresh();
+    
     
     if(findPupil())
     {
@@ -192,9 +192,9 @@ void Eye::addLighting(int intensity)
     add(filtered, Scalar(intensity,intensity,intensity), filtered);
 }
 
-void Eye::binaryThresh()
+void Eye::binaryThreshForSc()
 {
-    threshold(filtered, filtered, 122, 255, THRESH_BINARY);
+    threshold(filtered, filtered, 10, 255, THRESH_BINARY);
 }
 
 void Eye::binaryThreshForIris()
@@ -251,7 +251,7 @@ bool Eye::findEyeCorner()
     if(leftEye)
     {
         extreme = eyeCenter.x+eyeRadius;
-        for(int y = eyeCenter.y; y < eyeCenter.y+eyeRadius; y++)
+        for(int y = eyeCenter.y-eyeRadius*0.5c; y < eyeCenter.y+eyeRadius; y++)
         {
             bool white = false;
             for(int x = eyeCenter.x+eyeRadius; x < filtered.cols; x++)
@@ -265,15 +265,11 @@ bool Eye::findEyeCorner()
                         {
                             extreme = x;
                             rowVal = y;
+                        } 
+                        else if((extreme-eyeCenter.x)/10 + eyeCenter.x > x)
+                        {
+                            y = eyeCenter.y + eyeRadius;
                         }
-                        //                        else if(extreme != eyeCenter.x+eyeRadius)
-                        //                        {
-                        //                            if(x < extreme - (extreme - (eyeCenter.x+eyeRadius))/3)
-                        //                            {
-                        //                                x = filtered.cols;
-                        //                                y = eyeCenter.y+eyeRadius;
-                        //                            }
-                        //                        }
                         x = filtered.cols;
                     }
                 }

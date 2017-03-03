@@ -78,7 +78,7 @@ private:
     //+ brightens the eye, -darkens
     void addLighting(int intensity);
     
-    void binaryThresh();
+    void binaryThreshForSc();
     
     void binaryThreshForIris();
     
