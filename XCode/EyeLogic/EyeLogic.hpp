@@ -39,6 +39,9 @@ Mat loadImageAtPath(string path);
 Mat cameraCapture();
 void getReferenceImages();
 
+
+void test();
+
 class Eye
 {
 public:
@@ -68,7 +71,8 @@ private:
     
     Point eyeCorner;
     Point eyeCenter;
-    size_t eyeRadius;
+    //size_t eyeRadius;
+	int eyeRadius;
     Point eyeVector;
     
     bool blink;

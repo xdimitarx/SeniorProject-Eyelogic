@@ -1,8 +1,10 @@
+#include "stdafx.h"
 #include "EyeLogic.hpp"
 
-extern Point screenres;
-extern Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
-
+//extern Point screenres;
+Point screenres;
+//extern Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
+Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 
 Mat loadImageAtPath(string path)
 {
@@ -13,7 +15,7 @@ Mat loadImageAtPath(string path)
 Mat cameraCapture(){
     Mat capture;
     VideoCapture cap(0);
-    sleep(2);
+    //sleep(2);
     cap.read(capture);
     return capture;
 }
@@ -122,8 +124,8 @@ void Eye::createEyeVector(){
 }
 
 void Eye::setEyeVector(float x, float y){
-    eyeVector.x = x;
-    eyeVector.y = y;
+    eyeVector.x = (int) x;
+    eyeVector.y = (int) y;
 }
 bool Eye::detectKeyFeatures(Mat input)
 {
@@ -143,7 +145,7 @@ bool Eye::detectKeyFeatures(Mat input)
     original = Mat(input, eyesCoord[0]);
     
     //Cutout Eyebrow
-    Rect eyebrowCrop = Rect(0, (size_t)original.rows*0.4, (size_t)original.cols, (size_t)original.rows*0.5);
+    Rect eyebrowCrop = Rect(0, (int)(original.rows*0.4), (int)(original.cols), (int)(original.rows*0.5));
     original = Mat(original, eyebrowCrop);
     
     cvtColor(original, filtered, CV_BGR2GRAY);
@@ -251,7 +253,7 @@ bool Eye::findEyeCorner()
     if(leftEye)
     {
         extreme = eyeCenter.x+eyeRadius;
-        for(int y = eyeCenter.y-eyeRadius*0.5c; y < eyeCenter.y+eyeRadius; y++)
+        for(int y = eyeCenter.y-eyeRadius*0.5; y < eyeCenter.y+eyeRadius; y++)
         {
             bool white = false;
             for(int x = eyeCenter.x+eyeRadius; x < filtered.cols; x++)
@@ -268,7 +270,7 @@ bool Eye::findEyeCorner()
                         } 
                         else if((extreme-eyeCenter.x)/10 + eyeCenter.x > x)
                         {
-                            y = eyeCenter.y + eyeRadius;
+                            y = eyeCenter.y + (int)eyeRadius;
                         }
                         x = filtered.cols;
                     }
@@ -358,8 +360,8 @@ bool ImgFrame::insertFrame(Mat frame)
         return false;
     }
     Mat cutoutFace = Mat(frame, faceCoord[0]);
-    Rect roiL = Rect(0, (size_t)cutoutFace.rows*0.15, (size_t)cutoutFace.cols*0.5, (size_t)cutoutFace.rows*0.8);
-    Rect roiR = Rect((size_t)cutoutFace.cols*0.5, (size_t)cutoutFace.rows*0.15, (size_t)(cutoutFace.cols*0.5), (size_t)cutoutFace.rows*0.8);
+    Rect roiL = Rect(0, (int)(cutoutFace.rows*0.15), (int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.8));
+    Rect roiR = Rect((int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.15), (int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.8));
     Mat leftHalf = Mat(cutoutFace, roiL);
     Mat rightHalf = Mat(cutoutFace, roiR);
     return (leftEye.detectKeyFeatures(leftHalf) && rightEye.detectKeyFeatures(rightHalf));
