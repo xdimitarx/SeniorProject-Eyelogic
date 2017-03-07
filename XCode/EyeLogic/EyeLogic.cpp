@@ -1,9 +1,13 @@
+
+#ifdef __APPLE__
+#include "EyeLogic.hpp"
+#else
 #include "stdafx.h"
 #include "EyeLogic.hpp"
+//#endif
 
-//extern Point screenres;
-Point screenres;
-//extern Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
+
+Point screenres(1280, 800);
 Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 
 Mat loadImageAtPath(string path)
@@ -37,8 +41,6 @@ void getReferenceImages()
     //    RECT desktop;
     //    const HWND hDesktop = GetDesktopWindow();
     //    GetWindowRect(hDesktop, &desktop);
-    //    horizontal = desktop.right;
-    //    vertical = desktop.bottom;
     
     horizontal = screenres.x;
     vertical = screenres.y;
@@ -46,16 +48,16 @@ void getReferenceImages()
     Mat cue(vertical, horizontal, CV_8UC3);
     Mat flash(vertical, horizontal, CV_8UC3);
     flash = Scalar(255, 255, 255);
-    
+
+	cue = Scalar(0, 0, 0);
+
     //Top Left
     cue = Scalar(0, 0, 0);
     circle(cue, Point(0 + horizontal / 20, 0 + horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
     imshow("", cue);
     waitKey(2000);
     imshow("", flash);
-    cap >> ref_topLeft;
-    imshow("", ref_topLeft);
-    waitKey(1000);
+	waitKey(50);
     
     //Bottom Left
     cue = Scalar(0, 0, 0);
@@ -63,9 +65,8 @@ void getReferenceImages()
     imshow("", cue);
     waitKey(2000);
     imshow("", flash);
-    cap >> ref_bottomLeft;
-    imshow("", ref_bottomLeft);
-    waitKey(1000);
+	cap >> ref_topLeft;
+	waitKey(50);
     
     //Center
     cue = Scalar(0, 0, 0);
@@ -73,9 +74,8 @@ void getReferenceImages()
     imshow("", cue);
     waitKey(2000);
     imshow("", flash);
-    cap >> ref_center;
-    imshow("", ref_center);
-    waitKey(1000);
+	cap >> ref_bottomLeft;
+	waitKey(50);
     
     //Top Right
     cue = Scalar(0, 0, 0);
@@ -83,9 +83,8 @@ void getReferenceImages()
     imshow("", cue);
     waitKey(2000);
     imshow("", flash);
-    cap >> ref_topRight;
-    imshow("", ref_topRight);
-    waitKey(1000);
+	cap >> ref_center;
+	waitKey(50);
     
     //Bottom Right
     cue = Scalar(0, 0, 0);
@@ -93,10 +92,27 @@ void getReferenceImages()
     imshow("", cue);
     waitKey(2000);
     imshow("", flash);
-    cap >> ref_bottomRight;
-    imshow("", ref_bottomRight);
-    waitKey(1000);
-    
+	cap >> ref_topRight;
+	waitKey(50);
+
+
+	//hacky placeholder to get correct ordering of images
+	cue = Scalar(0, 0, 0);
+	imshow("", cue);
+	waitKey(1000);
+	cap >> ref_bottomRight;
+	waitKey(500);
+
+	imshow("", ref_topLeft);
+	waitKey(1000);
+	imshow("", ref_bottomLeft);
+	waitKey(1000);
+	imshow("", ref_center);
+	waitKey(1000);
+	imshow("", ref_topRight);
+	waitKey(1000);
+	imshow("", ref_bottomRight);
+	waitKey(1000);
 }
 
 Eye::Eye(){return;};
