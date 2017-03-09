@@ -1,4 +1,6 @@
 ﻿  Eyelogic.cpp
 c:\users\spark\desktop\193\seniorproject-eyelogic\eyelogic_vs\eyelogic\gradientalgorithm.h(193): warning C4244: '=': conversion from 'double' to 'uchar', possible loss of data
+c:\users\spark\desktop\193\seniorproject-eyelogic\eyelogic_vs\eyelogic\eyelogic.cpp(37): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
+c:\users\spark\desktop\193\seniorproject-eyelogic\eyelogic_vs\eyelogic\eyelogic.cpp(41): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
   Eyelogic.vcxproj -> C:\Users\spark\Desktop\193\SeniorProject-Eyelogic\EyeLogic_VS\x64\Debug\Eyelogic.exe
   Eyelogic.vcxproj -> C:\Users\spark\Desktop\193\SeniorProject-Eyelogic\EyeLogic_VS\x64\Debug\Eyelogic.pdb (Full PDB)
