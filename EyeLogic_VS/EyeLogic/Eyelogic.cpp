@@ -3,11 +3,24 @@
 
 #include "stdafx.h"
 
-#include "GradientAlgorithm.h"
+//#include "GradientAlgorithm.h"
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+#include "opencv2/objdetect/objdetect.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include <iostream>
+#include <cmath>
+#include <algorithm>
+
+using namespace cv;
+using namespace std;
+
 
 void cannyEdge() {
 	string file = "C:/Users/spark/Desktop/193/testframe.png";
 	Mat image, gray;
+	int maximum = -5, minimum = 1000, thresh1, thresh2; //nonsupression max
 	image = imread( file, CV_LOAD_IMAGE_COLOR);
 
 	if (!image.data)                              // Check for invalid input
@@ -17,13 +30,12 @@ void cannyEdge() {
 	}
 
 	cvtColor(image, gray, CV_BGR2GRAY);
-	Mat Gx(gray.rows, gray.cols, CV_8S);
-	Mat Gy(gray.rows, gray.cols, CV_8S);
-	Mat N(gray.rows, gray.cols, CV_8U);
+	Mat Gx(gray.rows, gray.cols, CV_8SC1);
+	Mat Gy(gray.rows, gray.cols, CV_8SC1);
+	Mat N (gray.rows, gray.cols, CV_8UC1);
 
-	float kernelx[3][3] = { { -1,  0,  1 },{ -2,  0,  2 },{ -1, 0, 1 } };
-	float kernely[3][3] = { { -1, -2, -1 },{ 0,  0,  0 },{ 1, 2, 1 } };
-
+	char kernelx[3][3] = { { -1,  0,  1 },{ -2,  0,  2 },{ -1, 0, 1 } };
+	char kernely[3][3] = { { -1, -2, -1 },{  0,  0,  0 },{  1, 2, 1 } };
 
 	//gaussian filter
 	GaussianBlur(gray, gray, Size(9,9), 5, 5);
@@ -31,16 +43,14 @@ void cannyEdge() {
 	//intensity gradient matrices (Gx, Gy)
 	for (int x = 1; x <= gray.cols - 2; x++) {
 		for (int y = 1; y <= gray.rows - 2; y++) {
-			
-			Gx.at<char>(Point( y,x))= (kernelx[0][0] * gray.at<char>(y - 1, x - 1)) + (kernelx[0][1] * gray.at<char>(y - 1, x)) + (kernelx[0][2] * gray.at<char>(y - 1, x + 1)) +
+			Gx.at<char>(Point(x, y)) = (kernelx[0][0] * gray.at<char>(y - 1, x - 1)) + (kernelx[0][1] * gray.at<char>(y - 1, x)) + (kernelx[0][2] * gray.at<char>(y - 1, x + 1)) +
 				(kernelx[1][0] * gray.at<char>(y, x - 1)) + (kernelx[1][1] * gray.at<char>(y, x)) + (kernelx[1][2] * gray.at<char>(y, x + 1)) +
 				(kernelx[2][0] * gray.at<char>(y + 1, x - 1)) + (kernelx[2][1] * gray.at<char>(y + 1, x)) + (kernelx[2][2] * gray.at<char>(y + 1, x + 1));
-
-			Gy.at<char>(Point(y, x)) = (kernely[0][0] * gray.at<char>(y - 1, x - 1)) + (kernely[0][1] * gray.at<char>(y, x - 1)) + (kernely[0][2] * gray.at<char>(y + 1, x - 1)) +
-				(kernely[1][0] * gray.at<char>(y - 1, x)) + (kernely[1][1] * gray.at<char>(y, x)) + (kernely[1][2] * gray.at<char>(y + 1, x)) +
-				(kernely[2][0] * gray.at<char>(y - 1, x + 1)) + (kernely[2][1] * gray.at<char>(y, x + 1)) + (kernely[2][2] * gray.at<char>(y + 1, x + 1));
-
-
+			
+			Gy.at<char>(Point(x, y)) = (kernely[0][0] * gray.at<char>(y - 1, x - 1)) + (kernely[0][1] * gray.at<char>(y - 1, x )) + (kernely[0][2] * gray.at<char>(y - 1, x + 1)) +
+				(kernely[1][0] * gray.at<char>(y , x - 1)) + (kernely[1][1] * gray.at<char>(y, x)) + (kernely[1][2] * gray.at<char>(y , x + 1)) +
+				(kernely[2][0] * gray.at<char>(y + 1, x - 1)) + (kernely[2][1] * gray.at<char>(y + 1, x )) + (kernely[2][2] * gray.at<char>(y + 1, x + 1));
+		
 		}//inner for
 	}//outer for
 
@@ -50,53 +60,103 @@ void cannyEdge() {
 
 	for (int x = 1; x <= gray.cols - 2; x++) {
 		for (int y = 1; y <= gray.rows - 2; y++) {
-			pg = abs(Gx.at<char>(y, x)) + Gy.at<char>(y, x);
+			pg = abs(Gx.at<char>(y, x)) + abs(Gy.at<char>(y, x));
 			if (Gx.at<char>(y, x) == 0) {
 				//theta = 90
 				pa = abs(Gx.at<char>(y - 1, x)) + abs(Gy.at<char>(y, x));
 				pb = abs(Gx.at<char>(y + 1, x)) + abs(Gy.at<char>(y + 1, x));
 			}
+			else {
+				double ratio = Gy.at<char>(y, x) / Gx.at<char>(y, x);
 
-			double ratio = Gy.at<char>(y, x) / Gx.at<char>(y, x);
+				if (ratio <= -1.8 || ratio >= 1.8) {
+					//theta = 90
+					pa = abs(Gx.at<char>(y - 1, x)) + abs(Gy.at<char>(y - 1, x));
+					pb = abs(Gx.at<char>(y + 1, x)) + abs(Gy.at<char>(y + 1, x));
+				}
+				else if (ratio >= -0.2 && ratio <= 0.2) {
+					//theta = 0
+					pa = abs(Gx.at<char>(y, x + 1)) + abs(Gy.at<char>(y, x + 1));
+					pb = abs(Gx.at<char>(y, x - 1)) + abs(Gy.at<char>(y, x - 1));
+				}
+				else if (ratio >= 0.2 && ratio <= 1.8) {
+					//theta = 45
+					pa = abs(Gx.at<char>(y - 1, x + 1)) + abs(Gy.at<char>(y - 1, x + 1));
+					pb = abs(Gx.at<char>(y + 1, x - 1)) + abs(Gy.at<char>(y + 1, x - 1));
+				}
+				else if (ratio >= -1.8 && ratio <= -0.2) {
+					//theta = 135
+					pa = abs(Gx.at<char>(y - 1, x - 1)) + abs(Gy.at<char>(y - 1, x - 1));
+					pb = abs(Gx.at<char>(y + 1, x + 1)) + abs(Gy.at<char>(y + 1, x + 1));
+				}
+			}
 
-			if (ratio < -1.8 || ratio > 1.8) {
-				//theta = 90
-				pa = abs(Gx.at<char>(y - 1, x)) + abs(Gy.at<char>(y - 1, x));
-				pb = abs(Gx.at<char>(y + 1, x)) + abs(Gy.at<char>(y + 1, x));
-			}
-			else if (ratio > -0.2 && ratio < 0.2) {
-				//theta = 0
-				pa = abs(Gx.at<char>(y , x + 1)) + abs(Gy.at<char>(y, x + 1));
-				pb = abs(Gx.at<char>(y , x - 1)) + abs(Gy.at<char>(y, x - 1));
-			}
-			else if (ratio >= 0.2 && ratio <= 1.8) {
-				//theta = 45
-				pa = abs(Gx.at<char>(y - 1, x + 1)) + abs(Gy.at<char>(y - 1, x + 1));
-				pb = abs(Gx.at<char>(y + 1, x - 1)) + abs(Gy.at<char>(y + 1, x - 1));
-			}
-			else if (ratio >= -1.8 && ratio <= -0.2) {
-				//theta = 135
-				pa = abs(Gx.at<char>(y - 1, x - 1)) + abs(Gy.at<char>(y - 1, x - 1));
-				pb = abs(Gx.at<char>(y + 1, x + 1)) + abs(Gy.at<char>(y + 1, x + 1));
-			}
-
-
-			if ((pa < pg && pg < pb) || (pb > pg && pg > pa)){
-				N.at<uchar>(Point(y, x)) = pg;
+			if ((pa <= pg && pg <= pb) || (pb >= pg && pg >= pa)){
+				if (pg > maximum) { maximum = pg; }
+				if (pg < minimum) { minimum = pg; }
+				N.at<uchar>(Point(x, y)) = pg;
 			}
 			else {
-				N.at<uchar>(Point(y, x)) = 0;
+				N.at<uchar>(Point(x, y)) = 0;
 			}
 		}//inner for
 	}//outer for
+	cout << "max after non max suppression    " << maximum << endl;
+	cout << "min after non max suppression    " << minimum << endl; 
 
+	thresh1 = max((int)(0.5 * maximum), (int)((minimum+maximum)/2));
+	thresh2 = min((int)(0.5 * maximum), (int)((minimum + maximum) / 3));
+
+	cout << "First thresh    " << thresh1 << endl;
+	cout << "Second thresh   " << thresh2 << endl;
+
+	/*
+	thresh1 = minimum + (2*(maximum - minimum))/3;
+	thresh2 = minimum + ((maximum - minimum)/3);
+
+	cout << "First thresh    " << thresh1 << endl;
+	cout << "Second thresh   " << thresh2 << endl;
+	*/
 
 	//Tracing edges with hysteresis as described by  https://rosettacode.org/wiki/Canny_edge_detector
+	//*********************************************//
+	/*
+	size_t c = 1;
+	for (int j = 1; j < N.rows - 1; j++)
+		for (int i = 1; i < N.cols - 1; i++) {
+			if (nms[c] >= tmax && out[c] == 0) { // trace edges
+				out[c] = MAX_BRIGHTNESS;
+				int nedges = 1;
+				edges[0] = c;
 
+				do {
+					nedges--;
+					const int t = edges[nedges];
 
-	
-	imshow("Hello motherfucker", gray);
-	waitKey(2000);
+					int nbs[8]; // neighbours
+					nbs[0] = t - nx;     // nn
+					nbs[1] = t + nx;     // ss
+					nbs[2] = t + 1;      // ww
+					nbs[3] = t - 1;      // ee
+					nbs[4] = nbs[0] + 1; // nw
+					nbs[5] = nbs[0] - 1; // ne
+					nbs[6] = nbs[1] + 1; // sw
+					nbs[7] = nbs[1] - 1; // se
+
+					for (int k = 0; k < 8; k++)
+						if (nms[nbs[k]] >= tmin && out[nbs[k]] == 0) {
+							out[nbs[k]] = MAX_BRIGHTNESS;
+							edges[nedges] = nbs[k];
+							nedges++;
+						}
+				} while (nedges > 0);
+			}
+			c++;
+		}
+
+	*/
+	imshow("N", N);
+	waitKey(20000);
 
 }
 
