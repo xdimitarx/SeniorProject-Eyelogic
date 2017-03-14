@@ -40,8 +40,6 @@ Mat cameraCapture();
 void getReferenceImages();
 
 
-void test();
-
 class Eye
 {
 public:

@@ -17,10 +17,13 @@ Mat loadImageAtPath(string path)
 }
 
 Mat cameraCapture(){
-    Mat capture;
-    VideoCapture cap(0);
-    //sleep(2);
-    cap.read(capture);
+	VideoCapture cap;
+	Mat capture;
+	if (!cap.open(0))
+		return capture;
+	cap >> capture;
+	//imshow("hi" ,capture);
+	//waitKey(5000);
     return capture;
 }
 
@@ -269,7 +272,7 @@ bool Eye::findEyeCorner()
     if(leftEye)
     {
         extreme = eyeCenter.x+eyeRadius;
-        for(int y = eyeCenter.y-eyeRadius*0.5; y < eyeCenter.y+eyeRadius; y++)
+        for(int y = (int)(eyeCenter.y-eyeRadius*0.5); y < eyeCenter.y+eyeRadius; y++)
         {
             bool white = false;
             for(int x = eyeCenter.x+eyeRadius; x < filtered.cols; x++)
@@ -346,7 +349,7 @@ bool Eye::findEyeCorner()
     {
         return false;
     }
-    eyeCorner = Point(extreme, rowVal);
+    eyeCorner = Point((int)extreme, (int)rowVal);
     cout << "extreme = " << extreme << endl;
     cout << "rowVal = " << rowVal << endl;
     circle(filtered, eyeCorner, 4, Scalar(122,122,122), 1);
@@ -369,7 +372,10 @@ ImgFrame::~ImgFrame()
 bool ImgFrame::insertFrame(Mat frame)
 {
     vector<Rect_<int> > faceCoord;
+
+	//THIS LINE IS BREAKING THE PROGRAM when i try to run it (exceptions) -Pouneh
     faceDetector.detectMultiScale(frame, faceCoord, 1.2, 3, 0, CvSize(150,150));
+	
     if(faceCoord.capacity() < 1)
     {
         cerr << "insertFrame: DID NOT FIND ANY FACES" << endl;
@@ -381,6 +387,8 @@ bool ImgFrame::insertFrame(Mat frame)
     Mat leftHalf = Mat(cutoutFace, roiL);
     Mat rightHalf = Mat(cutoutFace, roiR);
     return (leftEye.detectKeyFeatures(leftHalf) && rightEye.detectKeyFeatures(rightHalf));
+	
+	//return true;
 }
 
 Point ImgFrame:: getCursorXY()

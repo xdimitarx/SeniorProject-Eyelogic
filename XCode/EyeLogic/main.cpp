@@ -29,6 +29,7 @@ int main(int argc, char *argv[])
     std::string user_name = "dimitri";
     fs::path curr_path(fs::current_path());
     std::string imagedir = curr_path.string() + "/images/";
+
     
     
     /***************
