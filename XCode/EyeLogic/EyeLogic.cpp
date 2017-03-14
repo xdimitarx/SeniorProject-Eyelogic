@@ -149,7 +149,7 @@ bool Eye::detectKeyFeatures(Mat input)
     vector<Rect_<int> > eyesCoord;
     
     detector.detectMultiScale(input, eyesCoord, 1.1, 3, 0, CvSize(40,40));
-    if(eyesCoord.capacity() <= 0)
+    if(eyesCoord.size() <= 0)
     {
         string text = "right";
         if(leftEye)
@@ -179,7 +179,7 @@ bool Eye::detectKeyFeatures(Mat input)
     binaryThreshForSc();
     imshow("after dilate", filtforIris);
     imshow("filtered", filtered);
-    waitKey(0);
+    waitKey(10);
     
     
     if(findPupil())
@@ -352,7 +352,7 @@ bool Eye::findEyeCorner()
     cout << "rowVal = " << rowVal << endl;
     circle(filtered, eyeCorner, 4, Scalar(122,122,122), 1);
     imshow("Final", filtered);
-    waitKey(0);
+    waitKey(10);
     return true;
 }
 

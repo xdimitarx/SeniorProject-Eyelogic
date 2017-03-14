@@ -105,7 +105,10 @@ int main(int argc, char *argv[])
     }
     else
     {
-        mainEntryPoint.insertFrame(cameraCapture());
+		while (1) {
+			mainEntryPoint.insertFrame(cameraCapture());
+			if (waitKey(30) == '9') { break; }
+		}
     }
     
     cout << "finito" << endl;
