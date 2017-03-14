@@ -12,33 +12,167 @@
 #include <iostream>
 #include <cmath>
 #include <algorithm>
+#include <list>
 
 using namespace cv;
 using namespace std;
 
+#define MAX_BRIGHTNESS 255;
 
-void cannyEdge() {
-	string file = "C:/Users/spark/Desktop/193/testframe.png";
+Mat cannyEdge(string file, Mat& Gx, Mat& Gy);
+
+
+void cornerDetectionWithCanny() {
+	string file = "C:/Users/spark/Desktop/193/testframe3.png";
+	Mat edges, Gx, Gy;
+
+	edges = cannyEdge(file, Gx, Gy);
+	if (edges.rows == 0 || edges.cols == 0) {
+		cout << "Empty image file found" << endl;
+		return;
+	}
+
+	imshow("Edges" , edges);
+}
+
+void circleDetectWithCany() {
+	string file = "C:/Users/spark/Desktop/193/testframe2.png";
+	Mat edges, Gx, Gy;
+
+	edges = cannyEdge(file, Gx, Gy);
+	if (edges.rows == 0 || edges.cols == 0) {
+		cout << "Empty image file found" << endl;
+		return;
+	}
+
+	cout << "Canny works" << endl;
+
+	Mat bins(edges.rows, edges.cols, CV_8UC1);
+
+	list<Point> listOfCenters;
+	Point first, second;
+	LineIterator gradLine(edges, Point(0, 0), Point(0, 0), 8);
+	double m, pixel_x, pixel_y;
+	int yalpha, ybeta, xalpha, xbeta;
+	bool firstPointSet = false;
+
+	char maxCurrent = 0;
+	Point maxLocation(0, 0);
+
+	bins = Scalar(0);
+	//bins = edges.clone();
+
+	for (int y = 1; y <= edges.rows - 2; y++) {
+		for (int x = 1; x <= edges.cols - 2; x++) {
+			if (0 < edges.at<uchar>(y, x)) {
+				pixel_x = (double)Gx.at<char>(y, x);
+				pixel_y = (double)Gy.at<char>(y, x);
+				m = (pixel_y) / (pixel_x);
+				yalpha = (int)(m*(0 - x) + y);
+				ybeta = (int)(m*(edges.cols - x) + y);
+				xalpha = (int)(((0 - y) / m) + x);
+				xbeta = (int)(((edges.rows - y) / m) + x);
+
+				if (yalpha >= 0 && yalpha <= edges.rows) {
+					if (firstPointSet) {
+						second = Point(0, yalpha);
+					}
+					else {
+						first = Point(0, yalpha);
+						firstPointSet = true;
+					}
+				}
+				if (ybeta >= 0 && ybeta <= edges.rows) {
+					if (firstPointSet) {
+						second = Point(edges.cols, ybeta);
+					}
+					else {
+						first = Point(edges.cols, ybeta);
+						firstPointSet = true;
+					}
+				}
+				if (xalpha >= 0 && xalpha <= edges.cols) {
+					if (firstPointSet) {
+						second = Point(xalpha, 0);
+					}
+					else {
+						first = Point(xalpha, 0);
+						firstPointSet = true;
+					}
+				}
+				if (xbeta >= 0 && xbeta <= edges.cols) {
+					if (firstPointSet) {
+						second = Point(xbeta, edges.rows);
+					}
+					else {
+						first = Point(xbeta, edges.rows);
+						firstPointSet = true;
+					}
+				}
+				gradLine = LineIterator(edges, first, second, 8);
+
+				for (int i = 0; i < gradLine.count; i++, ++gradLine)
+				{
+					if (255 > bins.at<uchar>(gradLine.pos())) {
+						bins.at<uchar>(gradLine.pos()) = (bins.at<uchar>(gradLine.pos()) + 1);
+					}
+				}
+				firstPointSet = false;
+			}
+		}
+	}
+
+	for (int y = 1; y <= edges.rows - 2; y++) {
+		for (int x = 1; x <= edges.cols - 2; x++) {
+			if (bins.at<uchar>(y, x) > 60) {
+				listOfCenters.push_front(Point(x,y));
+			}
+		}
+	}
+
+
+	for (list<Point>::iterator it = listOfCenters.begin(); it != listOfCenters.end(); it++) {
+		circle(bins, *it , 10, Scalar(255), 5, 8);
+	}
+	cout << "number of detected centers" << listOfCenters.size() << endl;
+
+
+	//imshow("edges", edges);
+	imshow("bins", bins);
+	waitKey(20000);
+
+}
+
+Mat cannyEdge(string file, Mat& Gx, Mat& Gy) {
 	Mat image, gray;
 	int maximum = -5, minimum = 1000, thresh1, thresh2; //nonsupression max
-	image = imread( file, CV_LOAD_IMAGE_COLOR);
+	image = imread(file, CV_LOAD_IMAGE_COLOR);
 
 	if (!image.data)                              // Check for invalid input
 	{
 		cout << "Could not open or find the image" << std::endl;
-		return;
+		return image;
 	}
 
 	cvtColor(image, gray, CV_BGR2GRAY);
-	Mat Gx(gray.rows, gray.cols, CV_8SC1);
-	Mat Gy(gray.rows, gray.cols, CV_8SC1);
-	Mat N (gray.rows, gray.cols, CV_8UC1);
+	// Mat Gx(gray.rows, gray.cols, CV_8SC1);
+	// Mat Gy(gray.rows, gray.cols, CV_8SC1);
+	Gx = Mat(gray.rows, gray.cols, CV_8SC1);
+	Gy = Mat(gray.rows, gray.cols, CV_8SC1);
+	Mat N(gray.rows, gray.cols, CV_8UC1);
+	Mat out(gray.rows, gray.cols, CV_8UC1);
+	Mat edges(gray.rows, gray.cols, CV_8UC1);
+
+	Gx = Scalar(0);
+	Gy = Scalar(0);
+	N = Scalar(0);
+	out = Scalar(0);
 
 	char kernelx[3][3] = { { -1,  0,  1 },{ -2,  0,  2 },{ -1, 0, 1 } };
-	char kernely[3][3] = { { -1, -2, -1 },{  0,  0,  0 },{  1, 2, 1 } };
+	char kernely[3][3] = { { -1, -2, -1 },{ 0,  0,  0 },{ 1, 2, 1 } };
 
 	//gaussian filter
-	GaussianBlur(gray, gray, Size(9,9), 5, 5);
+	GaussianBlur(gray, gray, Size(9, 9), 5, 5);
 
 	//intensity gradient matrices (Gx, Gy)
 	for (int x = 1; x <= gray.cols - 2; x++) {
@@ -46,16 +180,16 @@ void cannyEdge() {
 			Gx.at<char>(Point(x, y)) = (kernelx[0][0] * gray.at<char>(y - 1, x - 1)) + (kernelx[0][1] * gray.at<char>(y - 1, x)) + (kernelx[0][2] * gray.at<char>(y - 1, x + 1)) +
 				(kernelx[1][0] * gray.at<char>(y, x - 1)) + (kernelx[1][1] * gray.at<char>(y, x)) + (kernelx[1][2] * gray.at<char>(y, x + 1)) +
 				(kernelx[2][0] * gray.at<char>(y + 1, x - 1)) + (kernelx[2][1] * gray.at<char>(y + 1, x)) + (kernelx[2][2] * gray.at<char>(y + 1, x + 1));
-			
-			Gy.at<char>(Point(x, y)) = (kernely[0][0] * gray.at<char>(y - 1, x - 1)) + (kernely[0][1] * gray.at<char>(y - 1, x )) + (kernely[0][2] * gray.at<char>(y - 1, x + 1)) +
-				(kernely[1][0] * gray.at<char>(y , x - 1)) + (kernely[1][1] * gray.at<char>(y, x)) + (kernely[1][2] * gray.at<char>(y , x + 1)) +
-				(kernely[2][0] * gray.at<char>(y + 1, x - 1)) + (kernely[2][1] * gray.at<char>(y + 1, x )) + (kernely[2][2] * gray.at<char>(y + 1, x + 1));
-		
+
+			Gy.at<char>(Point(x, y)) = (kernely[0][0] * gray.at<char>(y - 1, x - 1)) + (kernely[0][1] * gray.at<char>(y - 1, x)) + (kernely[0][2] * gray.at<char>(y - 1, x + 1)) +
+				(kernely[1][0] * gray.at<char>(y, x - 1)) + (kernely[1][1] * gray.at<char>(y, x)) + (kernely[1][2] * gray.at<char>(y, x + 1)) +
+				(kernely[2][0] * gray.at<char>(y + 1, x - 1)) + (kernely[2][1] * gray.at<char>(y + 1, x)) + (kernely[2][2] * gray.at<char>(y + 1, x + 1));
+
 		}//inner for
 	}//outer for
 
 
-	//non max suppression as described by https://rosettacode.org/wiki/Canny_edge_detector
+	 //non max suppression as described by https://rosettacode.org/wiki/Canny_edge_detector
 	uchar pa, pb, pg;
 
 	for (int x = 1; x <= gray.cols - 2; x++) {
@@ -91,7 +225,7 @@ void cannyEdge() {
 				}
 			}
 
-			if ((pa <= pg && pg <= pb) || (pb >= pg && pg >= pa)){
+			if ((pa <= pg && pg <= pb) || (pb >= pg && pg >= pa)) {
 				if (pg > maximum) { maximum = pg; }
 				if (pg < minimum) { minimum = pg; }
 				N.at<uchar>(Point(x, y)) = pg;
@@ -101,63 +235,55 @@ void cannyEdge() {
 			}
 		}//inner for
 	}//outer for
-	cout << "max after non max suppression    " << maximum << endl;
-	cout << "min after non max suppression    " << minimum << endl; 
 
-	thresh1 = max((int)(0.5 * maximum), (int)((minimum+maximum)/2));
-	thresh2 = min((int)(0.5 * maximum), (int)((minimum + maximum) / 3));
-
-	cout << "First thresh    " << thresh1 << endl;
-	cout << "Second thresh   " << thresh2 << endl;
-
-	/*
-	thresh1 = minimum + (2*(maximum - minimum))/3;
-	thresh2 = minimum + ((maximum - minimum)/3);
-
-	cout << "First thresh    " << thresh1 << endl;
-	cout << "Second thresh   " << thresh2 << endl;
-	*/
+	//calculate thresholds for hystersis
+	thresh1 =  (int)((minimum + maximum) / 6);
+	thresh2 =  (int)((minimum + maximum) / 10);
 
 	//Tracing edges with hysteresis as described by  https://rosettacode.org/wiki/Canny_edge_detector
 	//*********************************************//
-	/*
-	size_t c = 1;
-	for (int j = 1; j < N.rows - 1; j++)
-		for (int i = 1; i < N.cols - 1; i++) {
-			if (nms[c] >= tmax && out[c] == 0) { // trace edges
-				out[c] = MAX_BRIGHTNESS;
-				int nedges = 1;
-				edges[0] = c;
 
+	unsigned char c = 1;
+	for (int j = 1; j < N.rows - 1; j++) { // y
+		for (int i = 1; i < N.cols - 1; i++) { //x
+			if (N.at<uchar>(j, i) >= thresh1 && out.at<uchar>(j, i) == 0) { // trace edges
+				out.at<uchar>(j, i) = MAX_BRIGHTNESS;
+				int nedges = 1;
+				edges.at<uchar>(j, i) = c;
 				do {
 					nedges--;
-					const int t = edges[nedges];
-
-					int nbs[8]; // neighbours
-					nbs[0] = t - nx;     // nn
-					nbs[1] = t + nx;     // ss
-					nbs[2] = t + 1;      // ww
-					nbs[3] = t - 1;      // ee
-					nbs[4] = nbs[0] + 1; // nw
-					nbs[5] = nbs[0] - 1; // ne
-					nbs[6] = nbs[1] + 1; // sw
-					nbs[7] = nbs[1] - 1; // se
-
-					for (int k = 0; k < 8; k++)
-						if (nms[nbs[k]] >= tmin && out[nbs[k]] == 0) {
-							out[nbs[k]] = MAX_BRIGHTNESS;
-							edges[nedges] = nbs[k];
-							nedges++;
+					//const int t = edges[nedges];
+					for (int a = -1; a < 2; a++) {
+						for (int b = -1; b < 2; b++) {
+							if (a == 0 && b == 0) {
+								continue;
+							}
+							else {
+								if (i + a >= N.cols || j + b >= N.rows) {
+									break;
+								}
+								Point neighbor = Point(i + a, j + b);
+								if (N.at<uchar>(neighbor) >= thresh2 && out.at<uchar>(neighbor)) {
+									out.at<uchar>(neighbor) = MAX_BRIGHTNESS;
+									edges.at<uchar>(neighbor) = N.at<uchar>(neighbor);
+									if (i + 1 == N.cols) {
+										i = 1;
+										j++;;
+									}
+									else {
+										i++;
+									}
+									nedges++;
+								}
+							}
 						}
+					}
 				} while (nedges > 0);
 			}
 			c++;
 		}
-
-	*/
-	imshow("N", N);
-	waitKey(20000);
-
+	}
+	return out;
 }
 
 
@@ -165,13 +291,13 @@ int main()
 {
 	/*
 	if (-1 == gradientAlgo()) {
-		cerr << "Failed to get camera feed" << endl;
+	cerr << "Failed to get camera feed" << endl;
 	}
 	*/
 
 	//testSobel();
-
-	cannyEdge();
+	cornerDetectionWithCanny();
+	cin.get();
 	return 0;
 }
 
