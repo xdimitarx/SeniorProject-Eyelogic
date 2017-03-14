@@ -1,10 +1,8 @@
 
-#ifdef __APPLE__
-#include "EyeLogic.hpp"
-#else
-#include "stdafx.h"
-#include "EyeLogic.hpp"
-//#endif
+	#include "EyeLogic.hpp"
+	#include "stdafx.h"
+	#include "EyeLogic.hpp"
+
 
 
 Point screenres(1280, 800);
@@ -375,20 +373,21 @@ bool ImgFrame::insertFrame(Mat frame)
 
 	//THIS LINE IS BREAKING THE PROGRAM when i try to run it (exceptions) -Pouneh
     faceDetector.detectMultiScale(frame, faceCoord, 1.2, 3, 0, CvSize(150,150));
-	
-    if(faceCoord.capacity() < 1)
+	cout << faceCoord.size() << endl;
+
+    if(faceCoord.size() < 1)
     {
         cerr << "insertFrame: DID NOT FIND ANY FACES" << endl;
         return false;
     }
-    Mat cutoutFace = Mat(frame, faceCoord[0]);
-    Rect roiL = Rect(0, (int)(cutoutFace.rows*0.15), (int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.8));
-    Rect roiR = Rect((int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.15), (int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.8));
-    Mat leftHalf = Mat(cutoutFace, roiL);
-    Mat rightHalf = Mat(cutoutFace, roiR);
-    return (leftEye.detectKeyFeatures(leftHalf) && rightEye.detectKeyFeatures(rightHalf));
+
 	
-	//return true;
+    Mat cutoutFace = Mat(frame, faceCoord[0]);
+	Rect roiL = Rect(0, (int)(cutoutFace.rows*0.15), (int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.8));
+	Rect roiR = Rect((int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.15), (int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.8));
+	Mat leftHalf = Mat(cutoutFace, roiL);
+	Mat rightHalf = Mat(cutoutFace, roiR);
+	return (leftEye.detectKeyFeatures(leftHalf) && rightEye.detectKeyFeatures(rightHalf));
 }
 
 Point ImgFrame:: getCursorXY()
