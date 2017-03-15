@@ -13,7 +13,7 @@ using namespace std;
 Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 Mat *refArray [] {new Mat(ref_topLeft), new Mat(ref_bottomLeft), new Mat(ref_center), new Mat(ref_topRight), new Mat(ref_bottomRight)};
 int numRefs = 6;
-Point screenres(1920, 1080);
+//Point screenres(1920, 1080);
 std::string filenames [] {"camera.jpg", "topleft.jpg", "bottomleft.jpg", "center.jpg", "topright.jpg", "bottomright.jpg"};
 User *user = nullptr;
 
@@ -105,8 +105,15 @@ int main(int argc, char *argv[])
     }
     else
     {
+        size_t i = 0;
 		while (1) {
 			mainEntryPoint.insertFrame(cameraCapture());
+            Point * result;
+            if(mainEntryPoint.getCursorXY(result))
+            {
+                cout << "Result: " << i++ << ", x = " << result->x << ", y = " << result->y;
+            }
+            
 			if (waitKey(30) == '9') { break; }
 		}
     }

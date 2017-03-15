@@ -37,7 +37,6 @@ using namespace cv;
 
 Mat loadImageAtPath(string path);
 Mat cameraCapture();
-void getReferenceImages();
 
 
 class Eye
@@ -52,7 +51,7 @@ public:
     //of their face when looking at them
     bool detectKeyFeatures(Mat input);
     
-    Point getEyeVector(){return eyeVector;};
+    Point * getEyeVector(){return &eyeVector;};
     void setEyeVector(float x, float y);
     bool getBlink();
     
@@ -100,17 +99,21 @@ public:
     ~ImgFrame();
     
     bool insertFrame(Mat frame);
-    Point getCursorXY();
+    bool getCursorXY(Point * result);
     Eye getLeftEye(){return leftEye;};
     Eye getRightEye(){return rightEye;};
     
     //0 = None, 1 = Left, 2 = Right, 3 = Both/No Eyes Detected
     int getBlink();
+
+    void getReferenceImages();
     
 private:
     Point screenResolution;
     CascadeClassifier faceDetector;
     Eye leftEye, rightEye;
+
+    Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 };
 
 #endif

@@ -1,12 +1,9 @@
 
 	#include "EyeLogic.hpp"
-	#include "stdafx.h"
-	#include "EyeLogic.hpp"
+	//#include "stdafx.h"
+	//#include "EyeLogic.hpp"
 
 
-
-Point screenres(1280, 800);
-Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 
 Mat loadImageAtPath(string path)
 {
@@ -26,7 +23,7 @@ Mat cameraCapture(){
 }
 
 //Pouneh Aghababazadeh (whole function for getting reference images)
-void getReferenceImages()
+void ImgFrame::getReferenceImages()
 {
     
     //    SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
@@ -43,8 +40,8 @@ void getReferenceImages()
     //    const HWND hDesktop = GetDesktopWindow();
     //    GetWindowRect(hDesktop, &desktop);
     
-    horizontal = screenres.x;
-    vertical = screenres.y;
+    horizontal = screenResolution.x;
+    vertical = screenResolution.y;
     
     Mat cue(vertical, horizontal, CV_8UC3);
     Mat flash(vertical, horizontal, CV_8UC3);
@@ -184,6 +181,7 @@ bool Eye::detectKeyFeatures(Mat input)
     
     if(findPupil())
     {
+        blink = false;
         if(findEyeCorner()){
             createEyeVector();
         }
@@ -191,7 +189,7 @@ bool Eye::detectKeyFeatures(Mat input)
     }
     else
     {
-        //Blink??
+        blink = true;
     }
     return true;
 }
@@ -390,14 +388,19 @@ bool ImgFrame::insertFrame(Mat frame)
 	return (leftEye.detectKeyFeatures(leftHalf) && rightEye.detectKeyFeatures(rightHalf));
 }
 
-Point ImgFrame:: getCursorXY()
+bool ImgFrame::getCursorXY(Point * result)
 {
-    /*
-     *
-     * To be implemented
-     *
-     */
-    return Point();
+    if(!leftEye.getBlink())
+    {
+        result = leftEye.getEyeVector();
+        return true;
+    }
+    else if (!rightEye.getBlink())
+    {
+        result = rightEye.getEyeVector();
+        return true;
+    }
+    return false;
 }
 
 int ImgFrame::getBlink()
