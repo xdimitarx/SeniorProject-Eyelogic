@@ -47,8 +47,15 @@ void apply_harris(Mat src_gray)
   waitKey();
 
 }
+
+// Mat apply_threshold(Mat src)
+// {
+  
+// }
+
 vector<Mat> detect_eyes(Mat src)
 { 
+  cout << "IN DETECT EYES" << endl;
   // load cascade sheet
   eye_cascade.load("haarcascade_eye.xml");
   // vector to store eyes found
@@ -69,17 +76,23 @@ vector<Mat> detect_eyes(Mat src)
 
   Size sR = eyeR.size();
   int rowsR = (int)sR.height;
-  int colsR = (int)sL.width;
+  int colsR = (int)sR.width;
 
   // dictate region of interest
+  cout << "before first rect" << endl;
   Rect roiL = Rect(0, rowsL*0.3, colsL, rowsL*0.5);
+  cout << "before sec rect" << endl;
   Rect roiR = Rect(0, rowsR*0.3, colsR, rowsR*0.5);
+  cout << "after second rect" << endl;
 
   // cut out the eyes from the original image 
   Mat cut_eyeL = Mat(eyeL, roiL);
+  cout << "after first cuteye" << endl;
   // namedWindow("cuteyeL");
   // imshow("cuteyeL", cut_eyeL);
   Mat cut_eyeR = Mat(eyeR, roiR);
+  cout << "after second cuteye" << endl;
+
   // namedWindow("cuteyeR");
   // imshow("cuteyeR", cut_eyeR);
   // waitKey();
@@ -117,13 +130,19 @@ Mat load_image(string path)
 int main() 
 {
   // dictate test image to run 
-  string test1 = "test1.jpg";
+  string test1 = "dom.jpg";
   // load the image
   Mat test = load_image(test1);
+  // imshow("test2", test);
+
+
+
   // get the cutout of the eyes 
   vector<Mat> cutout_eyes = detect_eyes(test);
+  // imshow("cutout", cutout_eyes[0]);
   apply_harris(cutout_eyes[0]);
-  // apply_harris(cutout_eyes[1]);
+  apply_harris(cutout_eyes[1]);
+  waitKey();
 
   return 0;
 }
