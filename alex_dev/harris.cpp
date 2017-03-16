@@ -48,10 +48,20 @@ void apply_harris(Mat src_gray)
 
 }
 
-// Mat apply_threshold(Mat src)
-// {
-  
-// }
+Mat apply_threshold(Mat src)
+{
+  Mat dest;
+  threshold(src, dest, 20, 255, THRESH_BINARY);
+  return dest;
+}
+
+Mat apply_threshold_inv(Mat src)
+{
+  Mat dest;
+  threshold(src, dest, 10, 255, THRESH_BINARY_INV);
+  return dest;
+}
+
 
 vector<Mat> detect_eyes(Mat src)
 { 
@@ -79,19 +89,14 @@ vector<Mat> detect_eyes(Mat src)
   int colsR = (int)sR.width;
 
   // dictate region of interest
-  cout << "before first rect" << endl;
   Rect roiL = Rect(0, rowsL*0.3, colsL, rowsL*0.5);
-  cout << "before sec rect" << endl;
   Rect roiR = Rect(0, rowsR*0.3, colsR, rowsR*0.5);
-  cout << "after second rect" << endl;
 
   // cut out the eyes from the original image 
   Mat cut_eyeL = Mat(eyeL, roiL);
-  cout << "after first cuteye" << endl;
   // namedWindow("cuteyeL");
   // imshow("cuteyeL", cut_eyeL);
   Mat cut_eyeR = Mat(eyeR, roiR);
-  cout << "after second cuteye" << endl;
 
   // namedWindow("cuteyeR");
   // imshow("cuteyeR", cut_eyeR);
@@ -130,16 +135,29 @@ Mat load_image(string path)
 int main() 
 {
   // dictate test image to run 
-  string test1 = "dom.jpg";
+  string test1 = "alex.jpg";
+  string test2 = "dom2.jpg";
   // load the image
-  Mat test = load_image(test1);
+  Mat alex = load_image(test1);
+  Mat dom = load_image(test2);
+
+  Mat alext = apply_threshold(alex);
+  Mat domt = apply_threshold(dom);
+  // imshow("alex", alext);
+  imshow("dom", domt);
   // imshow("test2", test);
 
 
 
   // get the cutout of the eyes 
-  vector<Mat> cutout_eyes = detect_eyes(test);
+  vector<Mat> cutout_eyes = detect_eyes(dom);
   // imshow("cutout", cutout_eyes[0]);
+  Mat thresh = apply_threshold(cutout_eyes[0]);
+  Mat thresh_inv = apply_threshold_inv(cutout_eyes[0]);
+  // imshow("thresh", thresh);
+  // apply_harris(thresh);
+  // apply_harris(thresh_inv);
+
   apply_harris(cutout_eyes[0]);
   apply_harris(cutout_eyes[1]);
   waitKey();
