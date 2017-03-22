@@ -1,7 +1,6 @@
+#include "stdafx.h"
+#include "EyeLogic.hpp"
 
-	#include "EyeLogic.hpp"
-	//#include "stdafx.h"
-	//#include "EyeLogic.hpp"
 
 
 
@@ -260,11 +259,12 @@ bool Eye::findPupil()
 
 bool Eye::findEyeCorner()
 {
+	/*	
     imshow("eyeCorner", filtered);
     waitKey(0);
     cout << eyeCenter.y << " " << eyeRadius << endl;
     size_t extreme;
-    size_t rowVal;
+    size_t rowVal = 0;
     if(leftEye)
     {
         extreme = eyeCenter.x+eyeRadius;
@@ -352,6 +352,43 @@ bool Eye::findEyeCorner()
     imshow("Final", filtered);
     waitKey(10);
     return true;
+	*/
+	Mat threshmat, dest, dest_norm, dest_norm_scaled;
+
+	// detector parameters 
+	int thresh = 200;
+	int max_thresh = 255;
+	int blockSize = 2;
+	int apertureSize = 5;
+	double k = 0.01;
+
+
+	threshold(filtered, threshmat, 20, 255, THRESH_BINARY);
+	// detect corners
+	cornerHarris(thresh, dest, blockSize, apertureSize, k, BORDER_DEFAULT);
+
+	// Normalize 
+	normalize(dest, dest_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
+	convertScaleAbs(dest_norm, dest_norm_scaled);
+
+	// Draw circle around coners detected
+	for (int j = 0; j < dest_norm.rows; j++)
+	{
+		for (int i = 0; i < dest_norm.cols; i++)
+		{
+			if (thresh < dest_norm.at<float>(j, i) )
+			{
+				circle(dest_norm_scaled, Point(i, j), 5, Scalar(0), 2, 8, 0);
+			}
+		}
+	}
+
+	namedWindow("corner", CV_WINDOW_AUTOSIZE);
+	imshow("corner", dest_norm_scaled);
+	waitKey();
+	return true;
+
+
 }
 
 ImgFrame::ImgFrame(Point resolution) : leftEye("haarcascade_lefteye_2splits.xml", true), rightEye("haarcascade_righteye_2splits.xml", false)
@@ -388,7 +425,7 @@ bool ImgFrame::insertFrame(Mat frame)
 	return (leftEye.detectKeyFeatures(leftHalf) && rightEye.detectKeyFeatures(rightHalf));
 }
 
-bool ImgFrame::getCursorXY(Point * result)
+bool ImgFrame::getCursorXY(Point *  result)
 {
     if(!leftEye.getBlink())
     {

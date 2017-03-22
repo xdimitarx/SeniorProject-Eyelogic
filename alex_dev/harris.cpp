@@ -155,8 +155,8 @@ int main()
   Mat thresh = apply_threshold(cutout_eyes[0]);
   Mat thresh_inv = apply_threshold_inv(cutout_eyes[0]);
   // imshow("thresh", thresh);
-  // apply_harris(thresh);
-  // apply_harris(thresh_inv);
+  apply_harris(thresh);
+  apply_harris(thresh_inv);
 
   apply_harris(cutout_eyes[0]);
   apply_harris(cutout_eyes[1]);

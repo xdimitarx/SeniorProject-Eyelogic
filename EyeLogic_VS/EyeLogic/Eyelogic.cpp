@@ -19,34 +19,51 @@ using namespace std;
 
 #define MAX_BRIGHTNESS 255;
 
-Mat cannyEdge(string file, Mat& Gx, Mat& Gy);
+string file = "C:/Users/spark/Desktop/193/testframe.png";
+Mat cannyEdge(Mat image, Mat& Gx, Mat& Gy);
 
 
 void cornerDetectionWithCanny() {
-	string file = "C:/Users/spark/Desktop/193/testframe3.png";
 	Mat edges, Gx, Gy;
+	Mat image = imread(file, CV_LOAD_IMAGE_COLOR);
 
-	edges = cannyEdge(file, Gx, Gy);
+	edges = cannyEdge(image, Gx, Gy);
 	if (edges.rows == 0 || edges.cols == 0) {
 		cout << "Empty image file found" << endl;
 		return;
 	}
 
 	imshow("Edges" , edges);
+	waitKey(50000);
 }
 
-void circleDetectWithCany() {
-	string file = "C:/Users/spark/Desktop/193/testframe2.png";
-	Mat edges, Gx, Gy;
+void circleDetectWithCanny(Mat image) {
+	//NEEDS A GUARANTEE OF ONE CIRCLE IN THE MATRIX
+	Mat  edges, Gx, Gy;
+	//image = imread(file, CV_LOAD_IMAGE_COLOR);
+	cout << "Cake" << endl;
 
-	edges = cannyEdge(file, Gx, Gy);
+	CascadeClassifier eyeDetector;
+	eyeDetector.load("haarcascade_eye_tree_eyeglasses.xml");
+	vector<Rect_<int>> eyes;
+	eyeDetector.detectMultiScale(image, eyes);
+	cout << "number of eyes found " << eyes.size() << endl;
+
+	Rect roiRect = Rect(eyes[0].x, eyes[0].y, eyes[0].width, eyes[0].height);
+	edges = cannyEdge(Mat(image, roiRect), Gx, Gy);
+
 	if (edges.rows == 0 || edges.cols == 0) {
 		cout << "Empty image file found" << endl;
 		return;
 	}
 
-	cout << "Canny works" << endl;
 
+	imshow("orig", Mat(image, roiRect));
+	imshow("edges", edges);
+	waitKey(2000);
+
+	cout << "Canny works" << endl;
+	return;
 	Mat bins(edges.rows, edges.cols, CV_8UC1);
 
 	list<Point> listOfCenters;
@@ -57,7 +74,6 @@ void circleDetectWithCany() {
 	bool firstPointSet = false;
 
 	char maxCurrent = 0;
-	Point maxLocation(0, 0);
 
 	bins = Scalar(0);
 	//bins = edges.clone();
@@ -116,6 +132,9 @@ void circleDetectWithCany() {
 					if (255 > bins.at<uchar>(gradLine.pos())) {
 						bins.at<uchar>(gradLine.pos()) = (bins.at<uchar>(gradLine.pos()) + 1);
 					}
+					if (bins.at<uchar>(gradLine.pos()) > maxCurrent) {
+						maxCurrent = bins.at<uchar>(gradLine.pos());
+					}
 				}
 				firstPointSet = false;
 			}
@@ -124,29 +143,41 @@ void circleDetectWithCany() {
 
 	for (int y = 1; y <= edges.rows - 2; y++) {
 		for (int x = 1; x <= edges.cols - 2; x++) {
-			if (bins.at<uchar>(y, x) > 60) {
+			if (bins.at<uchar>(y, x) > 0.5 *maxCurrent && bins.at<uchar>(y, x) < maxCurrent) {
 				listOfCenters.push_front(Point(x,y));
 			}
 		}
 	}
 
+	int meanx =0, meany = 0;
 
 	for (list<Point>::iterator it = listOfCenters.begin(); it != listOfCenters.end(); it++) {
-		circle(bins, *it , 10, Scalar(255), 5, 8);
+		//circle(bins, *it , 10, Scalar(255), 5, 8);
+		meanx += (*it).x;
+		meany += (*it).y;
 	}
-	cout << "number of detected centers" << listOfCenters.size() << endl;
+	if (listOfCenters.size() > 0) {
+		meanx = meanx / listOfCenters.size();
+		meany = meany / listOfCenters.size();
+	}
+	else {
+		cout << "No circles found" << endl;
+	}
+	circle(image, Point(meanx, meany), 10, Scalar(255), 5, 8);
+
+	cout << "number of detected centers  " << listOfCenters.size() << endl;
 
 
 	//imshow("edges", edges);
+	imshow("mod image", image);
 	imshow("bins", bins);
 	waitKey(20000);
 
 }
 
-Mat cannyEdge(string file, Mat& Gx, Mat& Gy) {
-	Mat image, gray;
+Mat cannyEdge(Mat image, Mat& Gx, Mat& Gy) {
+	Mat gray;
 	int maximum = -5, minimum = 1000, thresh1, thresh2; //nonsupression max
-	image = imread(file, CV_LOAD_IMAGE_COLOR);
 
 	if (!image.data)                              // Check for invalid input
 	{
@@ -167,13 +198,16 @@ Mat cannyEdge(string file, Mat& Gx, Mat& Gy) {
 	Gy = Scalar(0);
 	N = Scalar(0);
 	out = Scalar(0);
-
+	
 	char kernelx[3][3] = { { -1,  0,  1 },{ -2,  0,  2 },{ -1, 0, 1 } };
 	char kernely[3][3] = { { -1, -2, -1 },{ 0,  0,  0 },{ 1, 2, 1 } };
 
 	//gaussian filter
-	GaussianBlur(gray, gray, Size(9, 9), 5, 5);
-
+	medianBlur(gray, gray, 9);
+	//GaussianBlur(gray, gray, Size(27, 27), 5, 5);
+	imshow("Gray", gray);
+	waitKey(2000);
+	
 	//intensity gradient matrices (Gx, Gy)
 	for (int x = 1; x <= gray.cols - 2; x++) {
 		for (int y = 1; y <= gray.rows - 2; y++) {
@@ -237,8 +271,8 @@ Mat cannyEdge(string file, Mat& Gx, Mat& Gy) {
 	}//outer for
 
 	//calculate thresholds for hystersis
-	thresh1 =  (int)((minimum + maximum) / 6);
-	thresh2 =  (int)((minimum + maximum) / 10);
+	thresh1 =  (int)((minimum + maximum) / 5);
+	thresh2 =  (int)((minimum + maximum) / 8);
 
 	//Tracing edges with hysteresis as described by  https://rosettacode.org/wiki/Canny_edge_detector
 	//*********************************************//
@@ -287,6 +321,90 @@ Mat cannyEdge(string file, Mat& Gx, Mat& Gy) {
 }
 
 
+/*Alex Soong's code*/
+vector<Point> apply_harris(Mat src)
+{
+	vector<Point> returnVal;
+
+	CascadeClassifier eye_cascade;
+	eye_cascade.load("haarcascade_eye_tree_eyeglasses.xml");
+	//eye_cascade.load("haarcascade_eye.xml");
+	// vector to store eyes found
+	vector<Rect> eyes;
+	vector<Mat> cutout_eyes;
+	// find eyes
+	//Rect cake = new Rect() x, y, width height
+
+	eye_cascade.detectMultiScale(src, eyes);
+	cout << eyes.size() << endl;
+	if (eyes.size() < 2) {
+		cout << "well fuck this didn't work" << endl;
+		return returnVal;
+	}
+	// cut out eyes from source image using coordinates from detectMultiScale
+	Mat eyeL, eyeR;
+	eyeL = Mat(src, eyes[0]);
+	eyeR = Mat(src, eyes[1]);
+
+	// get size of the cutout of the eyes
+	Size sL = eyeL.size();
+	int rowsL = (int)sL.height;
+	int colsL = (int)sL.width;
+
+	Size sR = eyeR.size();
+	int rowsR = (int)sR.height;
+	int colsR = (int)sR.width;
+
+	// dictate region of interest
+	Rect roiL = Rect(0, rowsL*0.3, colsL, rowsL*0.5);
+	Rect roiR = Rect(0, rowsR*0.3, colsR, rowsR*0.5);
+
+	// cut out the eyes from the original image 
+	Mat cut_eyeL = Mat(eyeL, roiL);
+	Mat cut_eyeR = Mat(eyeR, roiR);
+
+	cvtColor(cut_eyeL, cut_eyeL, CV_BGR2GRAY);
+	cvtColor(cut_eyeR, cut_eyeR, CV_BGR2GRAY);
+
+	// store and return the eyes
+	cutout_eyes.push_back(cut_eyeL);
+	cutout_eyes.push_back(cut_eyeR);
+
+	Mat dest, dest_norm, dest_norm_scaled;
+
+	// detector parameters 
+	int thresh = 150;
+	int max_thresh = 255;
+	int blockSize = 2;
+	int apertureSize = 3;
+	double k = 0.01;
+
+	// detect corners
+	for (int i = 0; i < cutout_eyes.size(); i++) {
+		cornerHarris(cutout_eyes[i], dest, blockSize, apertureSize, k, BORDER_DEFAULT);
+
+		// Normalize 
+		normalize(dest, dest_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
+		convertScaleAbs(dest_norm, dest_norm_scaled);
+
+		// Draw circle around coners detected
+		for (int j = 0; j < dest_norm.rows; j++)
+		{
+			for (int k = 0; i < dest_norm.cols; i++)
+			{
+				if ((int)dest_norm.at<float>(j, k) > thresh)
+				{
+					returnVal.push_back(Point(k + eyes[i].x, j + eyes[i].y +  0.3*eyes[i].height));
+					//circle(dest_norm_scaled, Point(i, j), 5, Scalar(0), 2, 8, 0);
+				}
+			}
+		}
+	}
+	return returnVal;
+
+}
+
+
 int main()
 {
 	/*
@@ -296,7 +414,28 @@ int main()
 	*/
 
 	//testSobel();
-	cornerDetectionWithCanny();
+	//cornerDetectionWithCanny();
+	VideoCapture cap;
+	Mat image;
+	if (!cap.open(0))
+		return 0;
+	cap >> image;
+
+
+	vector<Point> cornerLocals = apply_harris(image);
+	if (cornerLocals.size() > 0) {
+		cout << "Yay" << endl;
+		for (int i = 0; i < cornerLocals.size(); i++) {
+			circle(image, cornerLocals[i], 5, Scalar(0), 2, 8, 0);
+		}
+	}
+	else {
+		cout << "NO FUCK SHIT AHHH" << endl;
+	}
+
+	imshow("Hello", image);
+	waitKey(5000);
+	//circleDetectWithCanny(image);
 	cin.get();
 	return 0;
 }
