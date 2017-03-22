@@ -1,7 +1,31 @@
-#include "stdafx.h"
+//#include "stdafx.h"
+//#include "windows.h"
+
 #include "EyeLogic.hpp"
+/*
+void setCurPos(int x, int y) {
 
+	// Windows way to set the cursor position to some x,y coordinate on the screen 
+	SetCursorPos(x, y);
+	cout << x << "    " << y << endl;
 
+}
+
+void setCurPos(Point point) {
+	//Windows way to set the cursor position to some x,y coordinate on the screen 
+	SetCursorPos(point.x, point.y);
+	cout << point.x << "    " << point.y << endl;
+}
+
+Point getCurPos() {
+	//Windows way to get the cursor position
+	POINT windowsPoint;
+	GetCursorPos(&windowsPoint);
+	Point curr((int)windowsPoint.x, (int)windowsPoint.y);
+
+	return curr;
+}
+*/
 
 
 Mat loadImageAtPath(string path)
@@ -23,10 +47,8 @@ Mat cameraCapture(){
 
 //Pouneh Aghababazadeh (whole function for getting reference images)
 void ImgFrame::getReferenceImages()
-{
-    
-    //    SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
-    
+{   
+    //SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);   
     VideoCapture cap;
     if (!cap.open(0)) {
         cerr << "FAIL" << endl;
@@ -35,10 +57,7 @@ void ImgFrame::getReferenceImages()
     
     int horizontal = 0;
     int vertical = 0;
-    //    RECT desktop;
-    //    const HWND hDesktop = GetDesktopWindow();
-    //    GetWindowRect(hDesktop, &desktop);
-    
+
     horizontal = screenResolution.x;
     vertical = screenResolution.y;
     
@@ -51,65 +70,65 @@ void ImgFrame::getReferenceImages()
     //Top Left
     cue = Scalar(0, 0, 0);
     circle(cue, Point(0 + horizontal / 20, 0 + horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
-    imshow("", cue);
-    waitKey(2000);
-    imshow("", flash);
-	waitKey(50);
+    //imshow("", cue);
+    //waitKey(2000);
+    //imshow("", flash);
+	//waitKey(50);
     
     //Bottom Left
     cue = Scalar(0, 0, 0);
     circle(cue, Point(0 + horizontal / 20, vertical - horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
-    imshow("", cue);
-    waitKey(2000);
-    imshow("", flash);
+    //imshow("", cue);
+    //waitKey(2000);
+	 //imshow("", flash);
 	cap >> ref_topLeft;
-	waitKey(50);
+	//waitKey(50);
     
     //Center
     cue = Scalar(0, 0, 0);
     circle(cue, Point(horizontal / 2, vertical / 2), horizontal / 20, Scalar(0, 255, 0), -1);
-    imshow("", cue);
-    waitKey(2000);
-    imshow("", flash);
+	//imshow("", cue);
+	//waitKey(2000);
+	//imshow("", flash);
 	cap >> ref_bottomLeft;
-	waitKey(50);
+	//waitKey(50);
     
     //Top Right
     cue = Scalar(0, 0, 0);
     circle(cue, Point(horizontal - horizontal / 20, 0 + vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
-    imshow("", cue);
-    waitKey(2000);
-    imshow("", flash);
+	//imshow("", cue);
+	//waitKey(2000);
+	//imshow("", flash);
 	cap >> ref_center;
-	waitKey(50);
+	//waitKey(50);
     
     //Bottom Right
     cue = Scalar(0, 0, 0);
     circle(cue, Point(horizontal - horizontal / 20, vertical - vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
-    imshow("", cue);
-    waitKey(2000);
-    imshow("", flash);
+	//imshow("", cue);
+	//waitKey(2000);
+	//imshow("", flash);
 	cap >> ref_topRight;
-	waitKey(50);
+	//waitKey(50);
 
 
 	//hacky placeholder to get correct ordering of images
 	cue = Scalar(0, 0, 0);
-	imshow("", cue);
-	waitKey(1000);
+	//imshow("", cue);
+	//waitKey(1000);
 	cap >> ref_bottomRight;
-	waitKey(500);
+	//waitKey(500);
 
-	imshow("", ref_topLeft);
-	waitKey(1000);
-	imshow("", ref_bottomLeft);
-	waitKey(1000);
-	imshow("", ref_center);
-	waitKey(1000);
-	imshow("", ref_topRight);
-	waitKey(1000);
-	imshow("", ref_bottomRight);
-	waitKey(1000);
+	//imshow("", ref_topLeft);
+	//waitKey(1000);
+	//imshow("", ref_bottomLeft);
+	//waitKey(1000);
+	//imshow("", ref_center);
+	//waitKey(1000);
+	//imshow("", ref_topRight);
+	//waitKey(1000);
+	//imshow("", ref_bottomRight);
+	//waitKey(1000);
 }
 
 Eye::Eye(){return;};
@@ -168,15 +187,13 @@ bool Eye::detectKeyFeatures(Mat input)
     Mat erodeElement = getStructuringElement( MORPH_ELLIPSE,Size(4,4));
     dilate(filtforIris,filtforIris,erodeElement);
 
-
     //applyGaussian();    
     equalHist();
     addLighting(-80);
     binaryThreshForSc();
-    imshow("after dilate", filtforIris);
-    imshow("filtered", filtered);
-    waitKey(10);
-    
+    //imshow("after dilate", filtforIris);
+    //imshow("filtered", filtered);
+    //waitKey(10);
     
     if(findPupil())
     {
@@ -381,9 +398,9 @@ bool Eye::findEyeCorner()
 		}
 	}
 
-	namedWindow("corner", CV_WINDOW_AUTOSIZE);
-	imshow("corner", dest_norm_scaled);
-	waitKey();
+	//namedWindow("corner", CV_WINDOW_AUTOSIZE);
+	//imshow("corner", dest_norm_scaled);
+	//waitKey();
 	
 	return true;
 
@@ -426,6 +443,9 @@ bool ImgFrame::insertFrame(Mat frame)
 
 bool ImgFrame::getCursorXY(Point *  result)
 {
+
+	//Pouneh: I commented out what this function originally did so that I can get cursor location stuff
+	/*
     if(!leftEye.getBlink())
     {
         result = leftEye.getEyeVector();
@@ -437,6 +457,10 @@ bool ImgFrame::getCursorXY(Point *  result)
         return true;
     }
     return false;
+	*/
+
+
+	return true;
 }
 
 int ImgFrame::getBlink()

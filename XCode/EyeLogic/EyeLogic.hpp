@@ -37,6 +37,9 @@ using namespace cv;
 
 Mat loadImageAtPath(string path);
 Mat cameraCapture();
+void setCurPos(int x, int y);
+void setCurPos(Point point);
+Point getCurPos();
 
 
 class Eye
@@ -60,8 +63,6 @@ private:
     CascadeClassifier detector;
     
     //technically right eye ---> ;)
-
-    
     Mat original;
     Mat filtered;
     Mat filtforIris;
@@ -73,7 +74,7 @@ private:
     Point eyeVector;
     
     bool blink;
-    
+   
     void equalHist();
     
     //+ brightens the eye, -darkens
