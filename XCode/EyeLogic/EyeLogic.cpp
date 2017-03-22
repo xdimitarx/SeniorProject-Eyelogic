@@ -362,10 +362,8 @@ bool Eye::findEyeCorner()
 	int apertureSize = 5;
 	double k = 0.01;
 
-	/*
-	threshold(filtered, threshmat, 20, 255, THRESH_BINARY);
 	// detect corners
-	cornerHarris(thresh, dest, blockSize, apertureSize, k, BORDER_DEFAULT);
+	cornerHarris(filtered, dest, blockSize, apertureSize, k, BORDER_DEFAULT);
 
 	// Normalize 
 	normalize(dest, dest_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
@@ -386,8 +384,7 @@ bool Eye::findEyeCorner()
 	namedWindow("corner", CV_WINDOW_AUTOSIZE);
 	imshow("corner", dest_norm_scaled);
 	waitKey();
-	*/
-
+	
 	return true;
 
 
