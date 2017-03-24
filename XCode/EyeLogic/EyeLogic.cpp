@@ -276,102 +276,32 @@ bool Eye::findPupil()
 
 bool Eye::findEyeCorner()
 {
-	/*	
-    imshow("eyeCorner", filtered);
-    waitKey(0);
-    cout << eyeCenter.y << " " << eyeRadius << endl;
-    size_t extreme;
-    size_t rowVal = 0;
-    if(leftEye)
-    {
-        extreme = eyeCenter.x+eyeRadius;
-        for(int y = (int)(eyeCenter.y-eyeRadius*0.5); y < eyeCenter.y+eyeRadius; y++)
-        {
-            bool white = false;
-            for(int x = eyeCenter.x+eyeRadius; x < filtered.cols; x++)
-            {
-                if(white)
-                {
-                    if(filtered.at<uchar>(y,x) == 0)
-                    {
-                        // If setting the extreme, don't check for past eyecorner
-                        if(x > extreme)
-                        {
-                            extreme = x;
-                            rowVal = y;
-                        } 
-                        else if((extreme-eyeCenter.x)/10 + eyeCenter.x > x)
-                        {
-                            y = eyeCenter.y + (int)eyeRadius;
-                        }
-                        x = filtered.cols;
-                    }
-                }
-                else
-                {
-                    if(filtered.at<uchar>(y,x) == 255)
-                    {
-                        white = true;
-                    }
-                }
-            }
-            
-        }
-    }
-    else
-    {
-        extreme = eyeCenter.x-eyeRadius;
-        for(int y = eyeCenter.y; y < eyeCenter.y+eyeRadius; y++)
-        {
-            bool white = false;
-            for(int x = eyeCenter.x - eyeRadius; x > 0; x--)
-            {
-                if(white)
-                {
-                    if(filtered.at<uchar>(y,x) == 0)
-                    {
-                        if(x < extreme)
-                        {
-                            extreme = x;
-                            rowVal = y;
-                        }
-                        //                        else if(extreme != eyeCenter.x)
-                        //                        {
-                        //                            if(x > extreme + (eyeCenter.x - extreme)/3)
-                        //                            {
-                        //                                x = filtered.cols;
-                        //                                y = eyeCenter.y-eyeRadius;
-                        //                            }
-                        //                        }
-                        break;
-                    }
-                }
-                else
-                {
-                    if(filtered.at<uchar>(y, x) == 255)
-                    {
-                        white = true;
-                    }
-                }
-            }
-            
-        }
-    }
-    cout << rowVal << endl;
-    if(rowVal == 0)
-    {
-        return false;
-    }
-    eyeCorner = Point((int)extreme, (int)rowVal);
-    cout << "extreme = " << extreme << endl;
-    cout << "rowVal = " << rowVal << endl;
-    circle(filtered, eyeCorner, 4, Scalar(122,122,122), 1);
-    imshow("Final", filtered);
-    waitKey(10);
-    return true;
-	*/
 	Mat threshmat, dest, dest_norm, dest_norm_scaled;
-
+    Mat eyeCrop, newfiltered = filtered.clone();
+    
+    
+    medianBlur(filtered, newfiltered, 9);
+    newfiltered = newfiltered - filtered;
+    
+    
+    
+    Rect roi;
+    int left = eyeCenter.x + eyeRadius;
+    int right = eyeCenter.x - eyeRadius;
+    int offset;
+    
+    
+    
+    if (leftEye){
+        offset = left;
+        roi = Rect(left, (int)filtered.rows*0.3, filtered.cols - left, (int)(filtered.rows - filtered.rows*0.3));
+        eyeCrop = Mat(newfiltered, roi);
+    }
+    else {
+        offset = 0;
+        roi = Rect(0, (int)filtered.rows*0.3, right, (int)(filtered.rows - filtered.rows*0.3));
+        eyeCrop = Mat(newfiltered, roi);
+    }
 	// detector parameters 
 	int thresh = 200;
 	int max_thresh = 255;
@@ -380,11 +310,16 @@ bool Eye::findEyeCorner()
 	double k = 0.01;
 
 	// detect corners
-	cornerHarris(filtered, dest, blockSize, apertureSize, k, BORDER_DEFAULT);
+	cornerHarris(eyeCrop, dest, blockSize, apertureSize, k, BORDER_DEFAULT);
 
 	// Normalize 
 	normalize(dest, dest_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
 	convertScaleAbs(dest_norm, dest_norm_scaled);
+    
+
+    cout << "filtered height: " << filtered.rows << endl;
+    cout << "filtered width: " << filtered.cols << endl;
+    cout << "Top bound for box: " << (int)filtered.rows*0.3 << endl;
 
 	// Draw circle around coners detected
 	for (int j = 0; j < dest_norm.rows; j++)
@@ -393,13 +328,14 @@ bool Eye::findEyeCorner()
 		{
 			if (thresh < dest_norm.at<float>(j, i) )
 			{
-				circle(dest_norm_scaled, Point(i, j), 4, Scalar(122, 122, 122), 1);
+				circle(newfiltered, Point(offset + i, j + (int)filtered.rows*0.3), 4, Scalar(122, 122, 122), 1);
+                cout << offset + i << ", " << j << endl;
 			}
 		}
 	}
 
 //	namedWindow("corner", CV_WINDOW_AUTOSIZE);
-	imshow("corner", dest_norm_scaled);
+	imshow("corner", newfiltered);
 	waitKey(0);
 	
 	return true;
