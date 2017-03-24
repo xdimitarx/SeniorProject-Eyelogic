@@ -191,9 +191,9 @@ bool Eye::detectKeyFeatures(Mat input)
     equalHist();
     addLighting(-80);
     binaryThreshForSc();
-    //imshow("after dilate", filtforIris);
-    //imshow("filtered", filtered);
-    //waitKey(10);
+    imshow("after dilate", filtforIris);
+    imshow("filtered", filtered);
+    waitKey(10);
     
     if(findPupil())
     {
@@ -393,14 +393,14 @@ bool Eye::findEyeCorner()
 		{
 			if (thresh < dest_norm.at<float>(j, i) )
 			{
-				circle(dest_norm_scaled, Point(i, j), 5, Scalar(0), 2, 8, 0);
+				circle(dest_norm_scaled, Point(i, j), 4, Scalar(122, 122, 122), 1);
 			}
 		}
 	}
 
-	//namedWindow("corner", CV_WINDOW_AUTOSIZE);
-	//imshow("corner", dest_norm_scaled);
-	//waitKey();
+//	namedWindow("corner", CV_WINDOW_AUTOSIZE);
+	imshow("corner", dest_norm_scaled);
+	waitKey(0);
 	
 	return true;
 
@@ -420,13 +420,13 @@ ImgFrame::~ImgFrame()
 
 bool ImgFrame::insertFrame(Mat frame)
 {
-    vector<Rect_<int> > faceCoord;
+    vector<Rect_<int>> faceCoord;
 
 	//THIS LINE IS BREAKING THE PROGRAM when i try to run it (exceptions) -Pouneh
     faceDetector.detectMultiScale(frame, faceCoord, 1.2, 3, 0, CvSize(150,150));
-	cout << faceCoord.size() << endl;
+	cout << faceCoord.capacity() << endl;
 
-    if(faceCoord.size() < 1)
+    if(faceCoord.capacity() < 1)
     {
         cerr << "insertFrame: DID NOT FIND ANY FACES" << endl;
         return false;
