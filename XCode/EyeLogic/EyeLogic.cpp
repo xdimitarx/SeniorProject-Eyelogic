@@ -2,30 +2,7 @@
 //#include "windows.h"
 
 #include "EyeLogic.hpp"
-/*
-void setCurPos(int x, int y) {
 
-	// Windows way to set the cursor position to some x,y coordinate on the screen 
-	SetCursorPos(x, y);
-	cout << x << "    " << y << endl;
-
-}
-
-void setCurPos(Point point) {
-	//Windows way to set the cursor position to some x,y coordinate on the screen 
-	SetCursorPos(point.x, point.y);
-	cout << point.x << "    " << point.y << endl;
-}
-
-Point getCurPos() {
-	//Windows way to get the cursor position
-	POINT windowsPoint;
-	GetCursorPos(&windowsPoint);
-	Point curr((int)windowsPoint.x, (int)windowsPoint.y);
-
-	return curr;
-}
-*/
 
 
 Mat loadImageAtPath(string path)
@@ -69,7 +46,7 @@ void ImgFrame::getReferenceImages()
 
     //Top Left
     cue = Scalar(0, 0, 0);
-    circle(cue, Point(0 + horizontal / 20, 0 + horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+    circle(cue, cv::Point(0 + horizontal / 20, 0 + horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
     //imshow("", cue);
     //waitKey(2000);
     //imshow("", flash);
@@ -77,7 +54,7 @@ void ImgFrame::getReferenceImages()
     
     //Bottom Left
     cue = Scalar(0, 0, 0);
-    circle(cue, Point(0 + horizontal / 20, vertical - horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+    circle(cue, cv::Point(0 + horizontal / 20, vertical - horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
     //imshow("", cue);
     //waitKey(2000);
 	 //imshow("", flash);
@@ -86,7 +63,7 @@ void ImgFrame::getReferenceImages()
     
     //Center
     cue = Scalar(0, 0, 0);
-    circle(cue, Point(horizontal / 2, vertical / 2), horizontal / 20, Scalar(0, 255, 0), -1);
+    circle(cue, cv::Point(horizontal / 2, vertical / 2), horizontal / 20, Scalar(0, 255, 0), -1);
 	//imshow("", cue);
 	//waitKey(2000);
 	//imshow("", flash);
@@ -95,7 +72,7 @@ void ImgFrame::getReferenceImages()
     
     //Top Right
     cue = Scalar(0, 0, 0);
-    circle(cue, Point(horizontal - horizontal / 20, 0 + vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+    circle(cue, cv::Point(horizontal - horizontal / 20, 0 + vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
 	//imshow("", cue);
 	//waitKey(2000);
 	//imshow("", flash);
@@ -104,7 +81,7 @@ void ImgFrame::getReferenceImages()
     
     //Bottom Right
     cue = Scalar(0, 0, 0);
-    circle(cue, Point(horizontal - horizontal / 20, vertical - vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+    circle(cue, cv::Point(horizontal - horizontal / 20, vertical - vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
 	//imshow("", cue);
 	//waitKey(2000);
 	//imshow("", flash);
@@ -161,7 +138,7 @@ void Eye::setEyeVector(float x, float y){
 }
 bool Eye::detectKeyFeatures(Mat input)
 {
-    vector<Rect_<int> > eyesCoord;
+    vector<cv::Rect_<int> > eyesCoord;
     
     detector.detectMultiScale(input, eyesCoord, 1.1, 3, 0, CvSize(40,40));
     if(eyesCoord.size() <= 0)
@@ -177,14 +154,14 @@ bool Eye::detectKeyFeatures(Mat input)
     original = Mat(input, eyesCoord[0]);
     
     //Cutout Eyebrow
-    Rect eyebrowCrop = Rect(0, (int)(original.rows*0.4), (int)(original.cols), (int)(original.rows*0.5));
+    cv::Rect eyebrowCrop = cv::Rect(0, (int)(original.rows*0.4), (int)(original.cols), (int)(original.rows*0.5));
     original = Mat(original, eyebrowCrop);
     
     cvtColor(original, filtered, CV_BGR2GRAY);
     equalHist();
     
     binaryThreshForIris();
-    Mat erodeElement = getStructuringElement( MORPH_ELLIPSE,Size(4,4));
+    Mat erodeElement = getStructuringElement( MORPH_ELLIPSE, cv::Size(4,4));
     dilate(filtforIris,filtforIris,erodeElement);
 
     //applyGaussian();    
@@ -245,8 +222,8 @@ void Eye::applyGaussian()
 bool Eye::findPupil()
 {
     vector<Vec4i> hierarchy;
-    vector<vector<Point> > contours;
-    findContours(filtforIris, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
+    vector<vector<cv::Point> > contours;
+    findContours(filtforIris, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0,0));
     waitKey(0);
     if(contours.size() != 0)
     {
@@ -261,8 +238,8 @@ bool Eye::findPupil()
                 area = calculatedArea;
             }
         }
-        Rect bounding = boundingRect(contours[largest]);
-        eyeCenter = Point(cvRound(bounding.x+bounding.width/2), cvRound(bounding.y+bounding.height/2));
+        cv::Rect bounding = boundingRect(contours[largest]);
+        eyeCenter = cv::Point(cvRound(bounding.x+bounding.width/2), cvRound(bounding.y+bounding.height/2));
         eyeRadius = cvRound(bounding.height*1.05);
         circle(filtered, eyeCenter, eyeRadius, Scalar(122,122,122), 2);
         rectangle(filtered, bounding,  Scalar(122,122,122),2, 8,0);
@@ -285,7 +262,7 @@ bool Eye::findEyeCorner()
     
     
     
-    Rect roi;
+    cv::Rect roi;
     int left = eyeCenter.x + eyeRadius;
     int right = eyeCenter.x - eyeRadius;
     int offset;
@@ -294,12 +271,12 @@ bool Eye::findEyeCorner()
     
     if (leftEye){
         offset = left;
-        roi = Rect(left, (int)filtered.rows*0.3, filtered.cols - left, (int)(filtered.rows - filtered.rows*0.3));
+        roi = cv::Rect(left, (int)filtered.rows*0.3, filtered.cols - left, (int)(filtered.rows - filtered.rows*0.3));
         eyeCrop = Mat(newfiltered, roi);
     }
     else {
         offset = 0;
-        roi = Rect(0, (int)filtered.rows*0.3, right, (int)(filtered.rows - filtered.rows*0.3));
+        roi = cv::Rect(0, (int)filtered.rows*0.3, right, (int)(filtered.rows - filtered.rows*0.3));
         eyeCrop = Mat(newfiltered, roi);
     }
 	// detector parameters 
@@ -328,7 +305,7 @@ bool Eye::findEyeCorner()
 		{
 			if (thresh < dest_norm.at<float>(j, i) )
 			{
-				circle(newfiltered, Point(offset + i, j + (int)filtered.rows*0.3), 4, Scalar(122, 122, 122), 1);
+				circle(newfiltered, cv::Point(offset + i, j + (int)filtered.rows*0.3), 4, Scalar(122, 122, 122), 1);
                 cout << offset + i << ", " << j << endl;
 			}
 		}
@@ -343,7 +320,7 @@ bool Eye::findEyeCorner()
 
 }
 
-ImgFrame::ImgFrame(Point resolution) : leftEye("haarcascade_lefteye_2splits.xml", true), rightEye("haarcascade_righteye_2splits.xml", false)
+ImgFrame::ImgFrame(cv::Point resolution) : leftEye("haarcascade_lefteye_2splits.xml", true), rightEye("haarcascade_righteye_2splits.xml", false)
 {
     faceDetector.load("haarcascade_frontalface_default.xml");
     screenResolution = resolution;
@@ -356,7 +333,7 @@ ImgFrame::~ImgFrame()
 
 bool ImgFrame::insertFrame(Mat frame)
 {
-    vector<Rect_<int>> faceCoord;
+    vector<cv::Rect_<int>> faceCoord;
 
 	//THIS LINE IS BREAKING THE PROGRAM when i try to run it (exceptions) -Pouneh
     faceDetector.detectMultiScale(frame, faceCoord, 1.2, 3, 0, CvSize(150,150));
@@ -370,14 +347,14 @@ bool ImgFrame::insertFrame(Mat frame)
 
 	
     Mat cutoutFace = Mat(frame, faceCoord[0]);
-	Rect roiL = Rect(0, (int)(cutoutFace.rows*0.15), (int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.8));
-	Rect roiR = Rect((int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.15), (int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.8));
+	cv::Rect roiL = cv::Rect(0, (int)(cutoutFace.rows*0.15), (int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.8));
+	cv::Rect roiR = cv::Rect((int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.15), (int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.8));
 	Mat leftHalf = Mat(cutoutFace, roiL);
 	Mat rightHalf = Mat(cutoutFace, roiR);
 	return (leftEye.detectKeyFeatures(leftHalf) && rightEye.detectKeyFeatures(rightHalf));
 }
 
-bool ImgFrame::getCursorXY(Point *  result)
+bool ImgFrame::getCursorXY(cv::Point *  result)
 {
 
 	//Pouneh: I commented out what this function originally did so that I can get cursor location stuff

@@ -13,7 +13,7 @@ using namespace std;
 Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 Mat *refArray [] {&ref_topLeft, &ref_bottomLeft, &ref_center, &ref_topRight, &ref_bottomRight};
 int numRefs = 6;
-Point screenres(1920, 1080);
+cv::Point screenres(1920, 1080);
 std::string filenames [] {"camera.jpg", "topleft.jpg", "bottomleft.jpg", "center.jpg", "topright.jpg", "bottomright.jpg"};
 User *user = nullptr;
 
@@ -94,28 +94,29 @@ int main(int argc, char *argv[])
      * Main Program *
      ****************/
     
-    ImgFrame mainEntryPoint(screenres);
-    
-    if(argc == 2)
-    {
-        Mat image = loadImageAtPath(argv[1]);
-        mainEntryPoint.insertFrame(image);
-    }
-    else
-    {
-        size_t i = 0;
-		while (1) {
-			mainEntryPoint.insertFrame(cameraCapture());
-            Point * result;
-            if(mainEntryPoint.getCursorXY(result))
-            {
-                cout << "Result: " << i++ << ", x = " << result->x << ", y = " << result->y;
-            }
-            
-			if (waitKey(30) == '9') { break; }
-		}
-    }
-    
-    cout << "finito" << endl;
-    return 0;
+    Mac::setCurPos();
+//    ImgFrame mainEntrycv::Point(screenres);
+//    
+//    if(argc == 2)
+//    {
+//        Mat image = loadImageAtPath(argv[1]);
+//        mainEntrycv::Point.insertFrame(image);
+//    }
+//    else
+//    {
+//        size_t i = 0;
+//		while (1) {
+//			mainEntrycv::Point.insertFrame(cameraCapture());
+//            cv::Point * result;
+//            if(mainEntrycv::Point.getCursorXY(result))
+//            {
+//                cout << "Result: " << i++ << ", x = " << result->x << ", y = " << result->y;
+//            }
+//            
+//			if (waitKey(30) == '9') { break; }
+//		}
+//    }
+//    
+//    cout << "finito" << endl;
+//    return 0;
 }

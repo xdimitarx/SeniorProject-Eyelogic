@@ -1,18 +1,11 @@
-/*
- * Author: Dimitri Vasilev, Dominik Konecny
- * File: EyeLogic.h
- * Eye Tracking Library
- * v0.5
- */
-
 #ifndef EYELOGIC_H
 #define EYELOGIC_H
 
 //OPENCV
 #ifdef __APPLE__
-#include "MacInclude.hpp"
+#include "Mac.hpp"
 #else
-#include "WinInclude.hpp"
+#include "Win.hpp"
 #endif
 
 //STD
@@ -26,12 +19,9 @@
 using namespace std;
 using namespace cv;
 
-
 Mat loadImageAtPath(string path);
 Mat cameraCapture();
-void setCurPos(int x, int y);
-void setCurPos(Point point);
-Point getCurPos();
+cv::Point getCurPos();
 
 
 class Eye
@@ -46,7 +36,7 @@ public:
     //of their face when looking at them
     bool detectKeyFeatures(Mat input);
     
-    Point * getEyeVector(){return &eyeVector;};
+    cv::Point * getEyeVector(){return &eyeVector;};
     void setEyeVector(float x, float y);
     bool getBlink();
     
@@ -59,11 +49,11 @@ private:
     Mat filtered;
     Mat filtforIris;
     
-    Point eyeCorner;
-    Point eyeCenter;
+    cv::Point eyeCorner;
+    cv::Point eyeCenter;
     //size_t eyeRadius;
 	int eyeRadius;
-    Point eyeVector;
+    cv::Point eyeVector;
     
     bool blink;
    
@@ -88,11 +78,11 @@ private:
 class ImgFrame
 {
 public:
-    ImgFrame(Point resolution);
+    ImgFrame(cv::Point resolution);
     ~ImgFrame();
     
     bool insertFrame(Mat frame);
-    bool getCursorXY(Point * result);
+    bool getCursorXY(cv::Point * result);
     Eye getLeftEye(){return leftEye;};
     Eye getRightEye(){return rightEye;};
     
@@ -102,7 +92,7 @@ public:
     void getReferenceImages();
     
 private:
-    Point screenResolution;
+    cv::Point screenResolution;
     CascadeClassifier faceDetector;
     Eye leftEye, rightEye;
 
