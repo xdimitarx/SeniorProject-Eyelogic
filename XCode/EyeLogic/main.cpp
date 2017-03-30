@@ -1,5 +1,4 @@
 #include "EyeLogic.hpp"
-#include "EyePair.hpp"
 #include "Win.hpp"
 #include <string>
 #include <iostream>
@@ -11,13 +10,16 @@
 namespace fs = boost::filesystem;
 using namespace std;
 using namespace std::chrono;
+
+
 // global variables
 int NUMREFS = 6, NUM_REF_IMAGES = 40, THRESHOLD = 5;
 Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 Mat *refArray [] {&ref_topLeft, &ref_bottomLeft, &ref_center, &ref_topRight, &ref_bottomRight};
 cv::Point screenres(1920, 1080);
 std::string filenames [] {"camera.jpg", "topleft.jpg", "bottomleft.jpg", "center.jpg", "topright.jpg", "bottomright.jpg"};
-std::map<Mat *, EyePair> RefImage;
+std::map<Mat *, EyePair> RefImageVector;
+System *singleton;
 
 float getAverage(std::vector<float>data){
     float sum = 0;
@@ -110,7 +112,7 @@ EyePair *getRefVector(){
         // calculate eyeVector
         ImgFrame camera_frame(screenres);
         camera_frame.insertFrame(capture);
-        EyePair pair(*camera_frame.getLeftEye().getEyeVector(), *camera_frame.getRightEye().getEyeVector());
+        EyePair pair(camera_frame.getLeftEye().getEyeVector(), camera_frame.getRightEye().getEyeVector());
         
         // store in array
         leftVectors[j] = cv::Point(pair.leftVector.x, pair.leftVector.y);
@@ -133,6 +135,11 @@ EyePair *getRefVector(){
 
 int main(int argc, char *argv[])
 {
+    if(MAC){
+        singleton = new Mac();
+    } else {
+        singleton = new Win();
+    }
     
     vector<const Mat *>reference_images;
     vector<const EyePair *>reference_vectors;
@@ -159,6 +166,8 @@ int main(int argc, char *argv[])
             std::string image_path = imagedir + filenames[i];
 
             EyePair *refPair = getRefVector();
+            
+            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], *refPair));
             
             // store in file
             outfile << refPair->leftVector.x << " " << refPair->leftVector.y << std::endl;
@@ -189,9 +198,9 @@ int main(int argc, char *argv[])
             iss >> x >> y;
             cv::Point rightEye(std::stof(x), std::stof(y));
             
-            EyePair pair(leftEye, rightEye);
+            EyePair refPair(leftEye, rightEye);
             
-            RefImage.insert(std::pair<Mat *, EyePair>(refArray[i], pair));
+            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], refPair));
             
         }
     }
@@ -199,11 +208,7 @@ int main(int argc, char *argv[])
     /****************
      * Main Program *
      ****************/
-    if(MAC == 1){
-        Mac::setCurPos();
-    } else {
-        Win::setCurPos();
-    }
+
 //    ImgFrame mainEntryPoint(screenres);
 //
 //    

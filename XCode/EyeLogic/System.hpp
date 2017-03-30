@@ -11,7 +11,7 @@
 
 class System {
 public:
-    virtual void setCurPors() {return;};
+    virtual void setCurPos(float x, float y) {return;};
 };
 
 #endif /* System_h */

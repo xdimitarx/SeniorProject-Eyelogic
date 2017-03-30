@@ -10,8 +10,7 @@
 
 class Win : public System {
 public:
-    int x, y;
-    static void setCurPos()  {
+    virtual void setCurPos(float x, float y) override {
 
      /*   // Windows way to set the cursor position to some x,y coordinate on the screen
         SetCursorPos(x, y);

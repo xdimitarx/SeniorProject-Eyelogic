@@ -354,9 +354,30 @@ bool ImgFrame::insertFrame(Mat frame)
 	return (leftEye.detectKeyFeatures(leftHalf) && rightEye.detectKeyFeatures(rightHalf));
 }
 
-bool ImgFrame::getCursorXY(cv::Point *  result)
+// works with leftEyeVector because I don't know what else to use
+bool ImgFrame::setCursor()
 {
+    
+    float newX, newY;
+//
+//    // calculate new X coordinate
+//    // center image has screen coordinates: (width/2, height/2)
+    float deltaVx = leftEye.getEyeVector().x - RefImageVector[&ref_center].leftVector.x;
+    float changeInEyeX = RefImageVector[&ref_bottomLeft].leftVector.x - RefImageVector[&ref_bottomRight].leftVector.x;
 
+    newX = deltaVx / changeInEyeX * screenResolution.x + screenResolution.x/2;
+    
+    
+    // calculate new Y coordinate
+    float deltaVy = leftEye.getEyeVector().y - RefImageVector[&ref_center].leftVector.y;
+    float changeInEyeY = RefImageVector[&ref_bottomLeft].leftVector.x - RefImageVector[&ref_bottomRight].leftVector.x;
+    
+    newY = deltaVy / changeInEyeY * screenResolution.y + screenResolution.y/2;
+    
+    singleton->setCurPos(newX, newY);
+    
+    
+    
 	//Pouneh: I commented out what this function originally did so that I can get cursor location stuff
 	/*
     if(!leftEye.getBlink())
