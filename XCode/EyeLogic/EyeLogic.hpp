@@ -1,11 +1,16 @@
 #ifndef EYELOGIC_H
 #define EYELOGIC_H
 
+#include "System.hpp"
+
+
 //OPENCV
 #ifdef __APPLE__
 #include "Mac.hpp"
+#define MAC 1
 #else
 #include "Win.hpp"
+#define MAC 0
 #endif
 
 //STD
@@ -13,8 +18,6 @@
 #include <vector>
 #include <math.h>
 #include <unistd.h>
-
-
 
 using namespace std;
 using namespace cv;
@@ -51,9 +54,8 @@ private:
     
     cv::Point eyeCorner;
     cv::Point eyeCenter;
-    //size_t eyeRadius;
 	int eyeRadius;
-    cv::Point eyeVector;
+    cv::Point eyeVector = cv::Point(0,0);   //set default to 0,0
     
     bool blink;
    
@@ -68,9 +70,9 @@ private:
     
     void applyGaussian();
     
-    bool findPupil();
+    inline bool findPupil();
     
-    bool findEyeCorner();
+    inline bool findEyeCorner();
     
     void createEyeVector();
 };

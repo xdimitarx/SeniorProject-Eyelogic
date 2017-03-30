@@ -1,5 +1,6 @@
 #ifndef Win_h
 #define Win_h
+#include "System.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/objdetect.hpp>
@@ -9,28 +10,32 @@
 
 class Win : public System {
 public:
-    static void setCurPos(int x, int y) override {
+    int x, y;
+    static void setCurPos()  {
 
-        // Windows way to set the cursor position to some x,y coordinate on the screen
+     /*   // Windows way to set the cursor position to some x,y coordinate on the screen
         SetCursorPos(x, y);
         cout << x << "    " << y << endl;
-
+      */
+        return;
     }
 
-    void setCurPos(cv::Point cv::Point) {
-        //Windows way to set the cursor position to some x,y coordinate on the screen
-        SetCursorPos(cv::Point.x, cv::Point.y);
-        cout << cv::Point.x << "    " << cv::Point.y << endl;
+    void setCurPos(cv::Point point) {
+        
+        // Windows way to set the cursor position to some x,y coordinate on the screen
+        // SetCursorPos(point.x, point.y);
+        //cout << point.x << "    " << point.y << endl;
+        return;
     }
 
     cv::Point getCurPos() {
         //Windows way to get the cursor position
-        cv::Point windowscv::Point;
-        GetCursorPos(&windowscv::Point);
-        cv::Point curr((int)windowscv::Point.x, (int)windowscv::Point.y);
+        cv::Point windowsPoint;
+        //GetCursorPos(&windowscv::Point);
+        //cv::Point curr((int)windowsPoint.x, (int)windowscv::Point.y);
 
-        return curr;
+        return windowsPoint;
     }
 
-}
-#endif /* WinInclude_h */
+};
+#endif /* Win_h */

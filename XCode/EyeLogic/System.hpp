@@ -10,7 +10,8 @@
 #define System_h
 
 class System {
-    virtual void setCurPors() = 0;
+public:
+    virtual void setCurPors() {return;};
 };
 
 #endif /* System_h */
