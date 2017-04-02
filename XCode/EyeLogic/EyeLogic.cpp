@@ -255,6 +255,67 @@ bool Eye::findPupil()
 
 bool Eye::findEyeCorner()
 {
+	/*
+	Mat threshmat, dest, dest_norm, dest_norm_scaled;
+	Mat eyeCrop, newfiltered = filtered.clone();
+
+
+	medianBlur(filtered, newfiltered, 9);
+	newfiltered = newfiltered - filtered;
+
+	cv::Rect roi;
+	int left = eyeCenter.x + eyeRadius;
+	int right = eyeCenter.x - eyeRadius;
+	int offset;
+
+	if (leftEye){
+	offset = left;
+	roi = cv::Rect(left, (int)filtered.rows*0.3, filtered.cols - left, (int)(filtered.rows - filtered.rows*0.3));
+	eyeCrop = Mat(newfiltered, roi);
+	}
+	else {
+	offset = 0;
+	roi = cv::Rect(0, (int)filtered.rows*0.3, right, (int)(filtered.rows - filtered.rows*0.3));
+	eyeCrop = Mat(newfiltered, roi);
+	}
+	// detector parameters
+	int thresh = 200;
+	int max_thresh = 255;
+	int blockSize = 2;
+	int apertureSize = 5;
+	double k = 0.01;
+
+	// detect corners
+	cornerHarris(eyeCrop, dest, blockSize, apertureSize, k, BORDER_DEFAULT);
+
+	// Normalize
+	normalize(dest, dest_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
+	convertScaleAbs(dest_norm, dest_norm_scaled);
+
+
+	cout << "filtered height: " << filtered.rows << endl;
+	cout << "filtered width: " << filtered.cols << endl;
+	cout << "Top bound for box: " << (int)filtered.rows*0.3 << endl;
+
+	// Draw circle around coners detected
+	for (int j = 0; j < dest_norm.rows; j++)
+	{
+	for (int i = 0; i < dest_norm.cols; i++)
+	{
+	if (thresh < dest_norm.at<float>(j, i) )
+	{
+	circle(newfiltered, cv::Point(offset + i, j + (int)filtered.rows*0.3), 4, Scalar(122, 122, 122), 1);
+	cout << offset + i << ", " << j << endl;
+	}
+	}
+	}
+
+	//	namedWindow("corner", CV_WINDOW_AUTOSIZE);
+	imshow("corner", newfiltered);
+	waitKey(0);
+	return true;
+	*/
+
 	//Pouneh Aghababazadeh
 	Mat framegray, eyeCropGray, eyeCropColor, destLeft, destRight, leftCornerRoi, rightCornerRoi;
 	int thresh = 200;
