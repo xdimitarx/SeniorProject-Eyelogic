@@ -1,5 +1,8 @@
 #ifndef Win_h
 #define Win_h
+#include "stdafx.h"
+#include "windows.h"
+
 #include "System.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -10,6 +13,11 @@
 
 class Win : public System {
 public:
+
+    virtual System * getSystem() override {
+        return new Win();
+    }
+
     virtual void setCurPos(float x, float y) override {
 
      /*   // Windows way to set the cursor position to some x,y coordinate on the screen

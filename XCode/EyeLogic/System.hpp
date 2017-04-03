@@ -11,6 +11,7 @@
 
 class System {
 public:
+	virtual System * getSystem();
     virtual void setCurPos(float x, float y) {return;};
 };
 

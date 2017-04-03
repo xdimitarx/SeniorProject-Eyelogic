@@ -40,6 +40,16 @@ struct EyePair {
 extern std::map<Mat *, EyePair> RefImageVector;
 extern Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 
+System * getSystem()
+{
+    #ifdef __APPLE__
+        return new Mac();
+    #else
+        return new Win();
+    #endif
+        return NULL;
+}
+
 class Eye
 {
 public:
@@ -52,7 +62,7 @@ public:
     //of their face when looking at them
     bool detectKeyFeatures(Mat input);
     
-    cv::Point &getEyeVector(){return eyeVector;};
+    cv::Point getEyeVector(){return eyeVector;};
     void setEyeVector(float x, float y);
     bool getBlink();
     

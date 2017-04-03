@@ -1,5 +1,4 @@
 #include "EyeLogic.hpp"
-#include "Win.hpp"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -134,11 +133,7 @@ EyePair *getRefVector(){
 
 int main(int argc, char *argv[])
 {
-    if(MAC){
-        singleton = new Mac();
-    } else {
-        singleton = new Win();
-    }
+    singleton = getSystem();
     
     vector<const Mat *>reference_images;
     vector<const EyePair *>reference_vectors;

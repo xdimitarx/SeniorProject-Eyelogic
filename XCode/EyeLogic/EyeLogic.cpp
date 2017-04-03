@@ -1,6 +1,3 @@
-#include "stdafx.h"
-#include "windows.h"
-
 #include "EyeLogic.hpp"
 
 Mat loadImageAtPath(string path)
