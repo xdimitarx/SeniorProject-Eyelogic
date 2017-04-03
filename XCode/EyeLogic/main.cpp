@@ -61,7 +61,7 @@ cv::Point *getStabalizedCoord(cv::Point RefVectors []){
         if(max - min <= THRESHOLD){
             x = getAverage(tmp);
             break;
-            
+
         }
     }
     

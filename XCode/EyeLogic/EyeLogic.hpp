@@ -24,7 +24,7 @@ using namespace std;
 using namespace cv;
 
 Mat loadImageAtPath(string path);
-Mat cameraCapture();
+void lotsOfTheProgram(); //please see function definition for complete description of function's operatives
 extern System *singleton;
 
 
@@ -61,11 +61,14 @@ private:
     CascadeClassifier detector;
     
     //technically right eye ---> ;)
+	cv::Rect_<int> eyeLocationOnImageHalf;
     Mat original;
     Mat filtered;
     Mat filtforIris;
+	Mat faceHalf;
     
-    cv::Point eyeCorner;
+    cv::Point eyeCornerLeft;
+	cv::Point eyeCornerRight;
     cv::Point eyeCenter;
 	int eyeRadius;
     cv::Point eyeVector = cv::Point(0,0);   //set default to 0,0

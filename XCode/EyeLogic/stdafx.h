@@ -3,16 +3,16 @@
 // are changed infrequently
 //
 
-#ifndef ___APPLE__
-#pragma once
-
-#include "targetver.h"
-
-#include <stdio.h>
-#include <tchar.h>
-
-
-#endif // !___APPLE__
+//#ifndef ___APPLE__
+//#pragma once
+//
+//#include "targetver.h"
+//
+//#include <stdio.h>
+//#include <tchar.h>
+//
+//
+//#endif // !___APPLE__
 
 
 
