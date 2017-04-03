@@ -341,7 +341,7 @@ bool Eye::findEyeCorner()
 	//circle[0][0] = eyecenter.x
 	//circle[0][1] = eyecenter.y + (int)(original.rows*0.4);
 	//circle[0][2] = eyeradius
-	float pupil[] = { eyeCenter.x ,  eyeCenter.y + (int)(original.rows*0.4),  eyeRadius };
+	int pupil[] = { eyeCenter.x ,  eyeCenter.y + (int)(original.rows*0.4),  eyeRadius };
 
 	Rect leftroi = Rect(0, 0, (cvRound(pupil[0]) - pupil[2] - buffer), eyeCropGray.rows);
 	Rect rightroi = Rect((cvRound(pupil[0]) + pupil[2] + buffer), 0, eyeCropGray.cols - (cvRound(pupil[0]) + pupil[2] + buffer), eyeCropGray.rows);
@@ -441,15 +441,15 @@ bool ImgFrame::setCursor()
 //
 //    // calculate new X coordinate
 //    // center image has screen coordinates: (width/2, height/2)
-    float deltaVx = leftEye.getEyeVector().x - RefImageVector[&ref_center].leftVector.x;
-    float changeInEyeX = RefImageVector[&ref_bottomLeft].leftVector.x - RefImageVector[&ref_bottomRight].leftVector.x;
+    float deltaVx = (float)(leftEye.getEyeVector().x - RefImageVector[&ref_center].leftVector.x);
+    float changeInEyeX = float(RefImageVector[&ref_bottomLeft].leftVector.x - RefImageVector[&ref_bottomRight].leftVector.x);
 
     newX = deltaVx / changeInEyeX * screenResolution.x + screenResolution.x/2;
     
     
     // calculate new Y coordinate
-    float deltaVy = leftEye.getEyeVector().y - RefImageVector[&ref_center].leftVector.y;
-    float changeInEyeY = RefImageVector[&ref_bottomLeft].leftVector.x - RefImageVector[&ref_bottomRight].leftVector.x;
+    float deltaVy = (float)(leftEye.getEyeVector().y - RefImageVector[&ref_center].leftVector.y);
+    float changeInEyeY = (float)(RefImageVector[&ref_bottomLeft].leftVector.x - RefImageVector[&ref_bottomRight].leftVector.x);
     
     newY = deltaVy / changeInEyeY * screenResolution.y + screenResolution.y/2;
     
@@ -519,138 +519,150 @@ void lotsOfTheProgram() {
 	int blockSize = 2;
 	int apertureSize = 5;
 	double k = 0.01;
-	int buffer = 8; //buffer space away from pupil
+	
 
 	Mat framegray, eyeCropGray, eyeCropColor, destLeft, destRight, leftCornerRoi, rightCornerRoi;
 	vector<Rect_<int>> eyes, eyes2;
 	vector<Vec3f> circles;
 
-	cap >> capture;
-	cvtColor(capture, framegray, CV_BGR2GRAY);
+	while (1)
+	{
+		cap >> capture;
+		cvtColor(capture, framegray, CV_BGR2GRAY);
 
-	//increase contrast of grayscale image
-	int change = 10;
-	for (int i = 0; i < capture.cols; i++) {
-		for (int j = 0; j < capture.rows; j++) {
-			if (framegray.at<uchar>(Point(i, j)) > 20) {
-				if (framegray.at<uchar>(Point(i, j)) < 255 - change) {
-					framegray.at<uchar>(Point(i, j)) += change;
+		int buffer = 8; //buffer space away from pupil
+
+		//increase contrast of grayscale image
+		int change = 10;
+		for (int i = 0; i < capture.cols; i++) {
+			for (int j = 0; j < capture.rows; j++) {
+				if (framegray.at<uchar>(Point(i, j)) > 20) {
+					if (framegray.at<uchar>(Point(i, j)) < 255 - change) {
+						framegray.at<uchar>(Point(i, j)) += change;
+					}
+					else {
+						framegray.at<uchar>(Point(i, j)) = 255;
+					}
 				}
 				else {
-					framegray.at<uchar>(Point(i, j)) = 255;
+					if (framegray.at<uchar>(Point(i, j)) > change)
+					{
+						framegray.at<uchar>(Point(i, j)) -= change;
+					}
+					else {
+						framegray.at<uchar>(Point(i, j)) = 0;
+					}
 				}
+			}
+		}
+
+		//detect Eyes
+		CascadeClassifier eyeDetector;
+		eyeDetector.load("haarcascade_eye_tree_eyeglasses.xml");
+		eyeDetector.detectMultiScale(framegray, eyes);
+
+		std::cout << "eye size  " << eyes.size() << endl;
+
+		if (eyes.size() == 0) {
+			std::cout << " FUCK " << endl;
+			cv::imshow("capture", capture);
+			cv::waitKey(1000);
+		}
+		for (int i = 0; i < eyes.size(); i++) {
+			//draw rectangels around eye
+			rectangle(capture, Point(eyes[i].x, eyes[i].y), Point(eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height), Scalar(255, 0, 0));
+			Rect roiRect = Rect(eyes[i].x, eyes[i].y, eyes[i].width, eyes[i].height);
+			eyeCropGray = Mat(framegray, roiRect);
+			eyeCropColor = Mat(capture, roiRect);
+
+			//detect pupil for eye
+			HoughCircles(eyeCropGray, circles, CV_HOUGH_GRADIENT, 1, eyeCropGray.rows / 3 * 2, 10, 10, eyeCropGray.rows / 10, eyeCropGray.rows / 5);
+
+			// Draw the pupils detected
+
+			for (size_t i = 0; i < circles.size(); i++)
+			{
+				Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+				int radius = cvRound(circles[i][2]);
+				// circle center
+				cv::circle(eyeCropColor, center, 3, Scalar(0, 255, 0), 1, 8, 0);
+				// circle outline
+				cv::circle(eyeCropColor, center, radius, Scalar(0, 0, 255), 1, 8, 0);
+			}
+
+
+			//if only one pupil
+			if (circles.size() >= 1) {
+
+				int xoffset, yoffset;
+				//left corner
+				xoffset = eyes[0].x;
+				yoffset = eyes[0].y;
+
+				while ((cvRound(circles[0][0]) - circles[0][2] - buffer) <= 0 || cvRound(circles[0][0] + circles[0][2] + buffer) > eyeCropGray.cols) {
+					buffer--;
+				}
+				Rect leftroi = Rect(0, 0, (cvRound(circles[0][0]) - circles[0][2] - buffer), eyeCropGray.rows);
+				Rect rightroi = Rect((cvRound(circles[0][0]) + circles[0][2] + buffer), 0, (eyeCropGray.cols - (cvRound(circles[0][0]) + circles[0][2] + buffer)), eyeCropGray.rows);
+				cout << "EyecropGray size" << eyeCropGray.rows << "  " <<  eyeCropGray.cols << endl;
+				cout << "\tleftroi size  " << leftroi.width << "\t\t" << leftroi.height << endl;
+				cout << "\trightroi size  " << rightroi.width << "\t\t" << rightroi.height << endl;
+				leftCornerRoi = Mat(eyeCropGray, leftroi);
+				rightCornerRoi = Mat(eyeCropGray, rightroi);
+
+				cout << leftCornerRoi.rows << "\t\t" << leftCornerRoi.cols << "\t\t" << destLeft << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
+				if (leftCornerRoi.rows > 0 && leftCornerRoi.cols) {
+					cornerHarris(leftCornerRoi, destLeft, blockSize, apertureSize, k, BORDER_DEFAULT);
+					normalize(destLeft, destLeft, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
+					convertScaleAbs(destLeft, destLeft);
+				}
+
+				cout << rightCornerRoi.rows << "\t\t" << rightCornerRoi.cols << "\t\t" << destRight << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
+				if (rightCornerRoi.rows > 0 && rightCornerRoi.cols) {
+					cornerHarris(rightCornerRoi, destRight, blockSize, apertureSize, k, BORDER_DEFAULT);
+					normalize(destRight, destRight, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
+					convertScaleAbs(destRight, destRight);
+				}
+
+				//variables to keep track of most likely coordinate to be corner
+				Point cornerLeft;
+				Point cornerRight;
+				int verticalDistanceLeft = 10000;
+				int verticalDistanceRight = 10000;
+
+				for (int j = 0; j < destLeft.rows; j++) {
+					for (int i = 0; i < destLeft.cols; i++) {
+						if (thresh < destLeft.at<uchar>(j, i) && verticalDistanceLeft > abs(j - circles[0][1])) {
+							cornerLeft = Point(i, j);
+							verticalDistanceLeft = abs(j - (int)(circles[0][1]));
+						}
+					}
+				}
+
+				for (int j = 0; j < destRight.rows; j++) {
+					for (int i = 0; i < destRight.cols; i++) {
+						if (thresh < destRight.at<uchar>(j, i) && verticalDistanceRight > abs(j - circles[0][1])) {
+							cornerRight = Point(i + (int)(cvRound(circles[0][0]) + circles[0][2] + buffer), j);
+							verticalDistanceRight = abs(j - (int)(circles[0][1]));
+						}
+					}
+				}
+
+				cv::circle(eyeCropColor, cornerLeft, 3, Scalar(255), -1);
+				cv::circle(eyeCropColor, cornerRight, 3, Scalar(255), -1);
+
+				cv::imshow("cap", capture);
+
+				destLeft.release();
+				destRight.release();
+				eyeCropColor.release();
+				eyeCropGray.release();
 			}
 			else {
-				if (framegray.at<uchar>(Point(i, j)) > change)
-				{
-					framegray.at<uchar>(Point(i, j)) -= change;
-				}
-				else {
-					framegray.at<uchar>(Point(i, j)) = 0;
-				}
+				std::cout << "fuck this shit" << endl;
 			}
-		}
-	}
-
-	//detect Eyes
-	CascadeClassifier eyeDetector;
-	eyeDetector.load("haarcascade_eye_tree_eyeglasses.xml");
-	eyeDetector.detectMultiScale(framegray, eyes);
-
-	std::cout << "eye size  " << eyes.size() << endl;
-
-	if (eyes.size() == 0) {
-		std::cout << " FUCK " << endl;
-		cv::imshow("capture", capture);
-		cv::waitKey(1000);
-	}
-	for (int i = 0; i < eyes.size(); i++) {
-		//draw rectangels around eye
-		rectangle(capture, Point(eyes[i].x, eyes[i].y), Point(eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height), Scalar(255, 0, 0));
-		Rect roiRect = Rect(eyes[i].x, eyes[i].y, eyes[i].width, eyes[i].height);
-		eyeCropGray = Mat(framegray, roiRect);
-		eyeCropColor = Mat(capture, roiRect);
-
-		//detect pupil for eye
-		HoughCircles(eyeCropGray, circles, CV_HOUGH_GRADIENT, 1, eyeCropGray.rows / 3 * 2, 10, 10, eyeCropGray.rows / 10, eyeCropGray.rows / 5);
-		std::cout << "Crop dimensions: (x,y)    " << eyeCropGray.cols << ", " << eyeCropGray.rows << endl;
-		std::cout << "circle size   " << circles.size() << endl;
-
-		// Draw the pupils detected
-
-		for (size_t i = 0; i < circles.size(); i++)
-		{
-			Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-			int radius = cvRound(circles[i][2]);
-			// circle center
-			cv::circle(eyeCropColor, center, 3, Scalar(0, 255, 0), 1, 8, 0);
-			// circle outline
-			cv::circle(eyeCropColor, center, radius, Scalar(0, 0, 255), 1, 8, 0);
-		}
-
-
-		//if only one pupil
-		if (circles.size() >= 1) {
-
-			int xoffset, yoffset;
-			//left corner
-			xoffset = eyes[0].x;
-			yoffset = eyes[0].y;
-
-			Rect leftroi = Rect(0, 0, (cvRound(circles[0][0]) - circles[0][2] - buffer), eyeCropGray.rows);
-			Rect rightroi = Rect((cvRound(circles[0][0]) + circles[0][2] + buffer), 0, eyeCropGray.cols - (cvRound(circles[0][0]) + circles[0][2] + buffer), eyeCropGray.rows);
-			leftCornerRoi = Mat(eyeCropGray, leftroi);
-			rightCornerRoi = Mat(eyeCropGray, rightroi);
-
-			cornerHarris(leftCornerRoi, destLeft, blockSize, apertureSize, k, BORDER_DEFAULT);
-			normalize(destLeft, destLeft, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
-			convertScaleAbs(destLeft, destLeft);
-
-			cornerHarris(rightCornerRoi, destRight, blockSize, apertureSize, k, BORDER_DEFAULT);
-			normalize(destRight, destRight, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
-			convertScaleAbs(destRight, destRight);
-
-			//variables to keep track of most likely coordinate to be corner
-			Point cornerLeft;
-			Point cornerRight;
-			int verticalDistanceLeft = 10000;
-			int verticalDistanceRight = 10000;
-
-			for (int j = 0; j < destLeft.rows; j++) {
-				for (int i = 0; i < destLeft.cols; i++) {
-					if (thresh < destLeft.at<uchar>(j, i) && verticalDistanceLeft > abs(j - circles[0][1])) {
-						cornerLeft = Point(i, j);
-						verticalDistanceLeft = abs(j - circles[0][1]);
-					}
-				}
-			}
-
-			for (int j = 0; j < destRight.rows; j++) {
-				for (int i = 0; i < destRight.cols; i++) {
-					if (thresh < destRight.at<uchar>(j, i) && verticalDistanceRight > abs(j - circles[0][1])) {
-						cornerRight = Point(i + (cvRound(circles[0][0]) + circles[0][2] + buffer), j);
-						verticalDistanceRight = abs(j - circles[0][1]);
-					}
-				}
-			}
-
-			cv::circle(eyeCropColor, cornerLeft, 3, Scalar(255), -1);
-			cv::circle(eyeCropColor, cornerRight, 3, Scalar(255), -1);
-			std::cout << "Final left corner    " << cornerLeft.x << "    " << cornerLeft.y << endl;
-			std::cout << "Final right corner    " << cornerRight.x << "    " << cornerRight.y << endl;
-
-			cv::imshow("cap", capture);
-			cv::imshow("With corners", eyeCropColor);
-			cv::waitKey(5000);
-
-			destLeft.release();
-			destRight.release();
-			eyeCropColor.release();
-			eyeCropGray.release();
-		}
-		else {
-			std::cout << "fuck this shit" << endl;
-		}
-	}//for
+		}//for
+		if (waitKey(100) == 27) { break; }
+	}// end forever loop
 
 }
