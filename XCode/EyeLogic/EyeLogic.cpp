@@ -570,7 +570,7 @@ void lotsOfTheProgram() {
 		}
 		for (int i = 0; i < eyes.size(); i++) {
 			//draw rectangels around eye
-			rectangle(capture, Point(eyes[i].x, eyes[i].y), Point(eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height), Scalar(255, 0, 0));
+			//rectangle(capture, Point(eyes[i].x, eyes[i].y), Point(eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height), Scalar(255, 0, 0));
 			Rect roiRect = Rect(eyes[i].x, eyes[i].y, eyes[i].width, eyes[i].height);
 			eyeCropGray = Mat(framegray, roiRect);
 			eyeCropColor = Mat(capture, roiRect);
@@ -585,9 +585,9 @@ void lotsOfTheProgram() {
 				Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
 				int radius = cvRound(circles[i][2]);
 				// circle center
-				cv::circle(eyeCropColor, center, 3, Scalar(0, 255, 0), 1, 8, 0);
+				//cv::circle(eyeCropColor, center, 3, Scalar(0, 255, 0), 1, 8, 0);
 				// circle outline
-				cv::circle(eyeCropColor, center, radius, Scalar(0, 0, 255), 1, 8, 0);
+				//cv::circle(eyeCropColor, center, radius, Scalar(0, 0, 255), 1, 8, 0);
 			}
 
 
@@ -604,20 +604,20 @@ void lotsOfTheProgram() {
 				}
 				Rect leftroi = Rect(0, 0, (cvRound(circles[0][0]) - circles[0][2] - buffer), eyeCropGray.rows);
 				Rect rightroi = Rect((cvRound(circles[0][0]) + circles[0][2] + buffer), 0, (eyeCropGray.cols - (cvRound(circles[0][0]) + circles[0][2] + buffer)), eyeCropGray.rows);
-				cout << "EyecropGray size" << eyeCropGray.rows << "  " <<  eyeCropGray.cols << endl;
-				cout << "\tleftroi size  " << leftroi.width << "\t\t" << leftroi.height << endl;
-				cout << "\trightroi size  " << rightroi.width << "\t\t" << rightroi.height << endl;
+				//cout << "EyecropGray size" << eyeCropGray.rows << "  " <<  eyeCropGray.cols << endl;
+				//cout << "\tleftroi size  " << leftroi.width << "\t\t" << leftroi.height << endl;
+				//cout << "\trightroi size  " << rightroi.width << "\t\t" << rightroi.height << endl;
 				leftCornerRoi = Mat(eyeCropGray, leftroi);
 				rightCornerRoi = Mat(eyeCropGray, rightroi);
 
-				cout << leftCornerRoi.rows << "\t\t" << leftCornerRoi.cols << "\t\t" << destLeft << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
+				//cout << leftCornerRoi.rows << "\t\t" << leftCornerRoi.cols << "\t\t" << destLeft << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
 				if (leftCornerRoi.rows > 0 && leftCornerRoi.cols) {
 					cornerHarris(leftCornerRoi, destLeft, blockSize, apertureSize, k, BORDER_DEFAULT);
 					normalize(destLeft, destLeft, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
 					convertScaleAbs(destLeft, destLeft);
 				}
 
-				cout << rightCornerRoi.rows << "\t\t" << rightCornerRoi.cols << "\t\t" << destRight << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
+				//cout << rightCornerRoi.rows << "\t\t" << rightCornerRoi.cols << "\t\t" << destRight << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
 				if (rightCornerRoi.rows > 0 && rightCornerRoi.cols) {
 					cornerHarris(rightCornerRoi, destRight, blockSize, apertureSize, k, BORDER_DEFAULT);
 					normalize(destRight, destRight, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
