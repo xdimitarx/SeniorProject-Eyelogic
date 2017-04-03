@@ -140,7 +140,10 @@ bool Eye::detectKeyFeatures(Mat input)
 {
     vector<cv::Rect_<int> > eyesCoord;
     
-    detector.detectMultiScale(input, eyesCoord, 1.1, 3, 0, CvSize(40,40));
+    imshow("dom", input);
+    waitKey(0);
+    
+    detector.detectMultiScale(input, eyesCoord, 1.2, 3, 0, CvSize(40,20));
     if(eyesCoord.size() <= 0)
     {
         string text = "right";
@@ -320,7 +323,7 @@ bool Eye::findEyeCorner()
 
 }
 
-ImgFrame::ImgFrame(cv::Point resolution) : leftEye("haarcascade_lefteye_2splits.xml", true), rightEye("haarcascade_righteye_2splits.xml", false)
+ImgFrame::ImgFrame(cv::Point resolution) : leftEye("haarcascade_righteye_2splits.xml", true), rightEye("haarcascade_lefteye_2splits.xml", false)
 {
     faceDetector.load("haarcascade_frontalface_default.xml");
     screenResolution = resolution;

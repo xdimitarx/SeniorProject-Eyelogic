@@ -34,7 +34,6 @@ float getAverage(std::vector<float>data){
 // checks if half of values in RefVectors are within a certain threshold (currently set to 5) of each other
 // performs check first on x values and then y values and returns the average of those values if it finds and x and y
 cv::Point *getStabalizedCoord(cv::Point RefVectors []){
-    bool foundCoord = false;
     float x, y;
     std::vector<float>x_values;
     std::vector<float>y_values;
@@ -61,7 +60,6 @@ cv::Point *getStabalizedCoord(cv::Point RefVectors []){
         float max = *std::max_element(tmp.begin(), tmp.end());
         if(max - min <= THRESHOLD){
             x = getAverage(tmp);
-            foundCoord = true;
             break;
             
         }
@@ -77,9 +75,7 @@ cv::Point *getStabalizedCoord(cv::Point RefVectors []){
         float max = *std::max_element(tmp.begin(), tmp.end());
         if(max - min <= THRESHOLD){
             y = getAverage(tmp);
-            foundCoord = true;
             break;
-            
         }
     }
 
@@ -140,7 +136,7 @@ int main(int argc, char *argv[])
     } else {
         singleton = new Win();
     }
-    
+
     vector<const Mat *>reference_images;
     vector<const EyePair *>reference_vectors;
     
@@ -154,104 +150,104 @@ int main(int argc, char *argv[])
      * Calibration *
      ***************/
     
-    // create folder and store reference images
-    if(!fs::exists(imagedir)){
-        fs::create_directory(imagedir);
-        cout << "directory created " << endl;
-        
-        std::ofstream outfile(imagedir + "parameters.txt", std::ios::out);
-
-        for(int i = 0; i < NUMREFS; i++){
-            
-            std::string image_path = imagedir + filenames[i];
-
-            EyePair *refPair = getRefVector();
-            
-            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], *refPair));
-            
-            // store in file
-            outfile << refPair->leftVector.x << " " << refPair->leftVector.y << std::endl;
-            outfile << refPair->rightVector.x << " " << refPair->rightVector.y << std::endl;
-            outfile << std::endl;
-        }
-        
-    }
-    // if folder already exists, just read in images
-    else {
-        std::ifstream inputfile(imagedir + "parameters.txt", std::ios::out);
-        
-        for(int i = 0; i < NUMREFS; i++){
-            Mat image = imread(imagedir + filenames[i]);
-            *refArray[i] = image;
-            
-            std::string line;
-            getline(inputfile, line);
-
-            std::string x, y;
-            std::stringstream iss;
-            iss.str(line);
-            iss >> x >> y;
-            cv::Point leftEye(std::stof(x), std::stof(y));
-            
-            iss.clear();
-            getline(inputfile, line);
-            iss >> x >> y;
-            cv::Point rightEye(std::stof(x), std::stof(y));
-            
-            EyePair refPair(leftEye, rightEye);
-            
-            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], refPair));
-            
-        }
-    }
-    
+//    // create folder and store reference images
+//    if(!fs::exists(imagedir)){
+//        fs::create_directory(imagedir);
+//        cout << "directory created " << endl;
+//        
+//        std::ofstream outfile(imagedir + "parameters.txt", std::ios::out);
+//
+//        for(int i = 0; i < NUMREFS; i++){
+//            
+//            std::string image_path = imagedir + filenames[i];
+//
+//            EyePair *refPair = getRefVector();
+//            
+//            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], *refPair));
+//            
+//            // store in file
+//            outfile << refPair->leftVector.x << " " << refPair->leftVector.y << std::endl;
+//            outfile << refPair->rightVector.x << " " << refPair->rightVector.y << std::endl;
+//            outfile << std::endl;
+//        }
+//        
+//    }
+//    // if folder already exists, just read in images
+//    else {
+//        std::ifstream inputfile(imagedir + "parameters.txt", std::ios::out);
+//        
+//        for(int i = 0; i < NUMREFS; i++){
+//            Mat image = imread(imagedir + filenames[i]);
+//            *refArray[i] = image;
+//            
+//            std::string line;
+//            getline(inputfile, line);
+//
+//            std::string x, y;
+//            std::stringstream iss;
+//            iss.str(line);
+//            iss >> x >> y;
+//            cv::Point leftEye(std::stof(x), std::stof(y));
+//            
+//            iss.clear();
+//            getline(inputfile, line);
+//            iss >> x >> y;
+//            cv::Point rightEye(std::stof(x), std::stof(y));
+//            
+//            EyePair refPair(leftEye, rightEye);
+//            
+//            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], refPair));
+//            
+//        }
+//    }
+//    
     /****************
      * Main Program *
      ****************/
 
-//    ImgFrame mainEntryPoint(screenres);
-//
-//    
-//    VideoCapture cap;
-//    Mat capture;
-//    if (!cap.open(0))
-//        return 0;
-//
-//    if (argc == 2)
-//    {
-//        mainEntryPoint.insertFrame(loadImageAtPath(argv[1]));
-//    }
-//    else
-//    {
-//        size_t i = 0;
-//        high_resolution_clock::time_point start, end;
-//        
-//        while (1) {
-//            //Code to calculate time it takes to do insertFrame operation
-//            //As of 3/22/2017, it takes approximately 1 whole second to get and process a frame
-//            //As of 3/26/2017, it takes approximately .08 seconds to get and process a frame
-//            
-//            start = high_resolution_clock::now();
-//            cap >> capture;
-//            end = high_resolution_clock::now();
-//            auto duration = duration_cast<microseconds>(end - start).count();
-//            cout << "Camera time: " << duration << endl;
-//            
-//            start = high_resolution_clock::now();
-//            mainEntryPoint.insertFrame(capture);
-//            end = high_resolution_clock::now();
-//            duration = duration_cast<microseconds>(end - start).count();
-//            cout << duration << endl;
-//            
-//            
-//            if (waitKey(30) == '9') { break; }
-//            cin.get();
-//        }
-//    }
-//    
+    ImgFrame mainEntryPoint(screenres);
+
+    VideoCapture cap;
+    Mat capture;
+    if (!cap.open(0))
+        return 0;
+
+    if (argc == 2)
+    {
+        mainEntryPoint.insertFrame(loadImageAtPath(argv[1]));
+    }
+    else
+    {
+        size_t i = 0;
+        high_resolution_clock::time_point start, end;
+        
+        while (1) {
+            //Code to calculate time it takes to do insertFrame operation
+            //As of 3/22/2017, it takes approximately 1 whole second to get and process a frame
+            //As of 3/26/2017, it takes approximately .08 seconds to get and process a frame
+            
+            start = high_resolution_clock::now();
+            sleep(5);
+            cap >> capture;
+            end = high_resolution_clock::now();
+            auto duration = duration_cast<microseconds>(end - start).count();
+            cout << "Camera time: " << duration << endl;
+            
+            start = high_resolution_clock::now();
+            mainEntryPoint.insertFrame(capture);
+            end = high_resolution_clock::now();
+            duration = duration_cast<microseconds>(end - start).count();
+            cout << duration << endl;
+            
+            
+            if (waitKey(30) == '9') { break; }
+            cin.get();
+        }
+    }
     
     
-//    cout << "finito" << endl;
-//    return 0;
+    
+    cout << "finito" << endl;
+    return 0;
 
 }
