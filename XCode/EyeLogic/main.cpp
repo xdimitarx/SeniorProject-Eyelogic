@@ -1,5 +1,4 @@
 #include "EyeLogic.hpp"
-#include "Win.hpp"
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -11,16 +10,29 @@ namespace fs = boost::filesystem;
 using namespace std;
 using namespace std::chrono;
 
+/***********
+ * GLOBALS *
+ ***********/
+int NUMREFS = 6;                                                                            // number of reference points
+int FRAMES = 40;                                                                            // number of ref frames per ref point
+int THRESHOLD = 5;                                                                          // max deviation ref frames inside buffer
 
-// global variables
-int NUMREFS = 6, NUM_REF_IMAGES = 40, THRESHOLD = 5;
-Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
-Mat *refArray [] {&ref_topLeft, &ref_bottomLeft, &ref_center, &ref_topRight, &ref_bottomRight};
-cv::Point screenres(1920, 1080);
+cv::Point screenres(1920, 1080);                                                            // screen resolution
+Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;     // reference images
+Mat *refArray [] {&ref_camera, &ref_topLeft, &ref_bottomLeft, &ref_center, &ref_topRight, &ref_bottomRight};
 std::string filenames [] {"camera.jpg", "topleft.jpg", "bottomleft.jpg", "center.jpg", "topright.jpg", "bottomright.jpg"};
-std::map<Mat *, EyePair> RefImageVector;
-System *singleton;
+std::map<Mat *, EyePair> RefImageVector;                                                    // Map to retrive EyePair based on the image.
+                                                                                            // To be used with above global Mats
 
+fs::path curr_path(fs::current_path());
+std::string imagedir = curr_path.string() + "/images/";                                     // image file path
+System *singleton;                                                                          // global singleton set based on operating system
+
+/*
+ *  In:  vector of floats
+ *
+ *  Out: Returns average of a set of data
+ */
 float getAverage(std::vector<float>data){
     float sum = 0;
     for(auto t : data){
@@ -31,13 +43,19 @@ float getAverage(std::vector<float>data){
     return sum;
 }
 
-// checks if half of values in RefVectors are within a certain threshold (currently set to 5) of each other
-// performs check first on x values and then y values and returns the average of those values if it finds and x and y
+/*
+ *  checks if half of values in RefVectors are within a certain threshold (currently set to 5) of each other
+ *  performs check first on x values and then y values and returns the average of those values if it finds and x and y
+
+ *
+ *
+ */
+//checks if half of values in RefVectors are within a certain threshold (currently set to 5) of each other
 cv::Point *getStabalizedCoord(cv::Point RefVectors []){
     float x, y;
     std::vector<float>x_values;
     std::vector<float>y_values;
-    for(int i = 0; i < NUM_REF_IMAGES; i++){
+    for(int i = 0; i < FRAMES; i++){
         x_values.push_back(RefVectors[i].x);
         y_values.push_back(RefVectors[i].y);
     }
@@ -48,10 +66,10 @@ cv::Point *getStabalizedCoord(cv::Point RefVectors []){
     
     
     // 20 values
-    int buffer = round(NUM_REF_IMAGES/2);
+    int buffer = round(FRAMES/2);
     
     // find x value
-    for(int i = 0; i < NUM_REF_IMAGES - buffer; i++){
+    for(int i = 0; i < FRAMES - buffer; i++){
         vector<float>tmp;
         for(int j = 0; j < buffer; j++){
             tmp.push_back(x_values[i+j]);
@@ -66,7 +84,7 @@ cv::Point *getStabalizedCoord(cv::Point RefVectors []){
     }
     
     // find y value
-    for(int i = 0; i < NUM_REF_IMAGES - buffer; i++){
+    for(int i = 0; i < FRAMES - buffer; i++){
         vector<float>tmp;
         for(int j = 0; j < buffer; j++){
             tmp.push_back(y_values[i+j]);
@@ -96,18 +114,27 @@ EyePair *getRefVector(){
         return nullptr;
     }
     
-    cv::Point leftVectors [NUM_REF_IMAGES];
-    cv::Point rightVectors [NUM_REF_IMAGES];
+    std::vector<Mat>images;
+    cv::Point leftVectors [FRAMES];
+    cv::Point rightVectors [FRAMES];
     
-    for(int j = 0; j < NUM_REF_IMAGES; j++){
+    // grab 40 images and store in images vector
+    for(int j = 0; j < FRAMES; j++){
     
         //take image
         Mat capture;
         cap >> capture;
+        images.push_back(capture);
         
+    }
+    
+    cap.release();
+    
+    // calculate eye vector for each image
+    for(int j = 0; j < FRAMES; j++){
         // calculate eyeVector
         ImgFrame camera_frame(screenres);
-        camera_frame.insertFrame(capture);
+        camera_frame.insertFrame(images.at(j));
         EyePair pair(camera_frame.getLeftEye().getEyeVector(), camera_frame.getRightEye().getEyeVector());
         
         // store in array
@@ -115,7 +142,7 @@ EyePair *getRefVector(){
         rightVectors[j] = cv::Point(pair.rightVector.x, pair.rightVector.y);
     
     }
-    
+
     
     cv::Point *left = getStabalizedCoord(leftVectors);
     cv::Point *right = getStabalizedCoord(rightVectors);
@@ -129,6 +156,36 @@ EyePair *getRefVector(){
 
 }
 
+void calibrate(){
+    
+    // delete directory if it already exists
+    if(fs::exists(imagedir)){
+        fs::remove_all(imagedir);
+    }
+    
+    fs::create_directory(imagedir);
+    
+    std::ofstream outfile(imagedir + "parameters.txt", std::ios::out);
+    
+    for(int i = 0; i < NUMREFS; i++){
+        
+        std::string image_path = imagedir + filenames[i];
+        
+        EyePair *refPair = getRefVector();
+        
+        RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], *refPair));
+        
+        // store in file
+        outfile << refPair->leftVector.x << " " << refPair->leftVector.y << std::endl;
+        outfile << refPair->rightVector.x << " " << refPair->rightVector.y << std::endl;
+        outfile << std::endl;
+    }
+    
+    
+}
+
+
+
 int main(int argc, char *argv[])
 {
     if(MAC){
@@ -140,77 +197,44 @@ int main(int argc, char *argv[])
     vector<const Mat *>reference_images;
     vector<const EyePair *>reference_vectors;
     
-    /* Save user information */
-    fs::path curr_path(fs::current_path());
-    std::string imagedir = curr_path.string() + "/images/";
+    // create folder and store reference images
+    if(!fs::exists(imagedir)){
+        calibrate();
+    }
+    // if folder already exists, just read in images
+    else {
+        std::ifstream inputfile(imagedir + "parameters.txt", std::ios::out);
+        
+        for(int i = 0; i < NUMREFS; i++){
+            Mat image = imread(imagedir + filenames[i]);
+            *refArray[i] = image;
+            
+            std::string line;
+            getline(inputfile, line);
 
+            std::string x, y;
+            std::stringstream iss;
+            iss.str(line);
+            iss >> x >> y;
+            cv::Point leftEye(std::stof(x), std::stof(y));
+            
+            iss.clear();
+            getline(inputfile, line);
+            iss >> x >> y;
+            cv::Point rightEye(std::stof(x), std::stof(y));
+            
+            EyePair refPair(leftEye, rightEye);
+            
+            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], refPair));
+            
+        }
+    }
     
-    
-    /***************
-     * Calibration *
-     ***************/
-    
-//    // create folder and store reference images
-//    if(!fs::exists(imagedir)){
-//        fs::create_directory(imagedir);
-//        cout << "directory created " << endl;
-//        
-//        std::ofstream outfile(imagedir + "parameters.txt", std::ios::out);
-//
-//        for(int i = 0; i < NUMREFS; i++){
-//            
-//            std::string image_path = imagedir + filenames[i];
-//
-//            EyePair *refPair = getRefVector();
-//            
-//            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], *refPair));
-//            
-//            // store in file
-//            outfile << refPair->leftVector.x << " " << refPair->leftVector.y << std::endl;
-//            outfile << refPair->rightVector.x << " " << refPair->rightVector.y << std::endl;
-//            outfile << std::endl;
-//        }
-//        
-//    }
-//    // if folder already exists, just read in images
-//    else {
-//        std::ifstream inputfile(imagedir + "parameters.txt", std::ios::out);
-//        
-//        for(int i = 0; i < NUMREFS; i++){
-//            Mat image = imread(imagedir + filenames[i]);
-//            *refArray[i] = image;
-//            
-//            std::string line;
-//            getline(inputfile, line);
-//
-//            std::string x, y;
-//            std::stringstream iss;
-//            iss.str(line);
-//            iss >> x >> y;
-//            cv::Point leftEye(std::stof(x), std::stof(y));
-//            
-//            iss.clear();
-//            getline(inputfile, line);
-//            iss >> x >> y;
-//            cv::Point rightEye(std::stof(x), std::stof(y));
-//            
-//            EyePair refPair(leftEye, rightEye);
-//            
-//            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], refPair));
-//            
-//        }
-//    }
-//    
     /****************
      * Main Program *
      ****************/
 
     ImgFrame mainEntryPoint(screenres);
-
-    VideoCapture cap;
-    Mat capture;
-    if (!cap.open(0))
-        return 0;
 
     if (argc == 2)
     {
@@ -220,6 +244,12 @@ int main(int argc, char *argv[])
     {
         size_t i = 0;
         high_resolution_clock::time_point start, end;
+        VideoCapture cap;
+        Mat capture;
+        
+        if (!cap.open(0))
+            return 0;
+        
         
         while (1) {
             //Code to calculate time it takes to do insertFrame operation
@@ -243,9 +273,11 @@ int main(int argc, char *argv[])
             if (waitKey(30) == '9') { break; }
             cin.get();
         }
+        
+        cap.release();
     }
     
-    
+
     
     cout << "finito" << endl;
     return 0;

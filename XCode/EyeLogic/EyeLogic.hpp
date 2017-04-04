@@ -2,14 +2,14 @@
 #define EYELOGIC_H
 
 #include "System.hpp"
-
+#include "Mac.hpp"
+#include "Win.hpp"
 
 //OPENCV
 #ifdef __APPLE__
-#include "Mac.hpp"
+
 #define MAC 1
 #else
-#include "Win.hpp"
 #define MAC 0
 #endif
 
@@ -28,7 +28,6 @@ void lotsOfTheProgram(); //please see function definition for complete descripti
 extern System *singleton;
 
 
-
 struct EyePair {
     cv::Point leftVector;
     cv::Point rightVector;
@@ -38,7 +37,7 @@ struct EyePair {
 };
 
 extern std::map<Mat *, EyePair> RefImageVector;
-extern Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
+extern Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 
 class Eye
 {
