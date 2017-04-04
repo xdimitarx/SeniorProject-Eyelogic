@@ -317,7 +317,8 @@ bool Eye::findEyeCorner()
 	*/
 
 	//Pouneh Aghababazadeh
-	Mat framegray, eyeCropGray, eyeCropColor, destLeft, destRight, leftCornerRoi, rightCornerRoi;
+	Mat framegray, destLeft, destRight, leftCornerRoi, rightCornerRoi;
+	framegray = filtered.clone();
 	int thresh = 200;
 	int max_thresh = 255;
 	int blockSize = 2;
@@ -328,8 +329,10 @@ bool Eye::findEyeCorner()
 	int xoffset, yoffset;
 
 	//left corner
-	xoffset = eyeLocationOnImageHalf.x; // eyecoordinate x, y
-	yoffset = eyeLocationOnImageHalf.y;
+	//xoffset = eyeLocationOnImageHalf.x; // eyecoordinate x, y
+	//yoffset = eyeLocationOnImageHalf.y;
+	xoffset = 0;
+	yoffset = 0;
 
 	//calculate offset from original eye box coordinates to the CROPPED VERSION (ie the dimensions used for filtered and filteredForIris)
 	//Same width (number of cols/starting x)
@@ -341,20 +344,29 @@ bool Eye::findEyeCorner()
 	//circle[0][0] = eyecenter.x
 	//circle[0][1] = eyecenter.y + (int)(original.rows*0.4);
 	//circle[0][2] = eyeradius
-	int pupil[] = { eyeCenter.x ,  eyeCenter.y + (int)(original.rows*0.4),  eyeRadius };
+	int pupil[] = { eyeCenter.x ,  eyeCenter.y /* + (int)(original.rows*0.4) */,  eyeRadius };
 
-	Rect leftroi = Rect(0, 0, (cvRound(pupil[0]) - pupil[2] - buffer), eyeCropGray.rows);
-	Rect rightroi = Rect((cvRound(pupil[0]) + pupil[2] + buffer), 0, eyeCropGray.cols - (cvRound(pupil[0]) + pupil[2] + buffer), eyeCropGray.rows);
-	leftCornerRoi = Mat(eyeCropGray, leftroi);
-	rightCornerRoi = Mat(eyeCropGray, rightroi);
+	while ((cvRound(pupil[0]) - pupil[2] - buffer) <= 0 || (cvRound(pupil[0]) + pupil[2] + buffer) > filtered.cols) {
+		buffer--;
+	}
+	Rect leftroi = Rect(0, 0, (cvRound(pupil[0]) - pupil[2] - buffer), filtered.rows);
+	Rect rightroi = Rect((cvRound(pupil[0]) + pupil[2] + buffer), 0, filtered.cols - (cvRound(pupil[0]) + pupil[2] + buffer), filtered.rows);
+	leftCornerRoi = Mat(filtered, leftroi);
+	rightCornerRoi = Mat(filtered, rightroi);
 
-	cornerHarris(leftCornerRoi, destLeft, blockSize, apertureSize, k, BORDER_DEFAULT);
-	normalize(destLeft, destLeft, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
-	convertScaleAbs(destLeft, destLeft);
+	//cout << leftCornerRoi.rows << "\t\t" << leftCornerRoi.cols << "\t\t" << destLeft << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
+	if (leftCornerRoi.rows > 0 && leftCornerRoi.cols) {
+		cornerHarris(leftCornerRoi, destLeft, blockSize, apertureSize, k, BORDER_DEFAULT);
+		normalize(destLeft, destLeft, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
+		convertScaleAbs(destLeft, destLeft);
+	}
 
-	cornerHarris(rightCornerRoi, destRight, blockSize, apertureSize, k, BORDER_DEFAULT);
-	normalize(destRight, destRight, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
-	convertScaleAbs(destRight, destRight);
+	//cout << rightCornerRoi.rows << "\t\t" << rightCornerRoi.cols << "\t\t" << destRight << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
+	if (rightCornerRoi.rows > 0 && rightCornerRoi.cols) {
+		cornerHarris(rightCornerRoi, destRight, blockSize, apertureSize, k, BORDER_DEFAULT);
+		normalize(destRight, destRight, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
+		convertScaleAbs(destRight, destRight);
+	}
 
 	//variables to keep track of most likely coordinate to be corner
 	Point cornerLeft;
@@ -380,21 +392,22 @@ bool Eye::findEyeCorner()
 		}
 	}
 
-	cv::circle(eyeCropColor, cornerLeft, 3, Scalar(255), -1);
-	cv::circle(eyeCropColor, cornerRight, 3, Scalar(255), -1);
+	cv::circle(framegray, cornerLeft, 3, Scalar(255), -1);
+	cv::circle(framegray, cornerRight, 3, Scalar(255), -1);
 	std::cout << "Final left corner    " << cornerLeft.x << "    " << cornerLeft.y << endl;
 	std::cout << "Final right corner    " << cornerRight.x << "    " << cornerRight.y << endl;
 
 	eyeCornerLeft = cornerLeft;
 	eyeCornerRight = cornerRight;
 	cv::imshow("cap", faceHalf);
-	cv::imshow("With corners", eyeCropColor);
+	cv::imshow("With corners", framegray);
 	cv::waitKey(5000);
 
 	destLeft.release();
 	destRight.release();
-	eyeCropColor.release();
-	eyeCropGray.release();
+	//eyeCropColor.release();
+	//eyeCropGray.release();
+	cout << "END FIND CORNERS" << endl;
 	return true;
 
 }
