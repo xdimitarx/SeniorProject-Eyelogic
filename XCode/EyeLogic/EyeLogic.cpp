@@ -247,7 +247,7 @@ bool Eye::findPupil()
         eyeCenter = cv::Point(cvRound(bounding.x+bounding.width/2), cvRound(bounding.y+bounding.height/2));
         eyeRadius = cvRound(bounding.height*1.05);
         cv::circle(filtered, eyeCenter, eyeRadius, Scalar(122,122,122), 2);
-        rectangle(filtered, bounding,  Scalar(122,122,122),2, 8,0);
+        //rectangle(filtered, bounding,  Scalar(122,122,122),2, 8,0);
         // imshow("eye", original);
         // waitKey(0);
         return true;
@@ -395,14 +395,13 @@ bool Eye::findEyeCorner()
 		}
 	}
 
-	cv::circle(framegray, cornerLeft, 3, Scalar(255), -1);
-	cv::circle(framegray, cornerRight, 3, Scalar(255), -1);
+	cv::circle(framegray, cornerLeft, 3, Scalar(127), 1);
+	cv::circle(framegray, cornerRight, 3, Scalar(127), 1);
 	std::cout << "Final left corner    " << cornerLeft.x << "    " << cornerLeft.y << endl;
 	std::cout << "Final right corner    " << cornerRight.x << "    " << cornerRight.y << endl;
 
 	eyeCornerLeft = cornerLeft;
 	eyeCornerRight = cornerRight;
-	cv::imshow("cap", faceHalf);
 	cv::imshow("With corners", framegray);
 	cv::waitKey(5000);
 
