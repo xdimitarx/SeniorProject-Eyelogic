@@ -2,21 +2,18 @@
 #define EYELOGIC_H
 
 #include "System.hpp"
-//#include "Mac.hpp"
-
-#include "Win.hpp"
-//#include "windows.h"
 
 
 //OPENCV
-/*
 #ifdef __APPLE__
+#include "Mac.hpp"
 #define MAC 1
 #else
+#include "Win.hpp"
+#include <windows.h>
 #define MAC 0
-#include "windows.h"
 #endif
-*/
+
 
 //STD
 #include <iostream>

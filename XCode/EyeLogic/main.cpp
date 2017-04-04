@@ -22,11 +22,13 @@ Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_botto
 Mat *refArray [] {&ref_camera, &ref_topLeft, &ref_bottomLeft, &ref_center, &ref_topRight, &ref_bottomRight};
 std::string filenames [] {"camera.jpg", "topleft.jpg", "bottomleft.jpg", "center.jpg", "topright.jpg", "bottomright.jpg"};
 std::map<Mat *, EyePair> RefImageVector;                                                    // Map to retrive EyePair based on the image.
-                                                                                            // To be used with above global Mats
+
+/* change the value of singleton to corresponding OS */
+System *singleton = new Mac();
 
 fs::path curr_path(fs::current_path());
 std::string imagedir = curr_path.string() + "/images/";                                     // image file path
-System *singleton;                                                                          // global singleton set based on operating system
+//System *singleton;                                                                          // global singleton set based on operating system
 
 /*
  *  In:  vector of floats
@@ -182,12 +184,6 @@ void calibrate(){
 
 int main(int argc, char *argv[])
 {
-    if(MAC){
-        singleton = new Mac();
-    } else {
-        singleton = new Win();
-    }
-
     vector<const Mat *>reference_images;
     vector<const EyePair *>reference_vectors;
     

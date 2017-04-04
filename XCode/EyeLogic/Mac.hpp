@@ -6,7 +6,7 @@
 #include <opencv2/objdetect/objdetect.hpp>
 #include <opencv2/imgcodecs/imgcodecs.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
-//#include <ApplicationServices/ApplicationServices.h>
+#include <ApplicationServices/ApplicationServices.h>
 
 class Mac : public System {
 public:
