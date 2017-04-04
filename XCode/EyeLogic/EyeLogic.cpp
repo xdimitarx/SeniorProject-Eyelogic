@@ -321,7 +321,7 @@ bool Eye::findEyeCorner()
 
 	//Pouneh Aghababazadeh
 	Mat framegray, destLeft, destRight, leftCornerRoi, rightCornerRoi;
-	framegray = filtered.clone();
+	cvtColor(original, framegray, CV_BGR2GRAY);
 	int thresh = 200;
 	int max_thresh = 255;
 	int blockSize = 2;
@@ -349,13 +349,13 @@ bool Eye::findEyeCorner()
 	//circle[0][2] = eyeradius
 	int pupil[] = { eyeCenter.x ,  eyeCenter.y /* + (int)(original.rows*0.4) */,  eyeRadius };
 
-	while ((cvRound(pupil[0]) - pupil[2] - buffer) <= 0 || (cvRound(pupil[0]) + pupil[2] + buffer) > filtered.cols) {
+	while ((cvRound(pupil[0]) - pupil[2] - buffer) <= 0 || (cvRound(pupil[0]) + pupil[2] + buffer) > framegray.cols) {
 		buffer--;
 	}
-	Rect leftroi = Rect(0, 0, (cvRound(pupil[0]) - pupil[2] - buffer), filtered.rows);
-	Rect rightroi = Rect((cvRound(pupil[0]) + pupil[2] + buffer), 0, filtered.cols - (cvRound(pupil[0]) + pupil[2] + buffer), filtered.rows);
-	leftCornerRoi = Mat(filtered, leftroi);
-	rightCornerRoi = Mat(filtered, rightroi);
+	Rect leftroi = Rect(0, 0, (cvRound(pupil[0]) - pupil[2] - buffer), framegray.rows);
+	Rect rightroi = Rect((cvRound(pupil[0]) + pupil[2] + buffer), 0, framegray.cols - (cvRound(pupil[0]) + pupil[2] + buffer), framegray.rows);
+	leftCornerRoi = Mat(framegray, leftroi);
+	rightCornerRoi = Mat(framegray, rightroi);
 
 	//cout << leftCornerRoi.rows << "\t\t" << leftCornerRoi.cols << "\t\t" << destLeft << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
 	if (leftCornerRoi.rows > 0 && leftCornerRoi.cols) {
