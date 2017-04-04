@@ -325,6 +325,29 @@ bool Eye::findEyeCorner()
 	int buffer = 8; //buffer space away from pupil
 
 
+	int change = 10;
+	for (int i = 0; i < framegray.cols; i++) {
+		for (int j = 0; j < framegray.rows; j++) {
+			if (framegray.at<uchar>(cv::Point(i, j)) > 20) {
+				if (framegray.at<uchar>(cv::Point(i, j)) < 255 - change) {
+					framegray.at<uchar>(cv::Point(i, j)) += change;
+				}
+				else {
+					framegray.at<uchar>(cv::Point(i, j)) = 255;
+				}
+			}
+			else {
+				if (framegray.at<uchar>(cv::Point(i, j)) > change)
+				{
+					framegray.at<uchar>(cv::Point(i, j)) -= change;
+				}
+				else {
+					framegray.at<uchar>(cv::Point(i, j)) = 0;
+				}
+			}
+		}
+	}
+
 	//circles[0] is the pupil
 	//circle[0][0] = eyecenter.x
 	//circle[0][1] = eyecenter.y + (int)(original.rows*0.4);
