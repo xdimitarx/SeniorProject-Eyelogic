@@ -512,14 +512,14 @@ void lotsOfTheProgram() {
 	VideoCapture cap;
 	Mat capture;
 	if (!cap.open(0))
-		return ;
+		return;
 
 	int thresh = 200;
 	int max_thresh = 255;
 	int blockSize = 2;
 	int apertureSize = 5;
 	double k = 0.01;
-	
+
 
 	Mat framegray, eyeCropGray, eyeCropColor, destLeft, destRight, leftCornerRoi, rightCornerRoi;
 	vector<Rect_<int>> eyes, eyes2;
@@ -532,7 +532,7 @@ void lotsOfTheProgram() {
 
 		int buffer = 8; //buffer space away from pupil
 
-		//increase contrast of grayscale image
+						//increase contrast of grayscale image
 		int change = 10;
 		for (int i = 0; i < capture.cols; i++) {
 			for (int j = 0; j < capture.rows; j++) {
@@ -565,7 +565,7 @@ void lotsOfTheProgram() {
 
 		if (eyes.size() == 0) {
 			std::cout << " FUCK " << endl;
-			cv::imshow("capture", capture);
+			//cv::imshow("capture", capture);
 			cv::waitKey(1000);
 		}
 		for (int i = 0; i < eyes.size(); i++) {
@@ -584,6 +584,7 @@ void lotsOfTheProgram() {
 			{
 				Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
 				int radius = cvRound(circles[i][2]);
+				cout << "(" << center.x << ", " << center.y << ")" << endl;
 				// circle center
 				//cv::circle(eyeCropColor, center, 3, Scalar(0, 255, 0), 1, 8, 0);
 				// circle outline
