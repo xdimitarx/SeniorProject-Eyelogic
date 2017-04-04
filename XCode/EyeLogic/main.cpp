@@ -46,9 +46,10 @@ float getAverage(std::vector<float>data){
 /*
  *  checks if half of values in RefVectors are within a certain threshold (currently set to 5) of each other
  *  performs check first on x values and then y values and returns the average of those values if it finds and x and y
-
  *
+ *  Input: vector of Points
  *
+ *  Output: pointer to average coordinates
  */
 //checks if half of values in RefVectors are within a certain threshold (currently set to 5) of each other
 cv::Point *getStabalizedCoord(cv::Point RefVectors []){
@@ -113,14 +114,12 @@ EyePair *getRefVector(){
         cout << "camera is not available" << endl;
         return nullptr;
     }
-    
     std::vector<Mat>images;
     cv::Point leftVectors [FRAMES];
     cv::Point rightVectors [FRAMES];
     
     // grab 40 images and store in images vector
     for(int j = 0; j < FRAMES; j++){
-    
         //take image
         Mat capture;
         cap >> capture;
@@ -129,13 +128,30 @@ EyePair *getRefVector(){
     }
     
     cap.release();
+    imshow("5", images[5]);
+    imshow("10", images[10]);
+    imshow("15", images[15]);
+    imshow("20", images[20]);
+    imshow("25", images[25]);
+    imshow("30", images[30]);
+    imshow("35", images[35]);
+    imshow("39", images[39]);
+    waitKey(0);
+
     
-    // calculate eye vector for each image
+    
     for(int j = 0; j < FRAMES; j++){
         // calculate eyeVector
         ImgFrame camera_frame(screenres);
         camera_frame.insertFrame(images.at(j));
         EyePair pair(camera_frame.getLeftEye().getEyeVector(), camera_frame.getRightEye().getEyeVector());
+        
+        // dropped frame if can't calculate both left and right eye vectors
+        if(pair.leftVector.x < 0 || pair.rightVector.x < 0){
+//            j--;
+            continue;
+            cout << "invalid frame" << endl;
+        }
         
         // store in array
         leftVectors[j] = cv::Point(pair.leftVector.x, pair.leftVector.y);
@@ -157,11 +173,6 @@ EyePair *getRefVector(){
 }
 
 void calibrate(){
-    
-    // delete directory if it already exists
-    if(fs::exists(imagedir)){
-        fs::remove_all(imagedir);
-    }
     
     fs::create_directory(imagedir);
     
@@ -197,38 +208,46 @@ int main(int argc, char *argv[])
     vector<const Mat *>reference_images;
     vector<const EyePair *>reference_vectors;
     
-    // create folder and store reference images
-    if(!fs::exists(imagedir)){
-        calibrate();
-    }
-    // if folder already exists, just read in images
-    else {
-        std::ifstream inputfile(imagedir + "parameters.txt", std::ios::out);
-        
-        for(int i = 0; i < NUMREFS; i++){
-            Mat image = imread(imagedir + filenames[i]);
-            *refArray[i] = image;
-            
-            std::string line;
-            getline(inputfile, line);
-
-            std::string x, y;
-            std::stringstream iss;
-            iss.str(line);
-            iss >> x >> y;
-            cv::Point leftEye(std::stof(x), std::stof(y));
-            
-            iss.clear();
-            getline(inputfile, line);
-            iss >> x >> y;
-            cv::Point rightEye(std::stof(x), std::stof(y));
-            
-            EyePair refPair(leftEye, rightEye);
-            
-            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], refPair));
-            
-        }
-    }
+//    // create folder and store reference images
+//    if(!fs::exists(imagedir)){
+//        calibrate();
+//    }
+//    // if folder already exists, just read in images
+//    else {
+//        std::ifstream inputfile(imagedir + "parameters.txt", std::ios::out);
+//        
+//        for(int i = 0; i < NUMREFS; i++){
+//            Mat image = imread(imagedir + filenames[i]);
+//            *refArray[i] = image;
+//            
+//            std::string line;
+//            getline(inputfile, line);
+//
+//            std::string x, y;
+//            std::stringstream iss;
+//            iss.str(line);
+//            iss >> x >> y;
+//            cv::Point leftEye(std::stof(x), std::stof(y));
+//            
+//            iss.clear();
+//            getline(inputfile, line);
+//            iss >> x >> y;
+//            cv::Point rightEye(std::stof(x), std::stof(y));
+//            
+//            EyePair refPair(leftEye, rightEye);
+//            
+//            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], refPair));
+//            
+//        }
+//    }
+//    
+    /************************
+     * For Testing Purposes *
+     ************************/
+//    // delete directory if it already exists
+//    if(fs::exists(imagedir)){
+//        fs::remove_all(imagedir);
+//    }
     
     /****************
      * Main Program *

@@ -7,7 +7,6 @@
 
 //OPENCV
 #ifdef __APPLE__
-
 #define MAC 1
 #else
 #define MAC 0
@@ -70,7 +69,7 @@ private:
 	cv::Point eyeCornerRight;
     cv::Point eyeCenter;
 	int eyeRadius;
-    cv::Point eyeVector = cv::Point(0,0);   //set default to 0,0
+    cv::Point eyeVector = cv::Point(-1,-1);   //set default to 0,0
     
     bool blink;
    
