@@ -124,23 +124,7 @@ EyePair *getRefVector(){
         Mat capture;
         cap >> capture;
         images.push_back(capture);
-        
-    }
-    
-    cap.release();
-    imshow("5", images[5]);
-    imshow("10", images[10]);
-    imshow("15", images[15]);
-    imshow("20", images[20]);
-    imshow("25", images[25]);
-    imshow("30", images[30]);
-    imshow("35", images[35]);
-    imshow("39", images[39]);
-    waitKey(0);
 
-    
-    
-    for(int j = 0; j < FRAMES; j++){
         // calculate eyeVector
         ImgFrame camera_frame(screenres);
         camera_frame.insertFrame(images.at(j));
@@ -148,9 +132,8 @@ EyePair *getRefVector(){
         
         // dropped frame if can't calculate both left and right eye vectors
         if(pair.leftVector.x < 0 || pair.rightVector.x < 0){
-//            j--;
+            j--;
             continue;
-            cout << "invalid frame" << endl;
         }
         
         // store in array
