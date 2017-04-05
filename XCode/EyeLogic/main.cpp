@@ -15,100 +15,72 @@ using namespace std::chrono;
  ***********/
 int NUMREFS = 6;                                                                            // number of reference points
 int FRAMES = 40;                                                                            // number of ref frames per ref point
-int THRESHOLD = 5;                                                                          // max deviation ref frames inside buffer
+int THRESHOLD = 10;                                                                          // max deviation ref frames inside buffer
 
 cv::Point screenres(1920, 1080);                                                            // screen resolution
 Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;     // reference images
 Mat *refArray [] {&ref_camera, &ref_topLeft, &ref_bottomLeft, &ref_center, &ref_topRight, &ref_bottomRight};
 std::string filenames [] {"camera.jpg", "topleft.jpg", "bottomleft.jpg", "center.jpg", "topright.jpg", "bottomright.jpg"};
 std::map<Mat *, EyePair> RefImageVector;                                                    // Map to retrive EyePair based on the image.
+fs::path curr_path(fs::current_path());
+std::string imagedir = curr_path.string() + "/images/";                                     // image file path
 
 /* change the value of singleton to corresponding OS */
 System *singleton = new Mac();
 
-fs::path curr_path(fs::current_path());
-std::string imagedir = curr_path.string() + "/images/";                                     // image file path
-//System *singleton;                                                                          // global singleton set based on operating system
 
 /*
- *  In:  vector of floats
- *
- *  Out: Returns average of a set of data
- */
-float getAverage(std::vector<float>data){
-    float sum = 0;
-    for(auto t : data){
-        sum += t;
-    }
-    sum /= data.size();
-    
-    return sum;
-}
-
-/*
- *  checks if half of values in RefVectors are within a certain threshold (currently set to 5) of each other
+ *  checks if half of values in RefVectors are within a certain threshold (currently set to 10) of each other
  *  performs check first on x values and then y values and returns the average of those values if it finds and x and y
  *
  *  Input: vector of Points
  *
- *  Output: pointer to average coordinates
+ *  Output: pointer to average coordinates or nullptr
  */
-//checks if half of values in RefVectors are within a certain threshold (currently set to 5) of each other
-cv::Point *getStabalizedCoord(cv::Point RefVectors []){
-    float x, y;
-    std::vector<float>x_values;
-    std::vector<float>y_values;
-    for(int i = 0; i < FRAMES; i++){
-        x_values.push_back(RefVectors[i].x);
-        y_values.push_back(RefVectors[i].y);
-    }
+cv::Point *getStabalizedCoord(std::vector<cv::Point>RefVectors){
     
-    // sort x and y values in increasing order
-    std::sort(x_values.begin(), x_values.end(), [](float x1, float x2){ return x1 <= x2;});
-    std::sort(y_values.begin(), y_values.end(), [](float y1, float y2){ return y1 <= y2;});
+    int buffer = floor(FRAMES/2) + 1;
     
+    // sort by x coordinate
+    std::sort(RefVectors.begin(), RefVectors.end(), [](const cv::Point p1, const cv::Point p2){return p1.x <= p2.x;});
     
-    // 20 values
-    int buffer = round(FRAMES/2);
-    
-    // find x value
     for(int i = 0; i < FRAMES - buffer; i++){
-        vector<float>tmp;
+        vector<cv::Point>tmp;
+        
+        // vector of size buffer
         for(int j = 0; j < buffer; j++){
-            tmp.push_back(x_values[i+j]);
+            tmp.push_back(RefVectors[i+j]);
         }
-        float min = *std::min_element(tmp.begin(), tmp.end());
-        float max = *std::max_element(tmp.begin(), tmp.end());
-        if(max - min <= THRESHOLD){
-            x = getAverage(tmp);
-            break;
+        cv::Point Xmin = *std::min_element(tmp.begin(), tmp.end(), [](const cv::Point p1, const cv::Point p2){return p1.x <= p2.x;});
+        cv::Point Xmax = *std::max_element(tmp.begin(), tmp.end(), [](const cv::Point p1, const cv::Point p2){return p1.x >= p2.x;});
 
+        if(Xmax.x - Xmin.x <= THRESHOLD){
+            
+            cv::Point Ymin = *std::min_element(tmp.begin(), tmp.end(), [](const cv::Point p1, const cv::Point p2){return p1.y <= p2.y;});
+            cv::Point Ymax = *std::max_element(tmp.begin(), tmp.end(), [](const cv::Point p1, const cv::Point p2){return p1.y >= p2.y;});
+            
+            if(Ymax.y - Ymin.y <= THRESHOLD){
+                float sumX = 0, sumY = 0;
+                std::for_each(tmp.begin(), tmp.end(), [sumX, sumY](const cv::Point pt) mutable {sumX += pt.x; sumY += pt.y;});
+                sumX /= tmp.size();
+                sumY /= tmp.size();
+                return new cv::Point(sumX, sumY);
+            }
+            
         }
     }
     
-    // find y value
-    for(int i = 0; i < FRAMES - buffer; i++){
-        vector<float>tmp;
-        for(int j = 0; j < buffer; j++){
-            tmp.push_back(y_values[i+j]);
-        }
-        float min = *std::min_element(tmp.begin(), tmp.end());
-        float max = *std::max_element(tmp.begin(), tmp.end());
-        if(max - min <= THRESHOLD){
-            y = getAverage(tmp);
-            break;
-        }
-    }
-
-    if(x && y){
-        cv::Point *stabalized = new cv::Point(x, y);
-        return stabalized;
-    } else {
-        return nullptr;
-    }
-
+    return nullptr;
 }
 
+
+
+/*
+ *  Takes 40 images and calculates the eyeVector for each image frame. Keeps looping until 40 valid frames
+ *  with left and right vectors are found.
+ *
+ *  Output: EyePair with left and right eye vectors for the associated reference image
+ */
 EyePair *getRefVector(){
     VideoCapture cap;
     
@@ -117,8 +89,8 @@ EyePair *getRefVector(){
         return nullptr;
     }
     std::vector<Mat>images;
-    cv::Point leftVectors [FRAMES];
-    cv::Point rightVectors [FRAMES];
+    std::vector<cv::Point>leftVectors;
+    std::vector<cv::Point>rightVectors;
     
     // grab 40 images and store in images vector
     for(int j = 0; j < FRAMES; j++){
@@ -139,14 +111,16 @@ EyePair *getRefVector(){
         }
         
         // store in array
-        leftVectors[j] = cv::Point(pair.leftVector.x, pair.leftVector.y);
-        rightVectors[j] = cv::Point(pair.rightVector.x, pair.rightVector.y);
+        leftVectors.push_back(cv::Point(pair.leftVector.x, pair.leftVector.y));
+        rightVectors.push_back(cv::Point(pair.rightVector.x, pair.rightVector.y));
     
     }
-
+    
+    assert(leftVectors.size() == FRAMES && rightVectors.size() == FRAMES);
     
     cv::Point *left = getStabalizedCoord(leftVectors);
     cv::Point *right = getStabalizedCoord(rightVectors);
+
     
     // keep taking images until a stabalized set of coordinates can be found
     if(!left || !right){
@@ -157,6 +131,11 @@ EyePair *getRefVector(){
 
 }
 
+
+/*
+ *  Calibration method that will start calibration process
+ *  Tied to event listener and called when button is clicked
+ */
 void calibrate(){
     
     fs::create_directory(imagedir);
@@ -180,12 +159,23 @@ void calibrate(){
     
 }
 
-
-
 int main(int argc, char *argv[])
 {
     vector<const Mat *>reference_images;
     vector<const EyePair *>reference_vectors;
+    /************************
+     * For Testing Purposes *
+     ************************/
+    // delete directory if it already exists
+//    if(fs::exists(imagedir)){
+//        fs::remove_all(imagedir);
+//    }
+//    calibrate();
+    
+    
+    /***************
+     * Calibration *
+     ***************/
     
 //    // create folder and store reference images
 //    if(!fs::exists(imagedir)){
@@ -220,13 +210,8 @@ int main(int argc, char *argv[])
 //        }
 //    }
 //    
-    /************************
-     * For Testing Purposes *
-     ************************/
-//    // delete directory if it already exists
-//    if(fs::exists(imagedir)){
-//        fs::remove_all(imagedir);
-//    }
+
+    
     
     /****************
      * Main Program *
