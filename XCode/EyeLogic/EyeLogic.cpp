@@ -252,68 +252,6 @@ bool Eye::findPupil()
 
 bool Eye::findEyeCorner()
 {
-	/*
-	Mat threshmat, dest, dest_norm, dest_norm_scaled;
-	Mat eyeCrop, newfiltered = filtered.clone();
-
-
-	medianBlur(filtered, newfiltered, 9);
-	newfiltered = newfiltered - filtered;
-
-	cv::Rect roi;
-	int left = eyeCenter.x + eyeRadius;
-	int right = eyeCenter.x - eyeRadius;
-	int offset;
-
-	if (leftEye){
-	offset = left;
-	roi = cv::Rect(left, (int)filtered.rows*0.3, filtered.cols - left, (int)(filtered.rows - filtered.rows*0.3));
-	eyeCrop = Mat(newfiltered, roi);
-	}
-	else {
-	offset = 0;
-	roi = cv::Rect(0, (int)filtered.rows*0.3, right, (int)(filtered.rows - filtered.rows*0.3));
-	eyeCrop = Mat(newfiltered, roi);
-	}
-	// detector parameters
-	int thresh = 200;
-	int max_thresh = 255;
-	int blockSize = 2;
-	int apertureSize = 5;
-	double k = 0.01;
-
-	// detect corners
-	cornerHarris(eyeCrop, dest, blockSize, apertureSize, k, BORDER_DEFAULT);
-
-	// Normalize
-	normalize(dest, dest_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
-	convertScaleAbs(dest_norm, dest_norm_scaled);
-
-
-	cout << "filtered height: " << filtered.rows << endl;
-	cout << "filtered width: " << filtered.cols << endl;
-	cout << "Top bound for box: " << (int)filtered.rows*0.3 << endl;
-
-	// Draw circle around coners detected
-	for (int j = 0; j < dest_norm.rows; j++)
-	{
-	for (int i = 0; i < dest_norm.cols; i++)
-	{
-	if (thresh < dest_norm.at<float>(j, i) )
-	{
-	circle(newfiltered, cv::Point(offset + i, j + (int)filtered.rows*0.3), 4, Scalar(122, 122, 122), 1);
-	cout << offset + i << ", " << j << endl;
-	}
-	}
-	}
-
-	//	namedWindow("corner", CV_WINDOW_AUTOSIZE);
-	imshow("corner", newfiltered);
-	waitKey(0);
-	return true;
-	*/
-
-	//Pouneh Aghababazadeh
 	Mat framegray, destLeft, destRight, leftCornerRoi, rightCornerRoi;
 	cvtColor(original, framegray, CV_BGR2GRAY);
 	int thresh = 200;
@@ -323,11 +261,34 @@ bool Eye::findEyeCorner()
 	double k = 0.01;
 	int buffer = 8; //buffer space away from pupil
 
-
+	//increase contrast
 	int change = 10;
+
+	double m = (framegray.rows*framegray.cols) / 2;
+	int bin = 0;
+	double med = -1.0;
+
+	int histSize = 256;
+	float range[] = { 0, 256 };
+	const float* histRange = { range };
+	bool uniform = true;
+	bool accumulate = false;
+	cv::Mat hist;
+	cv::calcHist(&framegray, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
+
+	for (int i = 0; i < histSize && med < 0.0; ++i)
+	{
+		bin += cvRound(hist.at< float >(i));
+		if (bin > m && med < 0.0) {
+			med = i;
+			break;
+		}
+	}
+
+
 	for (int i = 0; i < framegray.cols; i++) {
 		for (int j = 0; j < framegray.rows; j++) {
-			if (framegray.at<uchar>(cv::Point(i, j)) > 20) {
+			if (framegray.at<uchar>(cv::Point(i, j)) > med) {
 				if (framegray.at<uchar>(cv::Point(i, j)) < 255 - change) {
 					framegray.at<uchar>(cv::Point(i, j)) += change;
 				}
