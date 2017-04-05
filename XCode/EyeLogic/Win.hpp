@@ -1,6 +1,7 @@
 #ifndef Win_h
 #define Win_h
 #include "System.hpp"
+#include <windows.h>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/objdetect.hpp>
