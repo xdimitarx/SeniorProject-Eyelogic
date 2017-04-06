@@ -69,5 +69,8 @@
     <ClInclude Include="Mac.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="voce.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

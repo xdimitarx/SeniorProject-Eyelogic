@@ -1,10 +1,10 @@
-
-
-//Comment this to run any operating system other than windows
+#include"voce.h" // Has to be here, unless we break it into hpp/cpp
 
 
 //Ours
 #include "EyeLogic.hpp"
+
+
 
 //BOOST
 #include <boost/filesystem.hpp>
@@ -138,6 +138,8 @@ EyePair *getRefVector(){
 int main(int argc, char *argv[])
 {
     singleton = getSystem();
+
+	voce::init("./lib/", false, true, "./lib/gram/", "");
     
     vector<const Mat *>reference_images;
     vector<const EyePair *>reference_vectors;

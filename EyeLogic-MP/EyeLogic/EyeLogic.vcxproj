@@ -74,16 +74,18 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>D:\boost_1_63_0\;$(OPENCV_DIR)\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Boost\lib;$(OPENCV_DIR)\lib\Debug;$(OPENCV_DIR)\bin\Debug;$(LibraryPath)</LibraryPath>
+    <IncludePath>D:\boost_1_63_0\;$(OPENCV_DIR)\include;$(IncludePath);$(JAVA_HOME)\include\win32;$(JAVA_HOME)\include</IncludePath>
+    <LibraryPath>$(JAVA_HOME)\jre\bin\server;$(JAVA_HOME)\lib;C:\Boost\lib;$(OPENCV_DIR)\lib\Debug;$(OPENCV_DIR)\bin\Debug;$(LibraryPath)</LibraryPath>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Boost\include\boost-1_63;D:\OpenCv3.2\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Boost\lib;$(OPENCV_DIR)\lib\Release;$(OPENCV_DIR)\bin\Release;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Boost\include\boost-1_63;D:\OpenCv3.2\include;$(IncludePath);$(JAVA_HOME)\include\win32;$(JAVA_HOME)\include</IncludePath>
+    <LibraryPath>$(JAVA_HOME)\jre\bin\server;$(JAVA_HOME)\lib;C:\Boost\lib;$(OPENCV_DIR)\lib\Release;$(OPENCV_DIR)\bin\Release;$(LibraryPath)</LibraryPath>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -103,7 +105,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
@@ -111,7 +113,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OPENCV_DIR}\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_calib3d320d.lib;opencv_core320d.lib;opencv_shape320d.lib;opencv_features2d320d.lib;opencv_flann320d.lib;opencv_highgui320d.lib;opencv_imgcodecs320d.lib;opencv_imgproc320d.lib;opencv_ml320d.lib;opencv_objdetect320d.lib;opencv_photo320d.lib;opencv_stitching320d.lib;opencv_superres320d.lib;opencv_ts320d.lib;opencv_video320d.lib;opencv_videoio320d.lib;opencv_videostab320d.lib;libboost_filesystem-vc140-mt-gd-1_63.lib;libboost_system-vc140-mt-gd-1_63.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opencv_calib3d320d.lib;opencv_core320d.lib;opencv_shape320d.lib;opencv_features2d320d.lib;opencv_flann320d.lib;opencv_highgui320d.lib;opencv_imgcodecs320d.lib;opencv_imgproc320d.lib;opencv_ml320d.lib;opencv_objdetect320d.lib;opencv_photo320d.lib;opencv_stitching320d.lib;opencv_superres320d.lib;opencv_ts320d.lib;opencv_video320d.lib;opencv_videoio320d.lib;opencv_videostab320d.lib;libboost_filesystem-vc140-mt-gd-1_63.lib;libboost_system-vc140-mt-gd-1_63.lib;jvm.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -175,6 +177,7 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="System.hpp" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="voce.h" />
     <ClInclude Include="Win.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
