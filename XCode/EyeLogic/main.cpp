@@ -5,6 +5,7 @@
 #include <boost/filesystem.hpp>
 #include <chrono>
 #include <map>
+#include <algorithm>
 
 namespace fs = boost::filesystem;
 using namespace std;
@@ -15,7 +16,8 @@ using namespace std::chrono;
  ***********/
 int NUMREFS = 6;                                                                            // number of reference points
 int FRAMES = 40;                                                                            // number of ref frames per ref point
-int THRESHOLD = 10;                                                                          // max deviation ref frames inside buffer
+int THRESHOLD = 10;                                                                         // max deviation ref frames inside buffer
+int MAXFRAMES = 100;
 
 cv::Point screenres(1920, 1080);                                                            // screen resolution
 Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;     // reference images
@@ -29,6 +31,82 @@ std::string imagedir = curr_path.string() + "/images/";                         
 System *singleton = new Mac();
 
 
+enum Coordinate{
+    X,
+    Y
+};
+
+
+/*
+ *  Find the maximum of a set of points
+ *
+ *  Input: vector of Points, X or Y coordinate
+ *
+ *  Output: min
+ */
+cv::Point Max(std::vector<cv::Point>data, Coordinate a){
+    cv::Point max;
+    
+    // x coordinate
+    if(a == X){
+        max = data[0];
+        for(auto pt: data){
+            if(pt.x > max.x){
+                max = pt;
+            }
+        }
+        
+    }
+    
+    // y coordinate
+    if (a == Y){
+        max = data[0];
+        for(auto pt: data){
+            if(pt.y > max.y){
+                max = pt;
+            }
+        }
+    }
+    
+    return max;
+
+}
+
+/*
+ *  Find the minimum of a set of points
+ *
+ *  Input: vector of Points, X or Y coordinate
+ *
+ *  Output: min
+ */
+cv::Point Min(std::vector<cv::Point>data, Coordinate a){
+
+    cv::Point min;
+    // x coordinate
+    if(a == X){
+        min = data[0];
+        for(auto pt: data){
+            if(pt.x < min.x){
+                min = pt;
+            }
+        }
+        
+    }
+    
+    // y coordinate
+    if (a == Y){
+        min = data[0];
+        for(auto pt: data){
+            if(pt.y < min.y){
+                min = pt;
+            }
+        }
+    }
+    
+    return min;
+    
+}
+
 /*
  *  checks if half of values in RefVectors are within a certain threshold (currently set to 10) of each other
  *  performs check first on x values and then y values and returns the average of those values if it finds and x and y
@@ -39,10 +117,15 @@ System *singleton = new Mac();
  */
 cv::Point *getStabalizedCoord(std::vector<cv::Point>RefVectors){
     
+    if(RefVectors.empty()){
+        return nullptr;
+    }
+    
     int buffer = floor(FRAMES/2) + 1;
     
     // sort by x coordinate
-    std::sort(RefVectors.begin(), RefVectors.end(), [](const cv::Point p1, const cv::Point p2){return p1.x <= p2.x;});
+    std::sort(RefVectors.begin(), RefVectors.end(),
+              [](const cv::Point p1, const cv::Point p2){return (p1.x!=p2.x)?(p1.x < p2.x):(p1.y < p2.y);});
     
     for(int i = 0; i < FRAMES - buffer; i++){
         vector<cv::Point>tmp;
@@ -51,17 +134,29 @@ cv::Point *getStabalizedCoord(std::vector<cv::Point>RefVectors){
         for(int j = 0; j < buffer; j++){
             tmp.push_back(RefVectors[i+j]);
         }
-        cv::Point Xmin = *std::min_element(tmp.begin(), tmp.end(), [](const cv::Point p1, const cv::Point p2){return p1.x <= p2.x;});
-        cv::Point Xmax = *std::max_element(tmp.begin(), tmp.end(), [](const cv::Point p1, const cv::Point p2){return p1.x >= p2.x;});
+        
+        
+        cv::Point Xmin = tmp[0];;
+        cv::Point Xmax = tmp[tmp.size()-1];
 
+        
+        
+//        std::vector<cv::Point>::iterator Xmin_itr = std::min_element(tmp.begin(), tmp.end(), []( cv::Point p1,  cv::Point p2){return p1.x < p2.x;});
+//        std::vector<cv::Point>::iterator Xmax_itr = std::max_element(tmp.begin(), tmp.end(), []( cv::Point p1,  cv::Point p2){return p1.x < p2.x;});
+//
+//        cv::Point Xmin = *Xmin_itr;
+//        cv::Point Xmax = *Xmax_itr;
+        
         if(Xmax.x - Xmin.x <= THRESHOLD){
             
-            cv::Point Ymin = *std::min_element(tmp.begin(), tmp.end(), [](const cv::Point p1, const cv::Point p2){return p1.y <= p2.y;});
-            cv::Point Ymax = *std::max_element(tmp.begin(), tmp.end(), [](const cv::Point p1, const cv::Point p2){return p1.y >= p2.y;});
+//            cv::Point Ymin = *std::min_element(tmp.begin(), tmp.end(), []( cv::Point p1,  cv::Point p2){return p1.y < p2.y;});
+//            cv::Point Ymax = *std::max_element(tmp.begin(), tmp.end(), []( cv::Point p1,  cv::Point p2){return p1.y > p2.y;});
             
+            cv::Point Ymax = Max(tmp, Y);
+            cv::Point Ymin = Min(tmp, Y);
             if(Ymax.y - Ymin.y <= THRESHOLD){
                 float sumX = 0, sumY = 0;
-                std::for_each(tmp.begin(), tmp.end(), [sumX, sumY](const cv::Point pt) mutable {sumX += pt.x; sumY += pt.y;});
+                std::for_each(tmp.begin(), tmp.end(), [&sumX, &sumY](const cv::Point pt) {sumX += pt.x; sumY += pt.y;});
                 sumX /= tmp.size();
                 sumY /= tmp.size();
                 return new cv::Point(sumX, sumY);
@@ -82,41 +177,67 @@ cv::Point *getStabalizedCoord(std::vector<cv::Point>RefVectors){
  *  Output: EyePair with left and right eye vectors for the associated reference image
  */
 EyePair *getRefVector(){
-    VideoCapture cap;
-    
-    if (!cap.open(0)){
-        cout << "camera is not available" << endl;
-        return nullptr;
-    }
-    std::vector<Mat>images;
+//    VideoCapture cap;
+//    
+//    if (!cap.open(0)){
+//        cout << "camera is not available" << endl;
+//        return nullptr;
+//    }
+//    std::vector<Mat>images;
     std::vector<cv::Point>leftVectors;
     std::vector<cv::Point>rightVectors;
+    int count;
     
-    // grab 40 images and store in images vector
-    for(int j = 0; j < FRAMES; j++){
-        //take image
-        Mat capture;
-        cap >> capture;
-        images.push_back(capture);
-
-        // calculate eyeVector
-        ImgFrame camera_frame(screenres);
-        camera_frame.insertFrame(images.at(j));
-        EyePair pair(camera_frame.getLeftEye().getEyeVector(), camera_frame.getRightEye().getEyeVector());
-        
-        // dropped frame if can't calculate both left and right eye vectors
-        if(pair.leftVector.x < 0 || pair.rightVector.x < 0){
-            j--;
-            continue;
-        }
-        
-        // store in array
-        leftVectors.push_back(cv::Point(pair.leftVector.x, pair.leftVector.y));
-        rightVectors.push_back(cv::Point(pair.rightVector.x, pair.rightVector.y));
     
-    }
+//    // grab 40 images and store in images vector
+//    for(int j = 0; j < FRAMES; j++){
     
-    assert(leftVectors.size() == FRAMES && rightVectors.size() == FRAMES);
+//        count++;
+    
+    
+//    if(count == MAXFRAMES){
+//        cout << "could not find " << FRAMES << " frames within a reasonable time frame" << endl;
+//        return nullptr;
+//    }
+//        //take image
+//        Mat capture;
+//        cap >> capture;
+//        images.push_back(capture);
+//
+//        // calculate eyeVector
+//        ImgFrame camera_frame(screenres);
+//        camera_frame.insertFrame(images.at(j));
+//        EyePair pair(camera_frame.getLeftEye().getEyeVector(), camera_frame.getRightEye().getEyeVector());
+//        
+//        // dropped frame if can't calculate both left and right eye vectors
+//        if(pair.leftVector.x < 0 || pair.rightVector.x < 0){
+//            j--;
+//            continue;
+//        }
+//        
+//        // store in array
+//        leftVectors.push_back(cv::Point(pair.leftVector.x, pair.leftVector.y));
+//        rightVectors.push_back(cv::Point(pair.rightVector.x, pair.rightVector.y));
+//
+//    }
+//
+//    assert(leftVectors.size() == FRAMES && rightVectors.size() == FRAMES);
+    
+//****************************test data
+//    std::vector<cv::Point>data = {
+//                                    {22,50},{47,29},{56,75},{40,26},{47,28},{41,34},{15,17},{81,77},{45,26},{22,44},
+//                                    {44,32},{42,27},{75,62},{52,99},{32,33},{42,34},{40,34},{45,26},{25,30},{46,30},
+//                                    {41,33},{14,69},{47,32},{42,26},{50,50},{36,17},{42,29},{41,31},{62,29},{20,25},
+//                                    {40,30},{77,19},{28,28},{44,32},{41,35},{27,29},{46,27},{50,61},{91,2},{47,26}
+//                                };
+//    
+//    cv::Point *oneEye = getStabalizedCoord(data);
+//    cv::Point *noEye = getStabalizedCoord({});
+//    
+//    if(!noEye){
+//        cout << "null pointer" << endl;
+//    }
+//****************************
     
     cv::Point *left = getStabalizedCoord(leftVectors);
     cv::Point *right = getStabalizedCoord(rightVectors);
@@ -148,12 +269,18 @@ void calibrate(){
         
         EyePair *refPair = getRefVector();
         
-        RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], *refPair));
+        if(refPair){
+            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], *refPair));
         
         // store in file
         outfile << refPair->leftVector.x << " " << refPair->leftVector.y << std::endl;
         outfile << refPair->rightVector.x << " " << refPair->rightVector.y << std::endl;
         outfile << std::endl;
+            
+        }
+        else {
+            cout << "could not calibrate. Please try again" << endl;
+        }
     }
     
     
@@ -177,39 +304,39 @@ int main(int argc, char *argv[])
      * Calibration *
      ***************/
     
-//    // create folder and store reference images
-//    if(!fs::exists(imagedir)){
-//        calibrate();
-//    }
-//    // if folder already exists, just read in images
-//    else {
-//        std::ifstream inputfile(imagedir + "parameters.txt", std::ios::out);
-//        
-//        for(int i = 0; i < NUMREFS; i++){
-//            Mat image = imread(imagedir + filenames[i]);
-//            *refArray[i] = image;
-//            
-//            std::string line;
-//            getline(inputfile, line);
-//
-//            std::string x, y;
-//            std::stringstream iss;
-//            iss.str(line);
-//            iss >> x >> y;
-//            cv::Point leftEye(std::stof(x), std::stof(y));
-//            
-//            iss.clear();
-//            getline(inputfile, line);
-//            iss >> x >> y;
-//            cv::Point rightEye(std::stof(x), std::stof(y));
-//            
-//            EyePair refPair(leftEye, rightEye);
-//            
-//            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], refPair));
-//            
-//        }
-//    }
-//    
+    // create folder and store reference images
+    if(!fs::exists(imagedir)){
+        calibrate();
+    }
+    // if folder already exists, just read in images
+    else {
+        std::ifstream inputfile(imagedir + "parameters.txt", std::ios::out);
+        
+        for(int i = 0; i < NUMREFS; i++){
+            Mat image = imread(imagedir + filenames[i]);
+            *refArray[i] = image;
+            
+            std::string line;
+            getline(inputfile, line);
+
+            std::string x, y;
+            std::stringstream iss;
+            iss.str(line);
+            iss >> x >> y;
+            cv::Point leftEye(std::stof(x), std::stof(y));
+            
+            iss.clear();
+            getline(inputfile, line);
+            iss >> x >> y;
+            cv::Point rightEye(std::stof(x), std::stof(y));
+            
+            EyePair refPair(leftEye, rightEye);
+            
+            RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], refPair));
+            
+        }
+    }
+    
 
     
     
