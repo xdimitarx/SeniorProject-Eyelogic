@@ -1,10 +1,9 @@
-﻿  stdafx.cpp
-  main.cpp
+﻿  main.cpp
 d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\win.hpp(25): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(45): warning C4244: 'argument': conversion from 'int' to 'const float', possible loss of data
-d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(46): warning C4244: 'argument': conversion from 'int' to 'const float', possible loss of data
-d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(55): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(89): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(36): warning C4244: 'argument': conversion from 'int' to 'const float', possible loss of data
+d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(37): warning C4244: 'argument': conversion from 'int' to 'const float', possible loss of data
+d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(46): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(80): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
   EyeLogic.cpp
 d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\win.hpp(25): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
 d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\eyelogic.cpp(614): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data

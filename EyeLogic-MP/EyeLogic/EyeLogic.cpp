@@ -427,7 +427,7 @@ bool ImgFrame::insertFrame(Mat frame)
     faceDetector.detectMultiScale(frame, faceCoord, 1.2, 3, 0, CvSize(150,150));
 	cout << faceCoord.capacity() << endl;
 
-    if(faceCoord.capacity() < 1)
+    if(faceCoord.capacity() < 0)
     {
         cerr << "insertFrame: DID NOT FIND ANY FACES" << endl;
         return false;

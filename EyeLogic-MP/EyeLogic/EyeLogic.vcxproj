@@ -75,7 +75,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>D:\boost_1_63_0\;$(OPENCV_DIR)\include;$(IncludePath);$(JAVA_HOME)\include\win32;$(JAVA_HOME)\include</IncludePath>
-    <LibraryPath>$(JAVA_HOME)\jre\bin\server;$(JAVA_HOME)\lib;C:\Boost\lib;$(OPENCV_DIR)\lib\Debug;$(OPENCV_DIR)\bin\Debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(JAVA_HOME)\lib;C:\Boost\lib;$(OPENCV_DIR)\lib\Debug;$(OPENCV_DIR)\bin\Debug;$(LibraryPath)</LibraryPath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -84,7 +84,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>C:\Boost\include\boost-1_63;D:\OpenCv3.2\include;$(IncludePath);$(JAVA_HOME)\include\win32;$(JAVA_HOME)\include</IncludePath>
-    <LibraryPath>$(JAVA_HOME)\jre\bin\server;$(JAVA_HOME)\lib;C:\Boost\lib;$(OPENCV_DIR)\lib\Release;$(OPENCV_DIR)\bin\Release;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(JAVA_HOME)\lib;C:\Boost\lib;$(OPENCV_DIR)\lib\Release;$(OPENCV_DIR)\bin\Release;$(LibraryPath)</LibraryPath>
     <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -177,7 +177,6 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="System.hpp" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="voce.h" />
     <ClInclude Include="Win.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
