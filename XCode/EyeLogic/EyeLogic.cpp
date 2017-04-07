@@ -109,8 +109,13 @@ Eye::~Eye()
 void Eye::createEyeVector(){
 	//There will be 2 eyeVectors, one based on the left corner and one based on the right corner.
 	//This function needs to be modified/fixed to reflect this change
+	vectorPupilToLeftCorner.x = eyeCenter.x - eyeCornerLeft.x;
+	vectorPupilToLeftCorner.y = eyeCenter.y - eyeCornerLeft.y;
 
-	
+	vectorPupilToRightCorner.x = eyeCenter.x - eyeCornerRight.x;
+	vectorPupilToRightCorner.y = eyeCenter.y - eyeCornerRight.y;
+
+
     if(leftEye){
         eyeVector.x = eyeCenter.x - eyeCornerLeft.x;
         eyeVector.y = eyeCenter.y - eyeCornerLeft.y;
@@ -123,10 +128,6 @@ void Eye::createEyeVector(){
 
 }
 
-void Eye::setEyeVector(float x, float y){
-    eyeVector.x = (int) x;
-    eyeVector.y = (int) y;
-}
 bool Eye::detectKeyFeatures(Mat input)
 {
 	faceHalf = input;
@@ -216,8 +217,6 @@ void Eye::applyGaussian()
 {
     GaussianBlur(filtforIris, filtforIris, CvSize(3,3), 0, 0);
 }
-
-
 
 bool Eye::findPupil()
 {
@@ -363,16 +362,15 @@ bool Eye::findEyeCorner()
 
 	cv::circle(framegray, cornerLeft, 3, Scalar(127), 1);
 	cv::circle(framegray, cornerRight, 3, Scalar(127), 1);
-	std::cout << "Final left corner    " << cornerLeft.x << "    " << cornerLeft.y << endl;
-	std::cout << "Final right corner    " << cornerRight.x << "    " << cornerRight.y << endl;
 
 	eyeCornerLeft = cornerLeft;
 	eyeCornerRight = cornerRight;
 	cv::imshow("With corners", framegray);
-	cv::waitKey(5000);
 
 	destLeft.release();
 	destRight.release();
+	framegray.release();
+	destroyWindow("With corners");
 	//eyeCropColor.release();
 	//eyeCropGray.release();
 	cout << "END FIND CORNERS" << endl;
@@ -403,7 +401,6 @@ bool ImgFrame::insertFrame(Mat frame)
         cerr << "insertFrame: DID NOT FIND ANY FACES" << endl;
         return false;
     }
-
 	
     Mat cutoutFace = Mat(frame, faceCoord[0]);
 	cv::Rect roiL = cv::Rect(0, (int)(cutoutFace.rows*0.15), (int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.8));

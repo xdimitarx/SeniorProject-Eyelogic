@@ -54,11 +54,10 @@ public:
     bool detectKeyFeatures(Mat input);
     
     cv::Point &getEyeVector(){return eyeVector;};
-    void setEyeVector(float x, float y);
     bool getBlink();
     
     bool leftEye;
-private:
+//private:
     CascadeClassifier detector;
     
     //technically right eye ---> ;)
@@ -68,6 +67,8 @@ private:
     Mat filtforIris;
 	Mat faceHalf;
     
+	cv::Point vectorPupilToLeftCorner;
+	cv::Point vectorPupilToRightCorner;
     cv::Point eyeCornerLeft;
 	cv::Point eyeCornerRight;
     cv::Point eyeCenter;
