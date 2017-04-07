@@ -25,10 +25,6 @@
 using namespace std;
 using namespace cv;
 
-Mat loadImageAtPath(string path);
-void lotsOfTheProgram(); //please see function definition for complete description of function's operatives
-extern System *singleton;
-
 
 struct EyePair {
     cv::Point leftVector;
@@ -38,8 +34,15 @@ struct EyePair {
     EyePair(){}
 };
 
+// external variables
 extern std::map<Mat *, EyePair> RefImageVector;
 extern Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
+extern std::unique_ptr<System> singleton;
+
+// function prototypes
+Mat loadImageAtPath(string path);
+void lotsOfTheProgram(); //please see function definition for complete description of function's operatives
+
 
 class Eye
 {
