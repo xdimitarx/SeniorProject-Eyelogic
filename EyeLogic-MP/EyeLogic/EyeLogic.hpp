@@ -37,6 +37,7 @@ Mat loadImageAtPath(string path);
 
 extern std::unique_ptr<System> singleton; 
 
+
 struct EyePair {
     cv::Point leftVector;
     cv::Point rightVector;
@@ -46,7 +47,7 @@ struct EyePair {
 };
 
 extern std::map<Mat *, EyePair> RefImageVector;
-extern Mat ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
+extern Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 
 class Eye
 {
@@ -60,29 +61,30 @@ public:
     //of their face when looking at them
     bool detectKeyFeatures(Mat input);
     
-    cv::Point getEyeVector(){return eyeVector;};
-    void setEyeVector(float x, float y);
+    cv::Point &getEyeVector(){return eyeVector;};
     bool getBlink();
     
     bool leftEye;
-private:
+    //private:
     CascadeClassifier detector;
     
     //technically right eye ---> ;)
-	cv::Rect_<int> eyeLocationOnImageHalf;
+    Rect_<int> eyeLocationOnImageHalf;
     Mat original;
     Mat filtered;
     Mat filtforIris;
-	Mat faceHalf;
+    Mat faceHalf;
     
+    cv::Point vectorPupilToLeftCorner;
+    cv::Point vectorPupilToRightCorner;
     cv::Point eyeCornerLeft;
-	cv::Point eyeCornerRight;
+    cv::Point eyeCornerRight;
     cv::Point eyeCenter;
-	int eyeRadius;
-    cv::Point eyeVector = cv::Point(0,0);   //set default to 0,0
+    int eyeRadius;
+    cv::Point eyeVector = cv::Point(-1,-1);   //set default to 0,0
     
     bool blink;
-   
+    
     void equalHist();
     
     //+ brightens the eye, -darkens
@@ -114,14 +116,14 @@ public:
     
     //0 = None, 1 = Left, 2 = Right, 3 = Both/No Eyes Detected
     int getBlink();
-
+    
     void getReferenceImages();
     
 private:
     cv::Point screenResolution;
     CascadeClassifier faceDetector;
     Eye leftEye, rightEye;
-
+    
 };
 
 #endif

@@ -30,7 +30,7 @@ void ImgFrame::getReferenceImages()
     
     //Top Left
     cue = Scalar(0, 0, 0);
-    circle(cue, cv::Point(0 + horizontal / 20, 0 + horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+    cv::circle(cue, cv::Point(0 + horizontal / 20, 0 + horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
     imshow("", cue);
     //waitKey(2000);
     imshow("", flash);
@@ -38,7 +38,7 @@ void ImgFrame::getReferenceImages()
     
     //Bottom Left
     cue = Scalar(0, 0, 0);
-    circle(cue, cv::Point(0 + horizontal / 20, vertical - horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+    cv::circle(cue, cv::Point(0 + horizontal / 20, vertical - horizontal / 20), horizontal / 20, Scalar(0, 255, 0), -1);
     //imshow("", cue);
     //waitKey(2000);
     //imshow("", flash);
@@ -47,7 +47,7 @@ void ImgFrame::getReferenceImages()
     
     //Center
     cue = Scalar(0, 0, 0);
-    circle(cue, cv::Point(horizontal / 2, vertical / 2), horizontal / 20, Scalar(0, 255, 0), -1);
+    cv::circle(cue, cv::Point(horizontal / 2, vertical / 2), horizontal / 20, Scalar(0, 255, 0), -1);
     //imshow("", cue);
     //waitKey(2000);
     //imshow("", flash);
@@ -56,7 +56,7 @@ void ImgFrame::getReferenceImages()
     
     //Top Right
     cue = Scalar(0, 0, 0);
-    circle(cue, cv::Point(horizontal - horizontal / 20, 0 + vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+    cv::circle(cue, cv::Point(horizontal - horizontal / 20, 0 + vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
     //imshow("", cue);
     //waitKey(2000);
     //imshow("", flash);
@@ -65,7 +65,7 @@ void ImgFrame::getReferenceImages()
     
     //Bottom Right
     cue = Scalar(0, 0, 0);
-    circle(cue, cv::Point(horizontal - horizontal / 20, vertical - vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
+    cv::circle(cue, cv::Point(horizontal - horizontal / 20, vertical - vertical / 20), horizontal / 20, Scalar(0, 255, 0), -1);
     //imshow("", cue);
     //waitKey(2000);
     //imshow("", flash);
@@ -108,6 +108,11 @@ Eye::~Eye()
 void Eye::createEyeVector(){
     //There will be 2 eyeVectors, one based on the left corner and one based on the right corner.
     //This function needs to be modified/fixed to reflect this change
+    vectorPupilToLeftCorner.x = eyeCenter.x - eyeCornerLeft.x;
+    vectorPupilToLeftCorner.y = eyeCenter.y - eyeCornerLeft.y;
+    
+    vectorPupilToRightCorner.x = eyeCenter.x - eyeCornerRight.x;
+    vectorPupilToRightCorner.y = eyeCenter.y - eyeCornerRight.y;
     
     
     if(leftEye){
@@ -122,10 +127,6 @@ void Eye::createEyeVector(){
     
 }
 
-void Eye::setEyeVector(float x, float y){
-    eyeVector.x = (int) x;
-    eyeVector.y = (int) y;
-}
 bool Eye::detectKeyFeatures(Mat input)
 {
     faceHalf = input;
@@ -216,8 +217,6 @@ void Eye::applyGaussian()
     GaussianBlur(filtforIris, filtforIris, CvSize(3,3), 0, 0);
 }
 
-
-
 bool Eye::findPupil()
 {
     vector<Vec4i> hierarchy;
@@ -251,70 +250,13 @@ bool Eye::findPupil()
 
 bool Eye::findEyeCorner()
 {
-    /*
-     Mat threshmat, dest, dest_norm, dest_norm_scaled;
-     Mat eyeCrop, newfiltered = filtered.clone();
-     
-     
-     medianBlur(filtered, newfiltered, 9);
-     newfiltered = newfiltered - filtered;
-     
-     cv::Rect roi;
-     int left = eyeCenter.x + eyeRadius;
-     int right = eyeCenter.x - eyeRadius;
-     int offset;
-     
-     if (leftEye){
-     offset = left;
-     roi = cv::Rect(left, (int)filtered.rows*0.3, filtered.cols - left, (int)(filtered.rows - filtered.rows*0.3));
-     eyeCrop = Mat(newfiltered, roi);
-     }
-     else {
-     offset = 0;
-     roi = cv::Rect(0, (int)filtered.rows*0.3, right, (int)(filtered.rows - filtered.rows*0.3));
-     eyeCrop = Mat(newfiltered, roi);
-     }
-     // detector parameters
-     int thresh = 200;
-     int max_thresh = 255;
-     int blockSize = 2;
-     int apertureSize = 5;
-     double k = 0.01;
-     
-     // detect corners
-     cornerHarris(eyeCrop, dest, blockSize, apertureSize, k, BORDER_DEFAULT);
-     
-     // Normalize
-     normalize(dest, dest_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
-     convertScaleAbs(dest_norm, dest_norm_scaled);
-     
-     
-     cout << "filtered height: " << filtered.rows << endl;
-     cout << "filtered width: " << filtered.cols << endl;
-     cout << "Top bound for box: " << (int)filtered.rows*0.3 << endl;
-     
-     // Draw circle around coners detected
-     for (int j = 0; j < dest_norm.rows; j++)
-     {
-     for (int i = 0; i < dest_norm.cols; i++)
-     {
-     if (thresh < dest_norm.at<float>(j, i) )
-     {
-     circle(newfiltered, cv::Point(offset + i, j + (int)filtered.rows*0.3), 4, Scalar(122, 122, 122), 1);
-     cout << offset + i << ", " << j << endl;
-     }
-     }
-     }
-     
-     //	namedWindow("corner", CV_WINDOW_AUTOSIZE);
-     imshow("corner", newfiltered);
-     waitKey(0);
-     return true;
-     */
-    
-    //Pouneh Aghababazadeh
     Mat framegray, destLeft, destRight, leftCornerRoi, rightCornerRoi;
     cvtColor(original, framegray, CV_BGR2GRAY);
+    int yOffset = (eyeRadius < eyeCenter.y) ? eyeCenter.y - eyeRadius : 0;
+    cv::Rect crop = cv::Rect(0, yOffset, framegray.cols, framegray.rows - yOffset);
+    std::cout << "ROI:\t" << crop.x << "\t" << crop.y << "\t" << crop.width << "\t" << crop.height << endl;
+    std::cout << "Framegray dims" << framegray.cols << "\t" << framegray.rows << endl;
+    framegray = cv::Mat(framegray, crop);
     int thresh = 200;
     int max_thresh = 255;
     int blockSize = 2;
@@ -322,11 +264,34 @@ bool Eye::findEyeCorner()
     double k = 0.01;
     int buffer = 8; //buffer space away from pupil
     
-    
+    //increase contrast
     int change = 10;
+    
+    double m = (framegray.rows*framegray.cols) / 2;
+    int bin = 0;
+    double med = -1.0;
+    
+    int histSize = 256;
+    float range[] = { 0, 256 };
+    const float* histRange = { range };
+    bool uniform = true;
+    bool accumulate = false;
+    cv::Mat hist;
+    cv::calcHist(&framegray, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
+    
+    for (int i = 0; i < histSize && med < 0.0; ++i)
+    {
+        bin += cvRound(hist.at< float >(i));
+        if (bin > m && med < 0.0) {
+            med = i;
+            break;
+        }
+    }
+    
+    
     for (int i = 0; i < framegray.cols; i++) {
         for (int j = 0; j < framegray.rows; j++) {
-            if (framegray.at<uchar>(cv::Point(i, j)) > 20) {
+            if (framegray.at<uchar>(cv::Point(i, j)) > med) {
                 if (framegray.at<uchar>(cv::Point(i, j)) < 255 - change) {
                     framegray.at<uchar>(cv::Point(i, j)) += change;
                 }
@@ -401,8 +366,6 @@ bool Eye::findEyeCorner()
     
     cv::circle(framegray, cornerLeft, 3, Scalar(127), 1);
     cv::circle(framegray, cornerRight, 3, Scalar(127), 1);
-    std::cout << "Final left corner    " << cornerLeft.x << "    " << cornerLeft.y << endl;
-    std::cout << "Final right corner    " << cornerRight.x << "    " << cornerRight.y << endl;
     
     eyeCornerLeft = cornerLeft;
     eyeCornerRight = cornerRight;
@@ -411,9 +374,11 @@ bool Eye::findEyeCorner()
     
     destLeft.release();
     destRight.release();
+    framegray.release();
+    destroyWindow("With corners");
     //eyeCropColor.release();
     //eyeCropGray.release();
-    cout << "END FIND CORNERS" << endl;
+    std::cout << "END FIND CORNERS" << endl;
     return true;
 }
 
@@ -434,14 +399,13 @@ bool ImgFrame::insertFrame(Mat frame)
     
     //THIS LINE IS BREAKING THE PROGRAM when i try to run it (exceptions) -Pouneh
     faceDetector.detectMultiScale(frame, faceCoord, 1.2, 3, 0, CvSize(150,150));
-    cout << faceCoord.capacity() << endl;
+    std::cout << faceCoord.capacity() << endl;
     
     if(faceCoord.capacity() < 1)
     {
         cerr << "insertFrame: DID NOT FIND ANY FACES" << endl;
         return false;
     }
-    
     
     Mat cutoutFace = Mat(frame, faceCoord[0]);
     cv::Rect roiL = cv::Rect(0, (int)(cutoutFace.rows*0.15), (int)(cutoutFace.cols*0.5), (int)(cutoutFace.rows*0.8));
@@ -600,7 +564,7 @@ void lotsOfTheProgram() {
             {
                 cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
                 int radius = cvRound(circles[i][2]);
-                cout << "(" << center.x << ", " << center.y << ")" << endl;
+                std:: cout << "(" << center.x << ", " << center.y << ")" << endl;
                 // circle center
                 //cv::circle(eyeCropColor, center, 3, Scalar(0, 255, 0), 1, 8, 0);
                 // circle outline
@@ -679,7 +643,7 @@ void lotsOfTheProgram() {
                 std::cout << "fuck this shit" << endl;
             }
         }//for
-        if (waitKey(100) == 27) { break; }
+        if (cv::waitKey(100) == 27) { break; }
     }// end forever loop
     
 }
