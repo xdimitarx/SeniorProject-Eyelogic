@@ -387,7 +387,7 @@ int main(int argc, char *argv[])
             //As of 3/26/2017, it takes approximately .08 seconds to get and process a frame
             
             start = high_resolution_clock::now();
-            sleep(5);
+			boost::this_thread::sleep(boost::posix_time::seconds(1));
             cap >> capture;
             end = high_resolution_clock::now();
             auto duration = duration_cast<microseconds>(end - start).count();

@@ -10,6 +10,12 @@
 
 class Mac : public System {
 public:
+
+	virtual int getOs()
+	{
+		return 1;
+	}
+
     virtual void setCurPos(float x, float y) override {
         // Move to 200x200
         CGEventRef move1 = CGEventCreateMouseEvent(
@@ -22,6 +28,11 @@ public:
         
          
     }
+
+	virtual bool voiceFork() override
+	{
+		return true;
+	}
     
     void click(float x, float y){
         CGEventRef click1_down = CGEventCreateMouseEvent(

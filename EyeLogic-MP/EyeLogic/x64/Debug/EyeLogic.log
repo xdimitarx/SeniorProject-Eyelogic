@@ -1,13 +1,13 @@
-﻿  main.cpp
-d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\win.hpp(25): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(36): warning C4244: 'argument': conversion from 'int' to 'const float', possible loss of data
-d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(37): warning C4244: 'argument': conversion from 'int' to 'const float', possible loss of data
-d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(46): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(80): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+﻿  VoiceTool.cpp
+d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\win.hpp(30): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  stdafx.cpp
+  main.cpp
+d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\win.hpp(30): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(126): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\main.cpp(164): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
   EyeLogic.cpp
-d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\win.hpp(25): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\eyelogic.cpp(614): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\eyelogic.cpp(615): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\win.hpp(30): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\eyelogic.cpp(586): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\eyelogic.cpp(587): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
   Generating Code...
-  EyeLogic.vcxproj -> D:\Documents\SeniorProject-Eyelogic\EyeLogic-MP\x64\Debug\EyeLogic.exe
-  EyeLogic.vcxproj -> D:\Documents\SeniorProject-Eyelogic\EyeLogic-MP\x64\Debug\EyeLogic.pdb (Full PDB)
+d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\win.hpp(72): error C4716: 'Win::voiceFork': must return a value
