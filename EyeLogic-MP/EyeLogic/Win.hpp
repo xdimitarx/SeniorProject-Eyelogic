@@ -27,7 +27,7 @@ public:
 
     virtual void setCurPos(float x, float y) override {
         // Windows way to set the cursor position to some x,y coordinate on the screen
-        SetCursorPos(x, y);
+        SetCursorPos((int)x, (int)y);
         //cout << x << "    " << y << endl;
         return;
     }

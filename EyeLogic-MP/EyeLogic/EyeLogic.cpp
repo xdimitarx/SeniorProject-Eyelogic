@@ -250,82 +250,55 @@ bool Eye::findPupil()
 
 bool Eye::findEyeCorner()
 {
-    Mat framegray, destLeft, destRight, leftCornerRoi, rightCornerRoi;
-    cvtColor(original, framegray, CV_BGR2GRAY);
-    int yOffset = (eyeRadius < eyeCenter.y) ? eyeCenter.y - eyeRadius : 0;
-    cv::Rect crop = cv::Rect(0, yOffset, framegray.cols, framegray.rows - yOffset);
-    std::cout << "ROI:\t" << crop.x << "\t" << crop.y << "\t" << crop.width << "\t" << crop.height << endl;
-    std::cout << "Framegray dims" << framegray.cols << "\t" << framegray.rows << endl;
-    framegray = cv::Mat(framegray, crop);
-    int thresh = 200;
-    int max_thresh = 255;
-    int blockSize = 2;
-    int apertureSize = 5;
-    double k = 0.01;
-    int buffer = 8; //buffer space away from pupil
-    
-    //increase contrast
-    int change = 10;
-    
-    double m = (framegray.rows*framegray.cols) / 2;
-    int bin = 0;
-    double med = -1.0;
-    
-    int histSize = 256;
-    float range[] = { 0, 256 };
-    const float* histRange = { range };
-    bool uniform = true;
-    bool accumulate = false;
-    cv::Mat hist;
-    cv::calcHist(&framegray, 1, 0, cv::Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
-    
-    for (int i = 0; i < histSize && med < 0.0; ++i)
-    {
-        bin += cvRound(hist.at< float >(i));
-        if (bin > m && med < 0.0) {
-            med = i;
-            break;
-        }
+	Mat framegray, destLeft, destRight, leftCornerRoi, rightCornerRoi, edges;
+	cv::cvtColor(original, framegray, CV_BGR2GRAY);
+	int yOffset = (eyeRadius < eyeCenter.y) ? eyeCenter.y - eyeRadius : 0;
+
+	cv::Rect crop = cv::Rect(0, yOffset, framegray.cols, framegray.rows - yOffset);
+	framegray = Mat(framegray, crop);
+
+	cv::waitKey(2000);
+	int thresh = 150;
+	int max_thresh = 255;
+	int blockSize = 2;
+	int apertureSize = 5;
+	double k = 0.01;
+	//int buffer = 8; //buffer space away from pupil
+
+	//increase contrast
+	cv::equalizeHist(framegray, framegray);
+
+	//circles[0] is the pupil
+	//circle[0][0] = eyecenter.x
+	//circle[0][1] = eyecenter.y + (int)(original.rows*0.4);
+	//circle[0][2] = eyeradius
+
+	int leftbuffer;
+	int rightbuffer;
+
+	int pupil[] = { eyeCenter.x ,  eyeCenter.y ,  eyeRadius };
+	if (left) {	
+		leftbuffer = eyeCenter.x / 2 - 1;
+		rightbuffer = (framegray.cols - eyeCenter.x) / 2 + 2;
+	}
+	else {
+		leftbuffer = eyeCenter.x / 2 - 2;
+		rightbuffer = (framegray.cols - eyeCenter.x) / 2 ;
+	}
+
+    while ((cvRound(pupil[0]) - leftbuffer) <= 0 ) {
+        leftbuffer--;
     }
-    
-    
-    for (int i = 0; i < framegray.cols; i++) {
-        for (int j = 0; j < framegray.rows; j++) {
-            if (framegray.at<uchar>(cv::Point(i, j)) > med) {
-                if (framegray.at<uchar>(cv::Point(i, j)) < 255 - change) {
-                    framegray.at<uchar>(cv::Point(i, j)) += change;
-                }
-                else {
-                    framegray.at<uchar>(cv::Point(i, j)) = 255;
-                }
-            }
-            else {
-                if (framegray.at<uchar>(cv::Point(i, j)) > change)
-                {
-                    framegray.at<uchar>(cv::Point(i, j)) -= change;
-                }
-                else {
-                    framegray.at<uchar>(cv::Point(i, j)) = 0;
-                }
-            }
-        }
-    }
-    
-    //circles[0] is the pupil
-    //circle[0][0] = eyecenter.x
-    //circle[0][1] = eyecenter.y + (int)(original.rows*0.4);
-    //circle[0][2] = eyeradius
-    
-    int pupil[] = { eyeCenter.x ,  eyeCenter.y /* + (int)(original.rows*0.4) */,  eyeRadius };
-    
-    while ((cvRound(pupil[0]) - pupil[2] - buffer) <= 0 || (cvRound(pupil[0]) + pupil[2] + buffer) > framegray.cols) {
-        buffer--;
-    }
-    cv::Rect leftroi = cv::Rect(0, 0, (cvRound(pupil[0]) - pupil[2] - buffer), framegray.rows);
-    cv::Rect rightroi = cv::Rect((cvRound(pupil[0]) + pupil[2] + buffer), 0, framegray.cols - (cvRound(pupil[0]) + pupil[2] + buffer), framegray.rows);
+
+	while ((cvRound(pupil[0]) + rightbuffer) > framegray.cols) {
+		rightbuffer--;
+	}
+
+	cv::Rect leftroi = cv::Rect(0, 0, (cvRound(pupil[0]) - leftbuffer), framegray.rows);
+    cv::Rect rightroi = cv::Rect((cvRound(pupil[0]) + rightbuffer), 0, framegray.cols - (cvRound(pupil[0]) + rightbuffer), framegray.rows);
     leftCornerRoi = cv::Mat(framegray, leftroi);
     rightCornerRoi = cv::Mat(framegray, rightroi);
-    
+ 
     //cout << leftCornerRoi.rows << "\t\t" << leftCornerRoi.cols << "\t\t" << destLeft << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
     if (leftCornerRoi.rows > 0 && leftCornerRoi.cols) {
         cornerHarris(leftCornerRoi, destLeft, blockSize, apertureSize, k, BORDER_DEFAULT);
@@ -349,7 +322,7 @@ bool Eye::findEyeCorner()
     for (int j = 0; j < destLeft.rows; j++) {
         for (int i = 0; i < destLeft.cols; i++) {
             if (thresh < destLeft.at<uchar>(j, i) && verticalDistanceLeft > abs(j - pupil[1])) {
-                cornerLeft = cv::Point(i, j);
+				cornerLeft = cv::Point(i, j);
                 verticalDistanceLeft = abs(j - pupil[1]);
             }
         }
@@ -358,24 +331,31 @@ bool Eye::findEyeCorner()
     for (int j = 0; j < destRight.rows; j++) {
         for (int i = 0; i < destRight.cols; i++) {
             if (thresh < destRight.at<uchar>(j, i) && verticalDistanceRight > abs(j - pupil[1])) {
-                cornerRight = cv::Point(i + (cvRound(pupil[0]) + pupil[2] + buffer), j);
+                cornerRight = cv::Point(i + (cvRound(pupil[0]) + rightbuffer), j);
                 verticalDistanceRight = abs(j - pupil[1]);
             }
         }
     }
     
-    cv::circle(framegray, cornerLeft, 3, Scalar(127), 1);
-    cv::circle(framegray, cornerRight, 3, Scalar(127), 1);
+	Mat threechanelFramegray;
+	cv::cvtColor(framegray, threechanelFramegray, CV_GRAY2BGR);
+
+	//cv::line(threechanelFramegray, Point((cvRound(pupil[0]) - leftbuffer), 0), Point((cvRound(pupil[0]) - leftbuffer), framegray.rows), Scalar(0, 255, 255));
+	//cv::line(threechanelFramegray, Point((cvRound(pupil[0]) + rightbuffer), 0), Point((cvRound(pupil[0]) + rightbuffer), framegray.rows), Scalar(0, 0, 255));
+
+    cv::circle(threechanelFramegray, cornerLeft, 3, Scalar(255,0,0), -1);
+    cv::circle(threechanelFramegray, cornerRight, 3, Scalar(0,255,0), -1);
+	//cv::circle(threechanelFramegray, eyeCenter, eyeRadius, Scalar(0, 0, 255), -1);
     
     eyeCornerLeft = cornerLeft;
     eyeCornerRight = cornerRight;
-    cv::imshow("With corners", framegray);
-    cv::waitKey(5000);
+    cv::imshow("With corners", threechanelFramegray);
+	waitKey(1000);
     
     destLeft.release();
     destRight.release();
     framegray.release();
-    destroyWindow("With corners");
+    cv::destroyWindow("With corners");
     //eyeCropColor.release();
     //eyeCropGray.release();
     std::cout << "END FIND CORNERS" << endl;
