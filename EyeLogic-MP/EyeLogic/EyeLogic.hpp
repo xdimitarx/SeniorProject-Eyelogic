@@ -21,13 +21,14 @@
 #include <memory>
 
 //BOOST
+/*
 #include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/chrono.hpp>
 #include <boost/thread/mutex.hpp>
 
 #include "VoiceTool.hpp"
-
+*/
 
 using namespace std;
 using namespace cv;
