@@ -1,6 +1,7 @@
 ﻿  VoiceTool.cpp
 d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\win.hpp(72): warning C4800: 'BOOL': forcing value to bool 'true' or 'false' (performance warning)
 d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\win.hpp(90): warning C4800: 'BOOL': forcing value to bool 'true' or 'false' (performance warning)
+d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\voicetool.cpp(74): warning C4552: '!=': operator has no effect; expected operator with side-effect
   stdafx.cpp
   main.cpp
 d:\documents\seniorproject-eyelogic\eyelogic-mp\eyelogic\win.hpp(72): warning C4800: 'BOOL': forcing value to bool 'true' or 'false' (performance warning)

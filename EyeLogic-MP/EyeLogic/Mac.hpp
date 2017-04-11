@@ -16,6 +16,50 @@ public:
 		return 1;
 	}
 
+	int ipcChannel[2];
+
+	virtual bool voiceFork() override
+	{
+		
+		if (pipe(ipcChannel) == -1)
+		{
+			return false;
+		}
+
+		pid_t id = fork();
+
+		if (id == -1)
+		{
+			return false;
+		}
+		else if (id == 0)
+		{
+			//child
+			close(ipcChannel[0]);
+			dup2(ipcChannel[1], 1); // redirect stdout
+
+			char* arguments[] = { "julius", "-C", "Voice.jconf", NULL };
+			execvp("julius", arguments);
+		}
+
+		close(ipcChannel[1]); //just reads
+
+		return true;
+	}
+
+	virtual std::string readFromJulius() override
+	{
+		std::string valueRead = "\0";
+
+		char reading_buf[1];
+		while (read(ipcChannel[0], reading_buf, 1) > 0)
+		{
+			valueRead.append(reading_buf);
+		}
+
+		return valueRead;
+	}
+
     virtual void setCurPos(float x, float y) override {
         // Move to 200x200
         CGEventRef move1 = CGEventCreateMouseEvent(

@@ -16,6 +16,9 @@ public:
 	virtual bool voiceFork() { return false; };
 	virtual std::string readFromJulius() { return std::string(); };
     virtual void setCurPos(float x, float y) {return;};
+	virtual bool click() { return false; };
+	virtual bool rightClick() { return false; };
+	virtual bool drag() { return false; };
 };
 
 #endif /* System_h */

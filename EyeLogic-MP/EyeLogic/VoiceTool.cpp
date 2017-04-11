@@ -1,4 +1,5 @@
 #include "VoiceTool.hpp"
+#include <memory>
 
 bool VoiceTool::enableVoice()
 {
@@ -24,7 +25,8 @@ bool VoiceTool::initVoice()
 		//ERROR
 	}
 	enabled = true;
-	boost::thread* t = new boost::thread(boost::bind(&VoiceTool::monitor, this));
+	std::unique_ptr<boost::thread> t ( new boost::thread(boost::bind(&VoiceTool::monitor, this)));
+	// boost::thread* t = new boost::thread(boost::bind(&VoiceTool::monitor, this));	<--original
 	return true;
 }
 
@@ -32,6 +34,9 @@ void VoiceTool::monitor()
 {
 	while (!kill)
 	{
+		std::string command = singleton->readFromJulius();
+		boost::algorithm::to_lower(command);
+
 		if(enabled)
 		{
 			std::string command = singleton->readFromJulius();
@@ -39,32 +44,36 @@ void VoiceTool::monitor()
 
 			if (command.compare("click"))
 			{
-				//singleton->click();
+				singleton->click();
 			}
 			else if (command.compare("drag") == 0)
 			{
-				//singleton->drag();
+				singleton->drag();
 			}
 			else if (command.compare("double") == 0)
 			{
-				//singleton->click();
+				singleton->click();
 				boost::this_thread::sleep(boost::posix_time::microseconds(300));
-				//singleton->click();
+				singleton->click();
 			}
 			else if (command.compare("right") == 0)
 			{
-				//singleton->rightClick();
+				singleton->rightClick();
 			}
 			else if (command.compare("exit") == 0)
 			{
+				//check if second time saying exit?
+				kill = true;
 				//exit handler?
 			}
 		}
+
+		if (command.compare("mute") == 0)
+		{
+			threadLock.lock();
+			enabled != enabled;
+			threadLock.unlock();
+		}
+
 	}
-	cleanUp();
-}
-
-void VoiceTool::cleanUp()
-{
-
 }

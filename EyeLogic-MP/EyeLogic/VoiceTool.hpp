@@ -25,7 +25,6 @@ private:
 	std::string command;
 
 	bool initVoice();
-	void cleanUp();
 	void monitor();
 };
 
