@@ -20,6 +20,8 @@ using namespace std;
 class Win : public System {
 public:
 
+	HANDLE g_hChildStd_OUT_Rd = NULL;
+
 	virtual int getOS() override
 	{
 		return 1;
@@ -34,42 +36,68 @@ public:
 
 	virtual bool voiceFork() override
 	{
-		/*
-		HANDLE g_hChildStd_OUT_Wr = NULL;
-		HANDLE g_hChildStd_OUT_Rd = NULL;
+		try
+		{
+			HANDLE g_hChildStd_OUT_Wr = NULL;
 
-		SECURITY_ATTRIBUTES saAttr;
+			SECURITY_ATTRIBUTES saAttr;
 
-		saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-		saAttr.bInheritHandle = TRUE;
-		saAttr.lpSecurityDescriptor = NULL;
+			saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+			saAttr.bInheritHandle = TRUE;
+			saAttr.lpSecurityDescriptor = NULL;
 
-		if (!CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0))
+			if (!CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0))
+				return false;
+
+			PROCESS_INFORMATION piProcInfo;
+			STARTUPINFO siStartInfo;
+
+			ZeroMemory(&siStartInfo, sizeof(STARTUPINFO));
+			siStartInfo.cb = sizeof(STARTUPINFO);
+			siStartInfo.hStdError = g_hChildStd_OUT_Wr;
+			siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
+			siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+
+			TCHAR szCmdline[] = TEXT("julius.exe -C Voice.jconf"); //might not work due to working directory
+
+			bool bSuccess = CreateProcess(NULL,
+				szCmdline,     // command line 
+				NULL,          // process security attributes 
+				NULL,          // primary thread security attributes 
+				TRUE,          // handles are inherited 
+				0,             // creation flags 
+				NULL,          // use parent's environment 
+				NULL,          // use parent's current directory 
+				&siStartInfo,  // STARTUPINFO pointer 
+				&piProcInfo);  // receives PROCESS_INFORMATION
+			return true;
+		}
+		catch (...)
+		{
 			return false;
+		}
+		return false;		
+	}
 
-		PROCESS_INFORMATION piProcInfo;
-		STARTUPINFO siStartInfo;
+	virtual string readFromJulius() override
+	{
+		string valueRead = "\0";
+		DWORD dwRead;
+		CHAR chBuf[30];
 
-		ZeroMemory(&siStartInfo, sizeof(STARTUPINFO));
-		siStartInfo.cb = sizeof(STARTUPINFO);
-		siStartInfo.hStdError = g_hChildStd_OUT_Wr;
-		siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
-		siStartInfo.hStdInput = g_hChildStd_IN_Rd;
-		siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
-
-		bool bSuccess = CreateProcess(NULL,
-			szCmdline,     // command line 
-			NULL,          // process security attributes 
-			NULL,          // primary thread security attributes 
-			TRUE,          // handles are inherited 
-			0,             // creation flags 
-			NULL,          // use parent's environment 
-			NULL,          // use parent's current directory 
-			&siStartInfo,  // STARTUPINFO pointer 
-			&piProcInfo);  // receives PROCESS_INFORMATION 
-		return true;
-		*/
-		return false;
+		for (;;)
+		{
+			bool bSuccess = ReadFile(g_hChildStd_OUT_Rd, chBuf, 30, &dwRead, NULL);
+			if (!bSuccess || dwRead == 0)
+			{
+				break;
+			}
+			else
+			{
+				valueRead.append(chBuf);
+			}
+		}
+		return valueRead;
 	}
 
     void setCurPos(cv::Point point) {

@@ -3,8 +3,6 @@
 
 #include "EyeLogic.hpp"
 
-#include <boost\thread\mutex.hpp>
-
 class VoiceTool
 {
 public:
