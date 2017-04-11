@@ -7,7 +7,7 @@ Mat loadImageAtPath(string path)
 }
 
 //Pouneh Aghababazadeh (whole function for getting reference images)
-void ImgFrame::getReferenceImages()
+void getReferenceImages()
 {
     //SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
     VideoCapture cap;
@@ -19,8 +19,8 @@ void ImgFrame::getReferenceImages()
     int horizontal = 0;
     int vertical = 0;
     
-    horizontal = screenResolution.x;
-    vertical = screenResolution.y;
+    horizontal = screenres.x;
+    vertical = screenres.y;
     
     Mat cue(vertical, horizontal, CV_8UC3);
     Mat flash(vertical, horizontal, CV_8UC3);
@@ -435,7 +435,8 @@ bool ImgFrame::setCursor()
     
     newY = deltaVy / changeInEyeY * screenResolution.y + screenResolution.y/2;
     
-    singleton->setCurPos(newX, newY);
+    
+    singleton->setCurPos(cv::Point(newX, newY));
     
     
     

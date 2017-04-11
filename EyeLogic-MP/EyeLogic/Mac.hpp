@@ -1,29 +1,39 @@
 #ifndef Mac_h
 #define Mac_h
 #include "System.hpp"
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/objdetect/objdetect.hpp>
-#include <opencv2/imgcodecs/imgcodecs.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <ApplicationServices/ApplicationServices.h>
 
 class Mac : public System {
 public:
-    virtual void setCurPos(float x, float y) override {
+    // data member
+    cv::Point *currentPos;
+    
+    void setCurPos(cv::Point setCursor) override {
+         
+         float x = setCursor.x;
+         float y = setCursor.y;
+         
         // Move to 200x200
         CGEventRef move1 = CGEventCreateMouseEvent(
                                                    NULL, kCGEventMouseMoved,
                                                    CGPointMake(x, y),
                                                    kCGMouseButtonLeft // ignored
                                                    );
+        *currentPos = {static_cast<int>(x), static_cast<int>(y)};
         CGEventPost(kCGHIDEventTap, move1);
         CFRelease(move1);
         
-         
+        
     }
     
-    void click(float x, float y){
+    cv::Point getCurPos() override {
+        return *currentPos;
+    }
+    
+    void click() override {
+        
+        float x = currentPos->x;
+        float y = currentPos->y;
+        
         CGEventRef click1_down = CGEventCreateMouseEvent(
                                                          NULL, kCGEventLeftMouseDown,
                                                          CGPointMake(x, y),
@@ -47,6 +57,7 @@ public:
         CFRelease(click1_up);
 
     }
+    
     
     
 

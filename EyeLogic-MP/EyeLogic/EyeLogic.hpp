@@ -20,8 +20,6 @@
 #include <algorithm>
 #include <memory>
 
-//BOOST
-#include <boost/filesystem.hpp>
 
 using namespace std;
 using namespace cv;
@@ -35,9 +33,6 @@ void lotsOfTheProgram(); //please see function definition for complete descripti
 Mat loadImageAtPath(string path);
 
 
-extern std::unique_ptr<System> singleton; 
-
-
 struct EyePair {
     cv::Point leftVector;
     cv::Point rightVector;
@@ -46,8 +41,13 @@ struct EyePair {
     EyePair(){}
 };
 
+/*******************
+ External Variables
+********************/
 extern std::map<Mat *, EyePair> RefImageVector;
 extern Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
+extern cv::Point screenres;
+extern std::unique_ptr<System> singleton;
 
 class Eye
 {
@@ -117,7 +117,7 @@ public:
     //0 = None, 1 = Left, 2 = Right, 3 = Both/No Eyes Detected
     int getBlink();
     
-    void getReferenceImages();
+ 
     
 private:
     cv::Point screenResolution;

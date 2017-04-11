@@ -9,9 +9,30 @@
 #ifndef System_h
 #define System_h
 
+#ifdef __APPLE__
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/objdetect/objdetect.hpp>
+#include <opencv2/imgcodecs/imgcodecs.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <ApplicationServices/ApplicationServices.h>
+#else
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/objdetect.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+#include "wtypes.h"
+#include "stdafx.h"
+#include "windows.h"
+#include "targetver.h"
+#endif
+
 class System {
 public:
-    virtual void setCurPos(float x, float y) {return;};
+    virtual void setCurPos(cv::Point setCursor){return;};
+    virtual cv::Point getCurPos(){return cv::Point();};
+    virtual void click(){return;};
 };
 
 #endif /* System_h */
