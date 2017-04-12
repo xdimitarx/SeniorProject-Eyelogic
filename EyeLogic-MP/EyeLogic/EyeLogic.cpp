@@ -124,6 +124,7 @@ void Eye::createEyeVector(){
         eyeVector.y = eyeCornerRight.y - eyeCenter.y;
     }
     
+	cout << "Eye Vector" << eyeVector.x << "\t" << eyeVector.y << endl;
     
 }
 
