@@ -1,14 +1,6 @@
 #ifndef EYELOGIC_H
 #define EYELOGIC_H
 
-#include "System.hpp"
-
-#ifdef __APPLE__
-#include "Mac.hpp"
-#else
-#include "Win.hpp"
-#endif
-
 //STD
 #include <iostream>
 #include <vector>
@@ -21,14 +13,22 @@
 #include <memory>
 
 //BOOST
-/*
 #include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/chrono.hpp>
 #include <boost/thread/mutex.hpp>
+#include <boost/algorithm/string.hpp>
+
+#include "System.hpp"
+
+#ifdef __APPLE__
+#include "Mac.hpp"
+#else
+#include "Win.hpp"
+#endif
 
 #include "VoiceTool.hpp"
-*/
+
 
 using namespace std;
 using namespace cv;
