@@ -37,4 +37,12 @@ private:
     void setTitle();
 };
 
+class section : public QObject
+{
+    Q_OBJECT
+
+public:
+
+};
+
 #endif // WINDOW_H

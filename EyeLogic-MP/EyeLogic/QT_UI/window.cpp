@@ -6,10 +6,8 @@ Window::Window(QWidget *parent) : QWidget(parent), ui(new Ui::Window)
 {
     ui->setupUi(this);
 
-//    QGridLayout *mainGrid = new QGridLayout;
     QVBoxLayout *main = new QVBoxLayout;
-//    mainGrid->addWidget(userNameExclusiveGroup(), 0, 0);
-//    mainGrid->addWidget(calibSettingsExclusiveGroup(), 0, 1);
+
     main->addWidget(userNameExclusiveGroup());
     main->addWidget(calibSettingsExclusiveGroup());
     main->addWidget(clickSettingsExclusiveGroup());
