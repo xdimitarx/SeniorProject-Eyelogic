@@ -2,7 +2,7 @@
 #include "ui_widget.h"
 
 
-QGroupBox *userInfo:: UserInfoLayout()
+QGroupBox *Widget::userInfoBox()
 {
     // define widget to add to main widget
     QGroupBox *userGroupBox = new QGroupBox(tr("User Info"));
@@ -20,7 +20,7 @@ QGroupBox *userInfo:: UserInfoLayout()
     return userGroupBox;
 }
 
-QGroupBox *calibrationSettings::calibrationSettingsLayout()
+QGroupBox *Widget::calibrationSettingsBox()
 {
     // define widget to be added to main widget
     QGroupBox *calibGroupBox = new QGroupBox(tr("Calibration Settings"));
@@ -48,17 +48,17 @@ QGroupBox *calibrationSettings::calibrationSettingsLayout()
     return calibGroupBox;
 }
 
-QGroupBox *clickSettings::clickSettingsBox()
+QGroupBox *Widget::clickSettingsBox()
 {
     // define widget to hold click settings
-    QGroupBox *clickGroupBox = new QGroupBox(tr("Enable Click Settings"));
+    QGroupBox *clickGroupBox = new QGroupBox(QObject::tr("Enable Click Settings"));
 
     // define layout for the widget
     QVBoxLayout *vbox = new QVBoxLayout();
 
     // add the click setting buttons
-    QRadioButton *voiceClick = new QRadioButton(tr("Enable Voice Clicks"));
-    QRadioButton *blinkClick = new QRadioButton(tr("Enable Blink Clicks"));
+    QRadioButton *voiceClick = new QRadioButton(QObject::tr("Enable Voice Clicks"));
+    QRadioButton *blinkClick = new QRadioButton(QObject::tr("Enable Blink Clicks"));
 
     // add buttons to layout to widget, return widget
     vbox->addWidget(voiceClick);
@@ -67,12 +67,14 @@ QGroupBox *clickSettings::clickSettingsBox()
 
     return clickGroupBox;
 }
-void StartQuit::status()
-{
-    cout << "start button was pressed" << endl;
-}
 
-QGroupBox *StartQuit::StartOrStopBox()
+
+//void StartQuit::status()
+//{
+//    cout << "start button was pressed" << endl;
+//}
+
+QGroupBox *Widget::startOrStopBox()
 {
     // initilize widget to be added to mainLayout
     QGroupBox *box = new QGroupBox();
@@ -102,26 +104,17 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
     ui->setupUi(this);
     QVBoxLayout *mainWidgetLayout = new QVBoxLayout();
 
-    // start adding in widets to the main layout
-    userInfo *a = NULL;
-    QGroupBox *userInfoBox = a->UserInfoLayout();
+    // widgets for the mainLayout
+    QGroupBox *clickWidget = clickSettingsBox();
+    QGroupBox *startWidget = startOrStopBox();
+    QGroupBox *userWidget = userInfoBox();
+    QGroupBox *calibWidget = calibrationSettingsBox();
 
-    calibrationSettings *b = NULL;
-    QGroupBox *calibrationBox = b->calibrationSettingsLayout();
-
-    clickSettings *c = NULL;
-    QGroupBox *clickBox = c->clickSettingsBox();
-
-    StartQuit *d = NULL;
-    QGroupBox *startStopBox = d->StartOrStopBox();
-
-
-    // add widgets to mainLayout
-//    mainWidgetLayout->addWidget(userInfoBox);
-//    mainWidgetLayout->addWidget(calibrationBox);
-//    mainWidgetLayout->addWidget(clickBox);
-//    mainWidgetLayout->addWidget(startStopBox);
-
+    // add widgets to main layout
+    mainWidgetLayout->addWidget(userWidget);
+    mainWidgetLayout->addWidget(calibWidget);
+    mainWidgetLayout->addWidget(clickWidget);
+    mainWidgetLayout->addWidget(startWidget);
 
 
     // set mainLayout

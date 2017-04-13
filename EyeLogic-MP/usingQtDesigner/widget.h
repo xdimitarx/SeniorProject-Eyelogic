@@ -27,6 +27,11 @@ class Widget : public QWidget
 
 public:
     explicit Widget(QWidget *parent = 0);
+    QGroupBox *clickSettingsBox();
+    QGroupBox *calibrationSettingsBox();
+    QGroupBox *userInfoBox();
+    QGroupBox *startOrStopBox();
+
     ~Widget();
 
 private:
@@ -34,45 +39,45 @@ private:
 };
 
 
-class clickSettings : public QObject
-{
-    Q_OBJECT
-public:
-    clickSettings();
-    QGroupBox *clickSettingsBox();
+//class clickSettings : public QObject
+//{
+//    Q_OBJECT
+//public:
+//    clickSettings();
+//    QGroupBox *clickSettingsBox();
 
-}; // clickSettings Class
+//}; // clickSettings Class
 
-class calibrationSettings : public QObject
-{
-    Q_OBJECT
-public:
-    calibrationSettings();
-    QGroupBox *calibrationSettingsLayout();
-private:
-    bool righteye;
-    bool lefteye;
-};  // calibration Settings Class
+//class calibrationSettings : public QObject
+//{
+//    Q_OBJECT
+//public:
+//    calibrationSettings();
+//    QGroupBox *calibrationSettingsLayout();
+//private:
+//    bool righteye;
+//    bool lefteye;
+//};  // calibration Settings Class
 
-class userInfo : public QObject
-{
-    Q_OBJECT
-public:
-    userInfo();
-    void printHello();
-    QGroupBox *UserInfoLayout();
+//class userInfo : public QObject
+//{
+//    Q_OBJECT
+//public:
+//    userInfo();
+//    void printHello();
+//    QGroupBox *UserInfoLayout();
 
-private:
-    string name;
-}; // user info class
+//private:
+//    string name;
+//}; // user info class
 
-class StartQuit : public QObject
-{
-    Q_OBJECT
-public:
-    StartQuit();
-    QGroupBox *StartOrStopBox();
-    void status();
+//class StartQuit : public QObject
+//{
+//    Q_OBJECT
+//public:
+//    StartQuit();
+//    QGroupBox *StartOrStopBox();
+//    void status();
 //public slots:
 //    void pressed();
 //signals:
@@ -80,7 +85,7 @@ public:
 //    void calibrate();
 
 
-};
+//};
 
 
 #endif // WIDGET_H
