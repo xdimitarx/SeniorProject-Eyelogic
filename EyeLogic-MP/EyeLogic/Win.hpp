@@ -58,7 +58,9 @@ public:
 			siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
 			siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
 
-			TCHAR szCmdline[] = TEXT("julius.exe -C Voice.jconf"); //might not work due to working directory
+			TCHAR szCmdline[] = TEXT("Grammar\\julius-4.3.1.exe -C Grammar\\Voice.jconf"); //might not work due to working directory
+			TCHAR path[300];
+			GetCurrentDirectory(300, path);
 
 			bool bSuccess = CreateProcess(NULL,
 				szCmdline,     // command line 
@@ -83,19 +85,28 @@ public:
 	{
 		string valueRead = "\0";
 		DWORD dwRead;
-		CHAR chBuf[30];
+		CHAR chBuf[999];
 
 		for (;;)
 		{
-			bool bSuccess = ReadFile(g_hChildStd_OUT_Rd, chBuf, 30, &dwRead, NULL);
+			bool bSuccess = ReadFile(g_hChildStd_OUT_Rd, chBuf, 999, &dwRead, NULL);
 			if (!bSuccess || dwRead == 0)
 			{
 				break;
 			}
 			else
 			{
-				valueRead.append(chBuf);
+				string converted(chBuf);
+				int startIndex = converted.rfind("sentence1: <s> ");
+				int endIndex = converted.find(" </s>", startIndex);
+				if (startIndex != string::npos && endIndex != string::npos && endIndex > startIndex)
+				{
+					startIndex += 15;
+					valueRead.append(converted.substr(startIndex, endIndex - startIndex));
+					return valueRead;
+				}
 			}
+
 		}
 		return valueRead;
 	}

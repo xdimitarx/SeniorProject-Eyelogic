@@ -6,10 +6,9 @@
 class VoiceTool
 {
 public:
+	VoiceTool();
 	bool enableVoice();
 	bool disableVoice();
-
-
 
 private:
 

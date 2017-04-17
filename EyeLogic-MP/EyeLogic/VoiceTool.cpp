@@ -1,6 +1,12 @@
 #include "VoiceTool.hpp"
 #include <memory>
 
+VoiceTool::VoiceTool()
+{
+	initVoice();
+	enableVoice();
+}
+
 bool VoiceTool::enableVoice()
 {
 	threadLock.lock();
@@ -24,9 +30,7 @@ bool VoiceTool::initVoice()
 	{
 		//ERROR
 	}
-	enabled = true;
 	std::unique_ptr<boost::thread> t ( new boost::thread(boost::bind(&VoiceTool::monitor, this)));
-	// boost::thread* t = new boost::thread(boost::bind(&VoiceTool::monitor, this));	<--original
 	return true;
 }
 
@@ -39,9 +43,6 @@ void VoiceTool::monitor()
 
 		if(enabled)
 		{
-			std::string command = singleton->readFromJulius();
-			boost::algorithm::to_lower(command);
-
 			if (command.compare("click"))
 			{
 				singleton->click();
@@ -59,6 +60,10 @@ void VoiceTool::monitor()
 			else if (command.compare("right") == 0)
 			{
 				singleton->rightClick();
+			}
+			else if (command.compare("pause") == 0)
+			{
+				//Pause handler
 			}
 			else if (command.compare("exit") == 0)
 			{

@@ -51,10 +51,17 @@ public:
 	{
 		std::string valueRead = "\0";
 
-		char reading_buf[1];
-		while (read(ipcChannel[0], reading_buf, 1) > 0)
+		char reading_buf[999];
+		while (read(ipcChannel[0], reading_buf, 999) > 0)
 		{
-			valueRead.append(reading_buf);
+			string converted(reading_buf);
+			int startIndex = converted.find("<s>");
+			int endIndex = converted.find("</s>");
+			if (startIndex != string::npos && endIndex != string::npos && endIndex > startIndex)
+			{
+				startIndex += 3;
+				valueRead.append(converted.substr(startIndex, endIndex - startIndex));
+			}
 		}
 
 		return valueRead;
