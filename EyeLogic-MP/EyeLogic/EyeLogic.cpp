@@ -25,8 +25,7 @@ void getReferenceImages()
     Mat cue(vertical, horizontal, CV_8UC3);
     Mat flash(vertical, horizontal, CV_8UC3);
     flash = Scalar(255, 255, 255);
-    
-    cue = Scalar(0, 0, 0);
+
     
     //Top Left
     cue = Scalar(0, 0, 0);

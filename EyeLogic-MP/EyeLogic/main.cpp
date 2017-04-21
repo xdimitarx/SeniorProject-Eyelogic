@@ -22,13 +22,20 @@ int FRAMES = 40;                                             // number of ref fr
 int THRESHOLD = 10;                                          // max deviation ref frames inside buffer
 int MAXFRAMES = 100;
 
-cv::Point screenres(1920, 1080);                                                            // screen resolution
+
+cv::Point screenres(1280, 800);                            // screen resolution -- hard code for now, get dynamically later
+                                                            // half of actual resolution
+//QRect rec = QApplication::desktop()->screenGeometry();
+//height = rec.height();
+//width = rec.width();
+
+std::string user = "dimitri";
 Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;     // reference images
 Mat *refArray [] {&ref_camera, &ref_topLeft, &ref_bottomLeft, &ref_center, &ref_topRight, &ref_bottomRight};
 std::string filenames [] {"camera.jpg", "topleft.jpg", "bottomleft.jpg", "center.jpg", "topright.jpg", "bottomright.jpg"};
 std::map<Mat *, EyePair> RefImageVector;                     // Map to retrive EyePair based on the image.
 fs::path curr_path(fs::current_path());
-std::string imagedir = curr_path.string() + "/images/";      // image file path
+std::string user_path = curr_path.string() + "/" + user + "/";      // user image file path
 
 std::unique_ptr<System> singleton (getSystem());             // global singleton variable used for different OS calls
 
@@ -270,13 +277,13 @@ EyePair *getRefVector(){
 void calibrate(){
     
     // create image directory and
-    fs::create_directory(imagedir);
-    std::ofstream outfile(imagedir + "parameters.txt", std::ios::out);
+    fs::create_directory(user_path);
+    std::ofstream outfile(user_path + "parameters.txt", std::ios::out);
     
     for(int i = 0; i < NUMREFS; i++){
         
         // create image folder
-        std::string image_path = imagedir + filenames[i];
+        std::string image_path = user_path + filenames[i];
         
         // get eyeVector pair for that image
         EyePair *refPair = getRefVector();
@@ -302,6 +309,78 @@ void calibrate(){
 }
 
 
+void generateRefImages(){
+    int horizontal = screenres.x;
+    int vertical = screenres.y;
+    string image_path;
+    
+    Mat cue(vertical, horizontal, CV_8UC3);
+    Mat flash(vertical, horizontal, CV_8UC3);
+    
+    
+    //Top Left Before
+    cue = Scalar(0, 0, 0);
+    cv::circle(cue, cv::Point(0,0), 30, Scalar(0, 0, 255), -1);
+    image_path = curr_path.string() + "/ref_images/topLeftBefore.jpg";
+    imwrite(image_path, cue);
+    
+    //Top Left After
+    cue = Scalar(0, 0, 0);
+    cv::circle(cue, cv::Point(0,0), 30, Scalar(0, 255, 0), -1);
+    image_path = curr_path.string() + "/ref_images/topLeftAfter.jpg";
+    imwrite(image_path, cue);
+    
+    
+    //Top Right Before
+    cue = Scalar(0, 0, 0);
+    cv::circle(cue, cv::Point(horizontal,0), 30, Scalar(0, 0, 255), -1);
+    image_path = curr_path.string() + "/ref_images/topRightBefore.jpg";
+    imwrite(image_path, cue);
+    
+    //Top Right After
+    cue = Scalar(0, 0, 0);
+    cv::circle(cue, cv::Point(horizontal,0), 30, Scalar(0, 255, 0), -1);
+    image_path = curr_path.string() + "/ref_images/topRightAfter.jpg";
+    imwrite(image_path, cue);
+    
+    //Center Before
+    cue = Scalar(0, 0, 0);
+    cv::circle(cue, cv::Point(horizontal/2,vertical/2), 30, Scalar(0, 0, 255), -1);
+    image_path = curr_path.string() + "/ref_images/centerBefore.jpg";
+    imwrite(image_path, cue);
+    
+    //Center After
+    cue = Scalar(0, 0, 0);
+    cv::circle(cue, cv::Point(horizontal/2,vertical/2), 30, Scalar(0, 255, 0), -1);
+    image_path = curr_path.string() + "/ref_images/centerAfter.jpg";
+    imwrite(image_path, cue);
+    
+    //bottom Left Before
+    cue = Scalar(0, 0, 0);
+    cv::circle(cue, cv::Point(0,vertical), 30, Scalar(0, 0, 255), -1);
+    image_path = curr_path.string() + "/ref_images/bottomLeftBefore.jpg";
+    imwrite(image_path, cue);
+    
+    //bottom Left After
+    cue = Scalar(0, 0, 0);
+    cv::circle(cue, cv::Point(0,vertical), 30, Scalar(0, 255, 0), -1);
+    image_path = curr_path.string() + "/ref_images/bottomLeftAfter.jpg";
+    imwrite(image_path, cue);
+
+    //bottom Right Before
+    cue = Scalar(0, 0, 0);
+    cv::circle(cue, cv::Point(horizontal,vertical), 30, Scalar(0, 0, 255), -1);
+    image_path = curr_path.string() + "/ref_images/bottomRightBefore.jpg";
+    imwrite(image_path, cue);
+    
+    //bottom Right After
+    cue = Scalar(0, 0, 0);
+    cv::circle(cue, cv::Point(horizontal,vertical), 30, Scalar(0, 255, 0), -1);
+    image_path = curr_path.string() + "/ref_images/bottomRightAfter.jpg";
+    imwrite(image_path, cue);
+
+}
+
 /*
  *  MAIN PROGRAM LOOP
  */
@@ -310,12 +389,17 @@ int main(int argc, char *argv[])
     vector<const Mat *>reference_images;
     vector<const EyePair *>reference_vectors;
     
+    
+    generateRefImages();
+    
+    
+    
     /************************
      * For Testing Purposes *
      ************************/
     // delete directory if it already exists
-    //    if(fs::exists(imagedir)){
-    //        fs::remove_all(imagedir);
+    //    if(fs::exists(user_path)){
+    //        fs::remove_all(user_path);
     //    }
     //    calibrate();
     
@@ -325,15 +409,15 @@ int main(int argc, char *argv[])
      ***************/
     
 //    // create folder and store reference images
-//    if(!fs::exists(imagedir)){
+//    if(!fs::exists(user_path)){
 //        calibrate();
 //    }
 //    // if folder already exists, just read in eyeVectors
 //    else {
-//        std::ifstream inputfile(imagedir + "parameters.txt", std::ios::out);
+//        std::ifstream inputfile(user_path + "parameters.txt", std::ios::out);
 //        
 //        for(int i = 0; i < NUMREFS; i++){
-//            Mat image = imread(imagedir + filenames[i]);
+//            Mat image = imread(user_path + filenames[i]);
 //            *refArray[i] = image;
 //            
 //            std::string line;
@@ -364,52 +448,52 @@ int main(int argc, char *argv[])
      * Main Program *
      ****************/
     
-    ImgFrame mainEntryPoint(screenres);
-    
-    if (argc == 2)
-    {
-        mainEntryPoint.insertFrame(loadImageAtPath(argv[1]));
-    }
-    else
-    {
-        size_t i = 0;
-        high_resolution_clock::time_point start, end;
-        VideoCapture cap;
-        Mat capture;
-        
-        if (!cap.open(0))
-            return 0;
-        
-        
-        while (1) {
-            //Code to calculate time it takes to do insertFrame operation
-            //As of 3/22/2017, it takes approximately 1 whole second to get and process a frame
-            //As of 3/26/2017, it takes approximately .08 seconds to get and process a frame
-            
-            start = high_resolution_clock::now();
-            sleep(5);
-            cap >> capture;
-            end = high_resolution_clock::now();
-            auto duration = duration_cast<microseconds>(end - start).count();
-            cout << "Camera time: " << duration << endl;
-            
-            start = high_resolution_clock::now();
-            mainEntryPoint.insertFrame(capture);
-            end = high_resolution_clock::now();
-            duration = duration_cast<microseconds>(end - start).count();
-            cout << duration << endl;
-            
-            
-            if (waitKey(30) == '9') { break; }
-            cin.get();
-        }
-        
-        cap.release();
-    }
-    
-    
-    
-    cout << "finito" << endl;
-    return 0;
-    
+//    ImgFrame mainEntryPoint(screenres);
+//    
+//    if (argc == 2)
+//    {
+//        mainEntryPoint.insertFrame(loadImageAtPath(argv[1]));
+//    }
+//    else
+//    {
+//        size_t i = 0;
+//        high_resolution_clock::time_point start, end;
+//        VideoCapture cap;
+//        Mat capture;
+//        
+//        if (!cap.open(0))
+//            return 0;
+//        
+//        
+//        while (1) {
+//            //Code to calculate time it takes to do insertFrame operation
+//            //As of 3/22/2017, it takes approximately 1 whole second to get and process a frame
+//            //As of 3/26/2017, it takes approximately .08 seconds to get and process a frame
+//            
+//            start = high_resolution_clock::now();
+//            sleep(5);
+//            cap >> capture;
+//            end = high_resolution_clock::now();
+//            auto duration = duration_cast<microseconds>(end - start).count();
+//            cout << "Camera time: " << duration << endl;
+//            
+//            start = high_resolution_clock::now();
+//            mainEntryPoint.insertFrame(capture);
+//            end = high_resolution_clock::now();
+//            duration = duration_cast<microseconds>(end - start).count();
+//            cout << duration << endl;
+//            
+//            
+//            if (waitKey(30) == '9') { break; }
+//            cin.get();
+//        }
+//        
+//        cap.release();
+//    }
+//    
+//    
+//    
+//    cout << "finito" << endl;
+//    return 0;
+//    
 }
