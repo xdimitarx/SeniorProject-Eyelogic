@@ -17,7 +17,7 @@ using namespace std::chrono;
 /***********
  * GLOBALS *
  ***********/
-int NUMREFS = 6;                                             // number of reference points
+int REFIMAGES = 6;                                             // number of reference points
 int FRAMES = 40;                                             // number of ref frames per ref point
 int THRESHOLD = 10;                                          // max deviation ref frames inside buffer
 int MAXFRAMES = 100;
@@ -280,7 +280,7 @@ void calibrate(){
     fs::create_directory(user_path);
     std::ofstream outfile(user_path + "parameters.txt", std::ios::out);
     
-    for(int i = 0; i < NUMREFS; i++){
+    for(int i = 0; i < REFIMAGES; i++){
         
         // create image folder
         std::string image_path = user_path + filenames[i];
@@ -416,7 +416,7 @@ int main(int argc, char *argv[])
 //    else {
 //        std::ifstream inputfile(user_path + "parameters.txt", std::ios::out);
 //        
-//        for(int i = 0; i < NUMREFS; i++){
+//        for(int i = 0; i < REFIMAGES; i++){
 //            Mat image = imread(user_path + filenames[i]);
 //            *refArray[i] = image;
 //            
