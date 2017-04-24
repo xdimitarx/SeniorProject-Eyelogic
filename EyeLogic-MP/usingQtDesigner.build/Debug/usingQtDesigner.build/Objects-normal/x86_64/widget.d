@@ -473,4 +473,5 @@ dependencies: \
   /Users/Dimitar/Qt/5.8/clang_64/lib/QtWidgets.framework/Headers/QAction \
   /Users/Dimitar/Qt/5.8/clang_64/lib/QtWidgets.framework/Headers/QApplication \
   /Users/Dimitar/Qt/5.8/clang_64/lib/QtWidgets.framework/Headers/QButtonGroup \
-  /Users/Dimitar/Qt/5.8/clang_64/lib/QtWidgets.framework/Headers/QHeaderView
+  /Users/Dimitar/Qt/5.8/clang_64/lib/QtWidgets.framework/Headers/QHeaderView \
+  calibration.hpp

@@ -38,7 +38,7 @@ public:
 //                                                         NULL, kCGEventLeftMouseDown,
 //                                                         CGPointMake(x, y),
 //                                                         kCGMouseButtonLeft
-//                                                         );
+//                                              t           );
 //        
 //        // Left button down at 250x250
 //        // Left button up at 250x250

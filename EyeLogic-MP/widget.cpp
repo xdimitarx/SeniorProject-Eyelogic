@@ -1,5 +1,6 @@
 #include "widget.h"
 #include "ui_widget.h"
+#include "calibration.hpp"
 
 
 QGroupBox *Widget::userInfoBox()
@@ -188,7 +189,7 @@ void Widget::calibrate()
 
     QMessageBox messageBox;
     QString user = userBox->findChild<QLineEdit *>("userName")->text();
-    QString user_path = QDir::currentPath() + "/" + user;
+    user_path = QDir::currentPath() + "/" + user;
 
     // no user specified
     if(user == ""){
@@ -216,18 +217,36 @@ void Widget::calibrate()
 
     // new user
     QDir().mkdir(user_path);
-    qDebug() << user_path;
 
-    // display image fullscreen and show window when eye vectors calibrated
+    // display red dot full screen
     imageLabel = new QLabel();
     QString ref_image = ":/ref_images/" + QString::fromStdString(refImagesBefore[imageCount]) + ".jpg";
-
-    qDebug() << ref_image;
     imageLabel->setPixmap(QPixmap(ref_image));
     imageLabel->showFullScreen();
 
+    
+    // move calibration box on top of image to bottom-middle of screen
     calibrationPage->show();
     calibrationPage->move(screen_width/2 - calibrationPage->width()/2, screen_height - calibrationPage->height() - 30);
+    
+    // disable next button
+    QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");
+    nextButton->setEnabled(false);
+    
+    //***************************
+    // CALL CALIBRATION FUNCTION
+    //***************************
+    calibrate();
+    
+    // display green dot
+    ref_image = ":/ref_images/" + QString::fromStdString(refImagesAfter[imageCount]) + ".jpg";
+    imageLabel->setPixmap(QPixmap(ref_image));
+    imageLabel->showFullScreen();
+    
+    // enable next button
+    nextButton->setEnabled(true);
+    
+    
 }
 
 void Widget::run()
@@ -235,6 +254,7 @@ void Widget::run()
 
     QPushButton *runButton = runBox->findChild<QPushButton *>("runButton");
 
+    // Check if program is already running
     if(runButton->text() == "Start Eyelogic"){
 
         QMessageBox messageBox;
@@ -264,7 +284,7 @@ void Widget::run()
         {
           group.addButton(calibrationButtons[i],i);
         }
-        qDebug() << "calibration Buttons size = " << calibrationButtons.size();
+
         if(group.checkedButton()->property("trackEye") == leftEye){
           trackEye = leftEye;
         }
@@ -287,23 +307,30 @@ void Widget::run()
           clickType = blink;
         }
 
-        qDebug() << "clicktype = " << clickType;
-        qDebug() << "trackEye = " << trackEye;
 
-       // run main program
-       messageBox.setText("running main program");
-       messageBox.setFixedSize(msgBoxSize.x(), msgBoxSize.y());
-       messageBox.exec();
-       setWindowState(Qt::WindowMinimized);
 
-       // CALL MAIN PROGRAM LOOP HERE
+        // run main program
+        messageBox.setText("running main program");
+        messageBox.setFixedSize(msgBoxSize.x(), msgBoxSize.y());
+        messageBox.exec();
+        setWindowState(Qt::WindowMinimized);
+        
+        
+        //*********************
+        // CALL MAIN PROGRAM
+        //*********************
+        RUN = true;
+        run();
 
         userBox->findChild<QLineEdit *>("userName")->setDisabled(true);
         runButton->setText("Pause");
    }
    else if (runButton->text() == "Pause"){
 
-        //PAUSE PROGRAM
+       //********************
+       // PAUSE MAIN PROGRAM
+       //********************
+        RUN = false;
         userBox->findChild<QLineEdit *>("userName")->setDisabled(false);
         runButton->setText("Start Eyelogic");
    }
@@ -312,9 +339,9 @@ void Widget::run()
 void Widget::next()
 {
     if(imageCount == REFIMAGES - 3){
-        QPushButton *runButton = calibBox->findChild<QPushButton *>("next");
+        QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");
         QPushButton *cancelOrDoneBtn = calibBox->findChild<QPushButton *>("cancelOrDone");
-        runButton->setEnabled(false);
+        nextButton->setEnabled(false);
         cancelOrDoneBtn->setText("Done");
     }
     imageCount++;

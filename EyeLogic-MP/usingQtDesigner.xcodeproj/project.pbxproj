@@ -25,9 +25,9 @@
 		018E4555EB7B8E77A215945F /* main.cpp in Compile Sources */ = {isa = PBXBuildFile; fileRef = 62AB5FDEF6C559744EF81AE2 /* main.cpp */; settings = {ATTRIBUTES = (); }; };
 		0AB18D2C3FCFFC5DB57382BD /* QtWidgets.framework in Link Binary With Libraries */ = {isa = PBXBuildFile; fileRef = 6D428A53665CC0532CC471B5 /* QtWidgets.framework */; };
 		2617C365E6101688745605CC /* QtCore.framework in Link Binary With Libraries */ = {isa = PBXBuildFile; fileRef = C6EAED776F2E03F8F00CD3FA /* QtCore.framework */; };
-		435C82F41EAAD8CD0030A7FD /* EyeLogic.cpp in Compile Sources */ = {isa = PBXBuildFile; fileRef = 435C82F31EAAD8CD0030A7FD /* EyeLogic.cpp */; };
 		435C82F91EAADEB60030A7FD /* libboost_filesystem.dylib in Link Binary With Libraries */ = {isa = PBXBuildFile; fileRef = 435C82F81EAADEB60030A7FD /* libboost_filesystem.dylib */; };
 		435C82FB1EAADEC80030A7FD /* libboost_system.dylib in Link Binary With Libraries */ = {isa = PBXBuildFile; fileRef = 435C82FA1EAADEC80030A7FD /* libboost_system.dylib */; };
+		43B9E6C41EAC9AA100E4BDB9 /* EyeLogic.cpp in Compile Sources */ = {isa = PBXBuildFile; fileRef = 43B9E6C31EAC9AA100E4BDB9 /* EyeLogic.cpp */; };
 		695675E2C9E4B61B35833848 /* widget.cpp in Compile Sources */ = {isa = PBXBuildFile; fileRef = 85CCABD17F993FB4E3E80AB4 /* widget.cpp */; settings = {ATTRIBUTES = (); }; };
 		6DE1234A754AF1492696D12A /* moc_widget.cpp in Compile Sources */ = {isa = PBXBuildFile; fileRef = F737D3D90FDC20D844785B76 /* moc_widget.cpp */; settings = {ATTRIBUTES = (); }; };
 		8771A8C96E9C391044035D99 /* OpenGL.framework in Link Binary With Libraries */ = {isa = PBXBuildFile; fileRef = D4B32C2222F82AC56BADEB21 /* OpenGL.framework */; };
@@ -55,13 +55,14 @@
 		34B7A8E7C3D7D60CC095478F /* usingQtDesigner.pro */ = {isa = PBXFileReference; lastKnownFileType = text; name = usingQtDesigner.pro; path = "/Users/Dimitar/Documents/SeniorProject/EyeLogic/EyeLogic-MP/usingQtDesigner.pro"; sourceTree = "<absolute>"; };
 		3E04DE0EDFC3D1C9612897FD /* usingQtDesigner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = usingQtDesigner.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3F79573BBD817B9376DA60E8 /* widget.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = widget.h; path = "/Users/Dimitar/Documents/SeniorProject/EyeLogic/EyeLogic-MP/widget.h"; sourceTree = "<absolute>"; };
-		435C82F21EAAD8C20030A7FD /* EyeLogic.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = EyeLogic.hpp; path = EyeLogic/EyeLogic.hpp; sourceTree = "<group>"; };
-		435C82F31EAAD8CD0030A7FD /* EyeLogic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = EyeLogic.cpp; path = EyeLogic/EyeLogic.cpp; sourceTree = "<group>"; };
-		435C82F51EAAD8D60030A7FD /* System.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = System.hpp; path = EyeLogic/System.hpp; sourceTree = "<group>"; };
-		435C82F61EAAD8DF0030A7FD /* Win.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Win.hpp; path = EyeLogic/Win.hpp; sourceTree = "<group>"; };
-		435C82F71EAAD8E80030A7FD /* Mac.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = Mac.hpp; path = EyeLogic/Mac.hpp; sourceTree = "<group>"; };
 		435C82F81EAADEB60030A7FD /* libboost_filesystem.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_filesystem.dylib; path = ../../../../../../usr/local/lib/libboost_filesystem.dylib; sourceTree = "<group>"; };
 		435C82FA1EAADEC80030A7FD /* libboost_system.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libboost_system.dylib; path = ../../../../../../usr/local/lib/libboost_system.dylib; sourceTree = "<group>"; };
+		43B9E6C01EAC9A5900E4BDB9 /* Win.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Win.hpp; sourceTree = "<group>"; };
+		43B9E6C11EAC9A6F00E4BDB9 /* Mac.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Mac.hpp; sourceTree = "<group>"; };
+		43B9E6C21EAC9A9400E4BDB9 /* System.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = System.hpp; sourceTree = "<group>"; };
+		43B9E6C31EAC9AA100E4BDB9 /* EyeLogic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EyeLogic.cpp; sourceTree = "<group>"; };
+		43B9E6C51EAC9AA900E4BDB9 /* EyeLogic.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = EyeLogic.hpp; sourceTree = "<group>"; };
+		43B9E6C61EAD827C00E4BDB9 /* calibration.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = calibration.hpp; sourceTree = "<group>"; };
 		524FF54F4DFEBBDF16E94F2F /* QtGui.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtGui.framework; path = /Users/Dimitar/Qt/5.8/clang_64/lib/QtGui.framework; sourceTree = "<absolute>"; };
 		62AB5FDEF6C559744EF81AE2 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = "/Users/Dimitar/Documents/SeniorProject/EyeLogic/EyeLogic-MP/main.cpp"; sourceTree = "<absolute>"; };
 		6D428A53665CC0532CC471B5 /* QtWidgets.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QtWidgets.framework; path = /Users/Dimitar/Qt/5.8/clang_64/lib/QtWidgets.framework; sourceTree = "<absolute>"; };
@@ -120,12 +121,13 @@
 		2EB56BE3C2D93CDAB0C52E67 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				435C82F61EAAD8DF0030A7FD /* Win.hpp */,
-				435C82F51EAAD8D60030A7FD /* System.hpp */,
-				435C82F71EAAD8E80030A7FD /* Mac.hpp */,
-				435C82F31EAAD8CD0030A7FD /* EyeLogic.cpp */,
-				435C82F21EAAD8C20030A7FD /* EyeLogic.hpp */,
+				43B9E6C21EAC9A9400E4BDB9 /* System.hpp */,
+				43B9E6C01EAC9A5900E4BDB9 /* Win.hpp */,
+				43B9E6C11EAC9A6F00E4BDB9 /* Mac.hpp */,
+				43B9E6C31EAC9AA100E4BDB9 /* EyeLogic.cpp */,
+				43B9E6C51EAC9AA900E4BDB9 /* EyeLogic.hpp */,
 				62AB5FDEF6C559744EF81AE2 /* main.cpp */,
+				43B9E6C61EAD827C00E4BDB9 /* calibration.hpp */,
 				85CCABD17F993FB4E3E80AB4 /* widget.cpp */,
 				3F79573BBD817B9376DA60E8 /* widget.h */,
 			);
@@ -284,10 +286,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				018E4555EB7B8E77A215945F /* main.cpp in Compile Sources */,
+				43B9E6C41EAC9AA100E4BDB9 /* EyeLogic.cpp in Compile Sources */,
 				695675E2C9E4B61B35833848 /* widget.cpp in Compile Sources */,
 				D0277E5370539D68D7F4AE12 /* qrc_ref_images.cpp in Compile Sources */,
 				6DE1234A754AF1492696D12A /* moc_widget.cpp in Compile Sources */,
-				435C82F41EAAD8CD0030A7FD /* EyeLogic.cpp in Compile Sources */,
 				EFDE7D67A3969E728EFE5F3B /* dummy.cpp in Compile Sources */,
 			);
 			name = "Compile Sources";
@@ -494,6 +496,8 @@
 					"-lopencv_videoio",
 					"-lopencv_videostab",
 					"-F/Users/Dimitar/Qt/5.8/clang_64/lib",
+					"-framework",
+					ApplicationServices,
 				);
 				PRODUCT_NAME = usingQtDesigner;
 				QT_LIBRARY_SUFFIX = "";
@@ -547,6 +551,8 @@
 					"-lopencv_videoio",
 					"-lopencv_videostab",
 					"-F/Users/Dimitar/Qt/5.8/clang_64/lib",
+					"-framework",
+					ApplicationServices,
 				);
 				PRODUCT_NAME = usingQtDesigner;
 				QT_LIBRARY_SUFFIX = _debug;

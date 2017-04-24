@@ -19,10 +19,11 @@
 #include <QDebug>
 #include <QThread>
 
-
 using namespace std;
 
-
+/*********************
+* EXTERNAL VARIABLES *
+**********************/
 extern QPoint msgBoxSize;
 extern int trackEye;
 extern int clickType;
@@ -33,7 +34,18 @@ extern const std::string refImagesBefore [];
 extern const std::string refImagesAfter [];
 extern int imageCount;
 extern int REFIMAGES;
+extern QString user_path;
+extern bool RUN;
 
+/*********************
+* EXTERNAL FUNCTIONS *
+**********************/
+void calibrate();
+void run();
+
+/***************
+ * GLOBAL ENUM *
+ ***************/
 enum TrackEye {
     rightEye,
     leftEye
@@ -44,6 +56,9 @@ enum ClickType {
     blink
 };
 
+/****************
+ * WIDGET CLASS *
+ ****************/
 namespace Ui {
 class Widget;
 }
