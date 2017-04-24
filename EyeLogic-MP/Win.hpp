@@ -11,17 +11,12 @@ public:
 
 	HANDLE g_hChildStd_OUT_Rd = NULL;
 
-	virtual int getOS() override
-	{
-		return 1;
-	}
-
-    virtual void setCurPos(float x, float y) override {
+    /*virtual void setCurPos(float x, float y) override {
         // Windows way to set the cursor position to some x,y coordinate on the screen
         SetCursorPos((int)x, (int)y);
         //cout << x << "    " << y << endl;
         return;
-    }
+    }*/
 
 	virtual bool voiceFork() override
 	{
@@ -100,12 +95,12 @@ public:
 		return valueRead;
 	}
 
-    void setCurPos(cv::Point point) {
+    /*void setCurPos(cv::Point point) {
         // Windows way to set the cursor position to some x,y coordinate on the screen
         SetCursorPos(point.x, point.y);
         //cout << point.x << "    " << point.y << endl;
         return;
-    }
+    }*/
 
     cv::Point getCurPos() {
         //Windows way to get the cursor position

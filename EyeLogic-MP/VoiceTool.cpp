@@ -19,7 +19,6 @@ bool VoiceTool::disableVoice()
 
 bool VoiceTool::initVoice()
 {
-	//Check OS
 	if(!singleton->voiceFork())
 	{
 		//ERROR
