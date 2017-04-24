@@ -193,7 +193,7 @@ bool Eye::findEyeCorner()
 	int rightbuffer;
 
 	int pupil[] = { eyeCenter.x ,  eyeCenter.y ,  eyeRadius };
-	if (left) {	
+	if (leftEye) {
 		leftbuffer = eyeCenter.x / 2 - 1;
 		rightbuffer = (framegray.cols - eyeCenter.x) / 2 + 2;
 	}

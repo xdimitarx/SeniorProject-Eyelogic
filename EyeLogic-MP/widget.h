@@ -1,23 +1,10 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
-#include <QtWidgets>
-#include <QWidget>
-#include <QObject>
-#include <QVBoxLayout>
-#include <QLineEdit>
-#include <QRadioButton>
-#include <QPushButton>
-#include <QLayout>
-#include <QPoint>
-#include <QDir>
-#include <QPixmap>
+#include "System.hpp"
 #include <iostream>
 #include <string>
 
-// debug header files
-#include <QDebug>
-#include <QThread>
 
 using namespace std;
 
@@ -40,7 +27,7 @@ extern bool RUN;
 /*********************
 * EXTERNAL FUNCTIONS *
 **********************/
-void calibrate();
+void runCalibrate();
 void run();
 
 /***************

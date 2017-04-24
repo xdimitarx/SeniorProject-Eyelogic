@@ -16,6 +16,19 @@
 #include <opencv2/imgcodecs/imgcodecs.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <ApplicationServices/ApplicationServices.h>
+#include <QtWidgets>
+#include <QWidget>
+#include <QObject>
+#include <QVBoxLayout>
+#include <QLineEdit>
+#include <QRadioButton>
+#include <QPushButton>
+#include <QLayout>
+#include <QPoint>
+#include <QDir>
+#include <QPixmap>
+#include <QDebug>
+#include <QThread>
 #else
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -26,6 +39,21 @@
 #include "stdafx.h"
 #include "windows.h"
 #include "targetver.h"
+#include <QtWidgets/QtWidgets>
+#include <QtWidgets/QWidget>
+#include <QtCore/QObject>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QRadioButton>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QLayout>
+#include <QtCore/QPoint>
+#include <QtCore/QDir>
+#include <QtGui/QPixmap>
+#include <iostream>
+#include <string>
+#include <QtCore/QDebug>
+#include <QtCore/QThread>
 #endif
 
 class System {
