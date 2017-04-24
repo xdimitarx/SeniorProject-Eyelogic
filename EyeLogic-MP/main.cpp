@@ -300,7 +300,7 @@ EyePair *getRefVector(){
  *  Calibration method that will start calibration process
  *  Tied to event listener and called when button is clicked
  */
-void calibrate(){
+void runCalibrate(){
     
     std::ofstream outfile(toString(user_path) + "parameters.txt", std::ios::out);
     
@@ -498,7 +498,6 @@ int main(int argc, char *argv[])
     
     // Create reference images w.r.t. screen resolution
     generateRefImages();
-    
     
     QApplication app(argc, argv);
     Widget w;

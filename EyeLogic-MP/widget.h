@@ -1,10 +1,10 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
-#include"System.hpp"
-
+#include "System.hpp"
 #include <iostream>
 #include <string>
+
 
 using namespace std;
 
@@ -27,7 +27,7 @@ extern bool RUN;
 /*********************
 * EXTERNAL FUNCTIONS *
 **********************/
-void calibrate();
+void runCalibrate();
 void run();
 
 /***************

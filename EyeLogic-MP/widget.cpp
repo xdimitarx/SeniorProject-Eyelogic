@@ -236,7 +236,7 @@ void Widget::calibrate()
     //***************************
     // CALL CALIBRATION FUNCTION
     //***************************
-    calibrate();
+    runCalibrate();
     
     // display green dot
     ref_image = ":/ref_images/" + QString::fromStdString(refImagesAfter[imageCount]) + ".jpg";
@@ -315,6 +315,9 @@ void Widget::run()
         messageBox.exec();
         setWindowState(Qt::WindowMinimized);
         
+        // set start button to false
+        userBox->findChild<QLineEdit *>("userName")->setDisabled(true);
+        runButton->setText("Pause");
         
         //*********************
         // CALL MAIN PROGRAM
@@ -322,8 +325,7 @@ void Widget::run()
         RUN = true;
         run();
 
-        userBox->findChild<QLineEdit *>("userName")->setDisabled(true);
-        runButton->setText("Pause");
+
    }
    else if (runButton->text() == "Pause"){
 
