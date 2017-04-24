@@ -23,5 +23,9 @@ DerivedData/
 EyeLogic.xcodeproj/
 ipch/
 
+usingQtDesigner.build/
+ref_images/
+usingQtDesigner.pro*
+
 ## Images folder
 images/
