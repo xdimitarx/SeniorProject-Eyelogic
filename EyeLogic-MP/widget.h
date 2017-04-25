@@ -1,7 +1,21 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
-#include "System.hpp"
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QtWidgets>
+#include <QtWidgets/QWidget>
+#include <QtCore/QObject>
+#include <QtWidgets/QVBoxLayout>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QRadioButton>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QLayout>
+#include <QtCore/QPoint>
+#include <QtCore/QDir>
+#include <QtGui/QPixmap>
+#include <QtCore/QDebug>
+#include <QtCore/Qthread>
+//#include "System.hpp"
 #include <iostream>
 #include <string>
 
