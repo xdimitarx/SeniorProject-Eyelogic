@@ -28,7 +28,7 @@ extern bool RUN;
 * EXTERNAL FUNCTIONS *
 **********************/
 void runCalibrate();
-void run();
+int run();
 
 /***************
  * GLOBAL ENUM *

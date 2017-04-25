@@ -16,6 +16,7 @@
 #include <opencv2/imgcodecs/imgcodecs.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <ApplicationServices/ApplicationServices.h>
+#include <QApplication>
 #include <QtWidgets>
 #include <QWidget>
 #include <QObject>
@@ -39,6 +40,7 @@
 #include "stdafx.h"
 #include "windows.h"
 #include "targetver.h"
+#include <QtWidgets/QApplication>
 #include <QtWidgets/QtWidgets>
 #include <QtWidgets/QWidget>
 #include <QtCore/QObject>

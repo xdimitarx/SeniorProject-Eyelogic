@@ -1,6 +1,6 @@
 #include "widget.h"
 #include "EyeLogic.hpp"
-#include <QApplication>
+
 
 
 System * getSystem()
@@ -330,7 +330,7 @@ void runCalibrate(){
 /*
  * Runs main program
  */
-void run(){
+int run(){
     
     
     // read in eye vectors from parameters.txt
@@ -368,9 +368,10 @@ void run(){
     VideoCapture cap;
     Mat capture;
 
-    if (!cap.open(0))
-        return 0;
-
+	if (!cap.open(0))
+	{
+		return 0;
+	}
 
     while (RUN) {
         //Code to calculate time it takes to do insertFrame operation
@@ -378,7 +379,7 @@ void run(){
         //As of 3/26/2017, it takes approximately .08 seconds to get and process a frame
 
         start = high_resolution_clock::now();
-        sleep(5);
+        //sleep(5);
         cap >> capture;
         end = high_resolution_clock::now();
         auto duration = duration_cast<microseconds>(end - start).count();
@@ -400,7 +401,7 @@ void run(){
         
         
         cout << "finito" << endl;
-        return 0;
+        return 1;
 }
 
 

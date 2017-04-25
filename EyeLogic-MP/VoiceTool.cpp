@@ -70,7 +70,7 @@ void VoiceTool::monitor()
 		if (command.compare("mute") == 0)
 		{
 			threadLock.lock();
-			enabled != enabled;
+			enabled = !enabled;
 			threadLock.unlock();
 		}
 
