@@ -379,7 +379,8 @@ int run(){
         //As of 3/26/2017, it takes approximately .08 seconds to get and process a frame
 
         start = high_resolution_clock::now();
-        //sleep(5);
+        
+        sleep(5);
         cap >> capture;
         end = high_resolution_clock::now();
         auto duration = duration_cast<microseconds>(end - start).count();
