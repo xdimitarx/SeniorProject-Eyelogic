@@ -369,7 +369,8 @@ void run(){
     Mat capture;
 
     if (!cap.open(0))
-        return 0;
+        return;
+    
 
 
     while (RUN) {
@@ -378,6 +379,7 @@ void run(){
         //As of 3/26/2017, it takes approximately .08 seconds to get and process a frame
 
         start = high_resolution_clock::now();
+        
         sleep(5);
         cap >> capture;
         end = high_resolution_clock::now();
@@ -400,7 +402,6 @@ void run(){
         
         
         cout << "finito" << endl;
-        return 0;
 }
 
 
