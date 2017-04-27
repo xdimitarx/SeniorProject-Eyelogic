@@ -19,8 +19,10 @@ Note the installation locations of QT, OpenCV, Boost, and Julius
 - Visual Studio 2015 -
 Only required portion is the Visual c++, and tools. The install is automatic
 
+Create a solution in EyeLogic-MP
+
 - QT - 
-Installation of this should be automatic, make sure you install the latest version, other versions aren't necessary, 5.9 is latest at the time of writing this. In visual studio and select tools > extensions and updates, then search for qt in the online section and download Qt Visual Studio Tools. Once this is done an extension should be installed in your toolbar, Qt VS Tools, use open Qt Project File (.pro), to open our project file that is in Eyelogic-MP\Qt, be watchful for any errors here from having an incomplete Qt setup or working directory.
+Installation of this should be automatic, make sure you install the latest version, other versions aren't necessary, 5.9 is latest at the time of writing this. In visual studio and select tools > extensions and updates, then search for qt in the online section and download Qt Visual Studio Tools. Once this is done an extension should be installed in your toolbar, Qt VS Tools, use open Qt Project File (.pro), to open our project file that is in Eyelogic-MP\Qt, be watchful for any errors here from having an incomplete Qt setup or working directory. Once this is done move all of our source and headers from EyeLogic and Qt into the new project usingQtDesigner and it's respective folders, and add any miscellaneous files to the resources folders. You may close whatever project you were original working on.
 
 - OpenCV -
 Run the binary for windows to extract. With cmake installed, build the source found in the extracted files. You'll be asked to specify a compiler, make sure you select THE RIGHT ONE: visul studio 14 2015 win64. Then hit generate. You will now have a visual studio solution in your build location called opencv.sln, opening this you can build for debug, and release on your target platform. The files built will be located in this build directory, move them along with the header files for opencv to a location of your choosing, note this location.
