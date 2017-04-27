@@ -1,6 +1,6 @@
 #include "widget.h"
 #include "ui_widget.h"
-#include "calibration.hpp"
+#include "../EyeLogic/calibration.hpp"
 
 
 QGroupBox *Widget::userInfoBox()

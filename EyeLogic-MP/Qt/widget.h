@@ -1,7 +1,7 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
-#include "System.hpp"
+#include "../EyeLogic/System.hpp"
 #include <iostream>
 #include <string>
 
@@ -27,8 +27,8 @@ extern bool RUN;
 /*********************
 * EXTERNAL FUNCTIONS *
 **********************/
-void runCalibrate();
-void run();
+extern void runCalibrate();
+extern int runP();
 
 /***************
  * GLOBAL ENUM *
