@@ -323,7 +323,7 @@ void Widget::run()
         // CALL MAIN PROGRAM
         //*********************
         RUN = true;
-        run();
+        runP();
 
 
    }

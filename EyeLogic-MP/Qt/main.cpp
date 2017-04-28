@@ -17,7 +17,7 @@ System * getSystem()
 /**************************
  * NAMESPACE DECLARATIONS *
  **************************/
-namespace fs = boost::filesystem;
+
 using namespace std;
 using namespace std::chrono;
 
