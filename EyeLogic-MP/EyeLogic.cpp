@@ -321,14 +321,14 @@ bool ImgFrame::setCursor()
     float deltaVx = (float)(leftEye.getEyeVector().x - RefImageVector[&ref_center].leftVector.x);
     float changeInEyeX = float(RefImageVector[&ref_bottomLeft].leftVector.x - RefImageVector[&ref_bottomRight].leftVector.x);
     
-    newcoord.x = deltaVx / changeInEyeX * screenres->x + screenres->x/2;
+    newcoord.x = deltaVx / changeInEyeX * screenres.x + screenres.x/2;
     
     
     // calculate new Y coordinate
     float deltaVy = (float)(leftEye.getEyeVector().y - RefImageVector[&ref_center].leftVector.y);
     float changeInEyeY = (float)(RefImageVector[&ref_bottomLeft].leftVector.x - RefImageVector[&ref_bottomRight].leftVector.x);
     
-    newcoord.y = deltaVy / changeInEyeY * screenres->y + screenres->y/2;
+    newcoord.y = deltaVy / changeInEyeY * screenres.y + screenres.y/2;
     
     singleton->setCurPos(newcoord);
     

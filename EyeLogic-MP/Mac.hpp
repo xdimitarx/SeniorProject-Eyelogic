@@ -117,6 +117,14 @@ public:
 
     }
     
+    virtual cv::Point getScreenResolution() override {
+        cv::Point screenres;
+        CGRect screenFrame = CGDisplayBounds(kCGDirectMainDisplay);
+        CGSize screenSize = screenFrame.size;
+        screenres.x = screenSize.width;
+        screenres.y = screenSize.height;
+        return screenres;
+    }
     
 
 };

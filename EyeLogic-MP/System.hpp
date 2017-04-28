@@ -63,6 +63,7 @@ public:
 	virtual void rightClick() { return; };
     virtual bool voiceFork(){return false;};
     virtual std::string readFromJulius(){return "";};
+    virtual cv::Point getScreenResolution(){return cv::Point(); };
 };
 
 #endif /* System_h */

@@ -43,7 +43,7 @@ Mat loadImageAtPath(string path);
 
 
 extern std::unique_ptr<System> singleton;
-extern cv::Point *screenres;
+extern cv::Point screenres;
 
 
 struct EyePair {

@@ -173,7 +173,7 @@ Widget::~Widget()
 void Widget::moveToCenter(QWidget *w)
 {
     QSize window_size = this->size();
-    QPoint center = QPoint(screen_width/2 - w->width()/2, screen_height/2 - w->height()/2);
+    QPoint center = QPoint(screenres.x/2 - w->width()/2, screenres.y/2 - w->height()/2);
     w->move(center);
 }
 
@@ -181,15 +181,20 @@ void Widget::calibrate()
 {
 
     imageCount = 0;
-    QPushButton *cancelOrDoneBtn = calibBox->findChild<QPushButton *>("cancelOrDone");
-    cancelOrDoneBtn->setText("Cancel");
-    QPushButton *runButton = calibBox->findChild<QPushButton *>("next");
-    runButton->setEnabled(true);
-
-
-    QMessageBox messageBox;
+    
     QString user = userBox->findChild<QLineEdit *>("userName")->text();
     user_path = QDir::currentPath() + "/" + user;
+
+    // set text on cancelOrDone button to `"cancel"`
+    QPushButton *cancelOrDoneBtn = calibBox->findChild<QPushButton *>("cancelOrDone");
+    cancelOrDoneBtn->setText("Cancel");
+    
+    // enable next button
+    QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");
+    nextButton->setEnabled(true);
+
+    // error message box
+    QMessageBox messageBox;
 
     // no user specified
     if(user == ""){
@@ -222,22 +227,21 @@ void Widget::calibrate()
     imageLabel = new QLabel();
     QString ref_image = ":/ref_images/" + QString::fromStdString(refImagesBefore[imageCount]) + ".jpg";
     imageLabel->setPixmap(QPixmap(ref_image));
-    imageLabel->showFullScreen();
+//    imageLabel->showFullScreen();
 
     
     // move calibration box on top of image to bottom-middle of screen
     calibrationPage->show();
-    calibrationPage->move(screen_width/2 - calibrationPage->width()/2, screen_height - calibrationPage->height() - 30);
+    calibrationPage->move(screenres.x/2 - calibrationPage->width()/2, screenres.y - calibrationPage->height() - 30);
     
     // disable next button
-    QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");
     nextButton->setEnabled(false);
-    
+
     //***************************
     // CALL CALIBRATION FUNCTION
     //***************************
     runCalibrate();
-    
+
     // display green dot
     ref_image = ":/ref_images/" + QString::fromStdString(refImagesAfter[imageCount]) + ".jpg";
     imageLabel->setPixmap(QPixmap(ref_image));
@@ -245,7 +249,6 @@ void Widget::calibrate()
     
     // enable next button
     nextButton->setEnabled(true);
-    
     
 }
 
@@ -308,22 +311,21 @@ void Widget::run()
         }
 
 
+        // set start button to false
+        userBox->findChild<QLineEdit *>("userName")->setDisabled(true);
+        runButton->setText("Pause");
 
-        // run main program
+        // run main program message box
         messageBox.setText("running main program");
         messageBox.setFixedSize(msgBoxSize.x(), msgBoxSize.y());
         messageBox.exec();
         setWindowState(Qt::WindowMinimized);
-        
-        // set start button to false
-        userBox->findChild<QLineEdit *>("userName")->setDisabled(true);
-        runButton->setText("Pause");
-        
+
         //*********************
         // CALL MAIN PROGRAM
         //*********************
         RUN = true;
-        run();
+        runMain();
 
 
    }
@@ -348,6 +350,17 @@ void Widget::next()
     }
     imageCount++;
     QString ref_image = ":/ref_images/" + QString::fromStdString(refImagesBefore[imageCount]) + ".jpg";
+    imageLabel->setPixmap(QPixmap(ref_image));
+    imageLabel->showFullScreen();
+    
+    //***************************
+    // CALL CALIBRATION FUNCTION
+    //***************************
+    runCalibrate();
+    
+    
+    // display green dot
+    ref_image = ":/ref_images/" + QString::fromStdString(refImagesAfter[imageCount]) + ".jpg";
     imageLabel->setPixmap(QPixmap(ref_image));
     imageLabel->showFullScreen();
 

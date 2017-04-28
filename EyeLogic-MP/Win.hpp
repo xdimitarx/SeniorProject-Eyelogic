@@ -95,12 +95,11 @@ public:
 		return valueRead;
 	}
 
-    /*void setCurPos(cv::Point point) {
-        // Windows way to set the cursor position to some x,y coordinate on the screen
+    void setCurPos(cv::Point point) {
+       // Windows way to set the cursor position to some x,y coordinate on the screen
         SetCursorPos(point.x, point.y);
-        //cout << point.x << "    " << point.y << endl;
         return;
-    }*/
+    }
 
     cv::Point getCurPos() {
         //Windows way to get the cursor position
@@ -109,6 +108,19 @@ public:
         cv::Point curr((int)windowsPoint->x, (int)windowsPoint->y);
         return curr;
     }
+    
+    
+    
+    cv::Point getScreenResolution () override {
+        cv::Point screenres;
+        RECT desktop;
+        const HWND hDesktop = GetDesktopWindow();
+        GetWindowRect(hDesktop, &desktop);
+        screenres.x = desktop.right;
+        screenres.y = desktop.bottom;
+        return screenres
+    }
+    
 
 };
 

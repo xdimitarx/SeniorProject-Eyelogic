@@ -8,6 +8,7 @@
 
 using namespace std;
 
+
 /*********************
 * EXTERNAL VARIABLES *
 **********************/
@@ -15,12 +16,11 @@ extern QPoint msgBoxSize;
 extern int trackEye;
 extern int clickType;
 extern const std::string filenames [];
-extern int screen_width;
-extern int screen_height;
 extern const std::string refImagesBefore [];
 extern const std::string refImagesAfter [];
 extern int imageCount;
 extern int REFIMAGES;
+extern cv::Point screenres;
 extern QString user_path;
 extern bool RUN;
 
@@ -28,7 +28,7 @@ extern bool RUN;
 * EXTERNAL FUNCTIONS *
 **********************/
 void runCalibrate();
-void run();
+void runMain();
 
 /***************
  * GLOBAL ENUM *

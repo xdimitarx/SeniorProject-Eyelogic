@@ -1,7 +1,7 @@
 #include "widget.h"
 #include "EyeLogic.hpp"
 #include <QApplication>
-
+#include <QScreen>
 
 System * getSystem()
 {
@@ -41,8 +41,7 @@ int trackEye = 0;
 int clickType = 0;
 
 // screen resolution
-int screen_width, screen_height;
-cv::Point *screenres;
+cv::Point screenres;
 
 // Map to retrieve EyePair based on the image.
 std::map<Mat *, EyePair> RefImageVector;
@@ -53,10 +52,9 @@ std::unique_ptr<System> singleton (getSystem());
 // user directory path
 QString user_path;
 
-
 // reference image
-Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;     // reference images
-Mat *refArray [] {&ref_camera, &ref_topLeft, &ref_bottomLeft, &ref_center, &ref_topRight, &ref_bottomRight};
+cv::Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
+cv::Mat *refArray [] {&ref_camera, &ref_topLeft, &ref_bottomLeft, &ref_center, &ref_topRight, &ref_bottomRight};
 const std::string filenames [] = {"camera.jpg", "topleft.jpg", "bottomleft.jpg", "center.jpg", "topright.jpg", "bottomright.jpg"};
 const std::string refImagesBefore [] = {"topLeftBefore", "bottomLeftBefore", "centerBefore", "topRightBefore", "bottomRightBefore"};
 const std::string refImagesAfter [] = {"topLeftAfter", "bottomLeftAfter", "centerAfter", "topRightAfter", "bottomRightAfter"};
@@ -214,7 +212,6 @@ cv::Point *getStabalizedCoord(std::vector<cv::Point>RefVectors){
 EyePair *getRefVector(){
     VideoCapture cap;
     
-    
     if (!cap.open(0)){
         cout << "camera is not available" << endl;
         return nullptr;
@@ -263,35 +260,38 @@ EyePair *getRefVector(){
     cap.release();
     
     // 40 valid frames with eye vectors should be found at this point
-    assert(leftVectors.size() == FRAMES && rightVectors.size() == FRAMES);
+    assert((int)leftVectors.size() == FRAMES && (int)rightVectors.size() == FRAMES);
     
-    //**************************** TEST DATA
-    //    std::vector<cv::Point>data = {
-    //                                    {22,50},{47,29},{56,75},{40,26},{47,28},{41,34},{15,17},{81,77},{45,26},{22,44},
-    //                                    {44,32},{42,27},{75,62},{52,99},{32,33},{42,34},{40,34},{45,26},{25,30},{46,30},
-    //                                    {41,33},{14,69},{47,32},{42,26},{50,50},{36,17},{42,29},{41,31},{62,29},{20,25},
-    //                                    {40,30},{77,19},{28,28},{44,32},{41,35},{27,29},{46,27},{50,61},{91,2},{47,26}
-    //                                };
-    //
-    //    cv::Point *oneEye = getStabalizedCoord(data);
-    //    cv::Point *noEye = getStabalizedCoord({});
-    //
-    //    if(!noEye){
-    //        cout << "null pointer" << endl;
-    //    }
-    //****************************
+//    **************************** TEST DATA
+    std::vector<cv::Point>data = {
+                                        {22,50},{47,29},{56,75},{40,26},{47,28},{41,34},{15,17},{81,77},{45,26},{22,44},
+                                        {44,32},{42,27},{75,62},{52,99},{32,33},{42,34},{40,34},{45,26},{25,30},{46,30},
+                                        {41,33},{14,69},{47,32},{42,26},{50,50},{36,17},{42,29},{41,31},{62,29},{20,25},
+                                        {40,30},{77,19},{28,28},{44,32},{41,35},{27,29},{46,27},{50,61},{91,2},{47,26}
+                                    };
     
-    // get reference vector for the left and right eye
-    cv::Point *left = getStabalizedCoord(leftVectors);
-    cv::Point *right = getStabalizedCoord(rightVectors);
+        cv::Point *oneEye = getStabalizedCoord(data);
+        cv::Point *noEye = getStabalizedCoord({});
     
+        if(!noEye){
+            cout << "null pointer" << endl;
+        }
     
-    // keep taking new set of 40 images until left and right eye Vector can be found <-- TOO HARSH?
-    if(!left || !right){
-        getRefVector();
-    }
+    return new EyePair(*oneEye, *noEye);
+//    ****************************
     
-    return new EyePair(*left, *right);
+//    // get reference vector for the left and right eye
+//    cv::Point *left = getStabalizedCoord(leftVectors);
+//    cv::Point *right = getStabalizedCoord(rightVectors);
+//    
+//    
+//    // keep taking new set of 40 images until left and right eye Vector can be found <-- TOO HARSH?
+//    if(!left || !right){
+//        getRefVector();
+//    }
+    
+//    return new EyePair(*left, *right);
+    
     
 }
 
@@ -302,7 +302,7 @@ EyePair *getRefVector(){
  */
 void runCalibrate(){
     
-    std::ofstream outfile(toString(user_path) + "parameters.txt", std::ios::out);
+    std::ofstream outfile(toString(user_path) + "/parameters.txt", std::ios::app);
     
     // get eyeVector pair for that image
     EyePair *refPair = getRefVector();
@@ -330,14 +330,14 @@ void runCalibrate(){
 /*
  * Runs main program
  */
-void run(){
+void runMain(){
     
     
     // read in eye vectors from parameters.txt
-    std::ifstream inputfile(toString(user_path) + "parameters.txt", std::ios::out);
+    std::ifstream inputfile(toString(user_path) + "/parameters.txt", std::ios::in);
     
     for(int i = 0; i < REFIMAGES; i++){
-        Mat image = imread(toString(user_path) + filenames[i]);
+        Mat image = imread(toString(user_path) + "/" + filenames[i]);
         *refArray[i] = image;
 
         std::string line;
@@ -410,17 +410,22 @@ void run(){
  * Output: folder containing all reference image jpgs
  */
 void generateRefImages(){
-    int horizontal = screen_width;
-    int vertical = screen_height;
+    int horizontal = screenres.x;
+    int vertical = screenres.y;
     string image_path;
     
     Mat cue(vertical, horizontal, CV_8UC3);
     Mat flash(vertical, horizontal, CV_8UC3);
     
+    QString ref_images_path = QDir::currentPath() + "/ref_images/";
+    
     // if directory exists, return
-    if(QDir(QDir::currentPath() + "/ref_images").exists()){
+    if(QDir(ref_images_path).exists()){
         return;
     }
+    
+    // make directory
+    QDir().mkdir(ref_images_path);
        
     //Top Left Before
     cue = Scalar(0, 0, 0);
@@ -491,11 +496,9 @@ void generateRefImages(){
  ****************/
 int main(int argc, char *argv[])
 {
+    
     // Get screen resolution
-    QRect rec = QApplication::desktop()->screenGeometry();
-    ::screen_width = rec.width();
-    ::screen_height = rec.height();
-    screenres = new cv::Point(::screen_width, ::screen_height);
+    screenres = singleton->getScreenResolution();
     
     // Create reference images w.r.t. screen resolution
     generateRefImages();
