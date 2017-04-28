@@ -1,0 +1,103 @@
+Windows Installation:
+
+Download & Installation Order:
+1. Visual Studio 2015
+
+2. - QT - https://www.qt.io/
+
+3. - OPECV - https://cmake.org/download/
+http://opencv.org/releases.html
+
+4. - Boost - http://www.boost.org/
+
+5. - Julius - http://julius.osdn.jp/en_index.php
+
+
+Installation Instructions:
+Note the installation locations of QT, OpenCV, Boost, and Julius
+
+- Visual Studio 2015 -
+Only required portion is the Visual c++, and tools. The install is automatic
+
+Create a solution in EyeLogic-MP
+
+- QT - 
+Installation of this should be automatic, make sure you install the latest version, other versions aren't necessary, 5.9 is latest at the time of writing this. In visual studio and select tools > extensions and updates, then search for qt in the online section and download Qt Visual Studio Tools. Once this is done an extension should be installed in your toolbar, Qt VS Tools, use open Qt Project File (.pro), to open our project file that is in Eyelogic-MP\Qt, be watchful for any errors here from having an incomplete Qt setup or working directory. Once this is done move all of our source and headers from EyeLogic and Qt into the new project usingQtDesigner and it's respective folders, and add any miscellaneous files to the resources folders. You may close whatever project you were original working on.
+
+- OpenCV -
+Run the binary for windows to extract. With cmake installed, build the source found in the extracted files. You'll be asked to specify a compiler, make sure you select THE RIGHT ONE: visul studio 14 2015 win64. Then hit generate. You will now have a visual studio solution in your build location called opencv.sln, opening this you can build for debug, and release on your target platform. The files built will be located in this build directory, move them along with the header files for opencv to a location of your choosing, note this location.
+
+- Boost - 
+Extract boost into wherever you'd like the installation directory to be. To compile boost go to the extracted directory and double click boostrap.bat. Once this finishes open up a command prompt (may need administrative permissions) at the same location at boostrap.bat. Run to install 64-bit libraries run bjam msvc architecture=x86 address-model=64 stage
+
+- Julius - 
+Move the julius executable for your system directly to EyeLogic-MP/voice
+
+
+Include and Linking Instructions:
+
+- Qt -
+------
+
+all config include: C:\Qt\msvc2015_64\include
+all config lib: C:\Qt\msvc2015_64\lib
+
+
+- OpenCV - 
+----------
+all config include: <final install directory>\include  ex: C:\OpenCv3.2\include
+debug libraries: C:\OpenCv3.2\lib\Debug
+release libraries: C:\OpenCv3.2\lib\Release
+
+
+linkerflags-debug: 
+opencv_calib3d320d.lib
+opencv_core320d.lib
+opencv_features2d320d.lib
+opencv_flann320d.lib
+opencv_highgui320d.lib
+opencv_imgcodecs320d.lib
+opencv_imgproc320d.lib
+opencv_ml320d.lib
+opencv_objdetect320d.lib
+opencv_photo320d.lib
+opencv_shape320d.lib
+opencv_stitching320d.lib
+opencv_superres320d.lib
+opencv_ts320d.lib
+opencv_video320d.lib
+opencv_videoio320d.lib
+opencv_videostab320d.lib
+
+linkerflags-release: 
+opencv_calib3d320.lib
+opencv_core320.lib
+opencv_features2d320.lib
+opencv_flann320.lib
+opencv_highgui320.lib
+opencv_imgcodecs320.lib
+opencv_imgproc320.lib
+opencv_ml320.lib
+opencv_objdetect320.lib
+opencv_photo320.lib
+opencv_shape320.lib
+opencv_stitching320.lib
+opencv_superres320.lib
+opencv_ts320.lib
+opencv_video320.lib
+opencv_videoio320.lib
+opencv_videostab320.lib
+
+
+- Boost -
+---------
+all config include: C:\boost_1_64_0
+all config libraries: C:\boost_1_64_0\stage\lib
+
+
+Lastly make sure to add the following to your path:
+debug dll: C:\OpenCv3.2\bin\Debug
+release dll: C:\OpenCv3.2\bin\Release
+both dll: C:\Qt\msvc2015_64\bin
+
+

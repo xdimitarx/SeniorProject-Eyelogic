@@ -24,7 +24,13 @@ EyeLogic.xcodeproj/
 ipch/
 
 usingQtDesigner.build/
-ref_images/
 
 ## Images folder
 images/
+*.opendb
+usingQtDesigner.vcxproj.user
+usingQtDesigner.pro.user.4e49bb1
+debug
+GeneratedFiles
+release
+*.exe
