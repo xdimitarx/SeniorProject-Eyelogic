@@ -20,7 +20,7 @@ DerivedData/
 *.xccheckout
 *.xcscmblueprint
 
-EyeLogic.xcodeproj/
+usingQtDesigner.xcodeproj/
 ipch/
 
 usingQtDesigner.build/
