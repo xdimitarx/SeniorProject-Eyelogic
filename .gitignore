@@ -34,3 +34,6 @@ debug
 GeneratedFiles
 release
 *.exe
+Info.plist
+usingQtDesigner.xcodeproj
+.qmake.stash
