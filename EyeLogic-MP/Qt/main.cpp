@@ -403,10 +403,7 @@ void runMain(){
     }
         
 	cap.release();
-        
-        
-        cout << "finito" << endl;
-        return ;
+
 }
 
 
