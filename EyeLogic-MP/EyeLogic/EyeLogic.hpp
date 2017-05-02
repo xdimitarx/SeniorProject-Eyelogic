@@ -35,15 +35,17 @@ using namespace cv;
 
 
 //Dev:
-void lotsOfTheProgram(); //please see function definition for complete description of function's operatives
+//void lotsOfTheProgram(); //please see function definition for complete description of function's operatives
 
 
 //Helper Functions
 Mat loadImageAtPath(string path);
+bool startCam();
 
 
 extern std::unique_ptr<System> singleton;
 extern cv::Point screenres;
+extern VideoCapture cap;
 
 
 struct EyePair {

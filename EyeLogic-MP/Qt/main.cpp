@@ -52,6 +52,9 @@ std::unique_ptr<System> singleton (getSystem());
 // user directory path
 QString user_path;
 
+//OpenCV Camera
+VideoCapture cap;
+
 // reference image
 cv::Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
 cv::Mat *refArray [] {&ref_camera, &ref_topLeft, &ref_bottomLeft, &ref_center, &ref_topRight, &ref_bottomRight};
@@ -210,9 +213,9 @@ cv::Point *getStabalizedCoord(std::vector<cv::Point>RefVectors){
  *  Output: EyePair with left and right eye vectors for the associated reference image or nullptr
  */
 EyePair *getRefVector(){
-    VideoCapture cap;
-    
-    if (!cap.open(0)){
+
+    if (!startCam())
+	{
         cout << "camera is not available" << endl;
         return nullptr;
     }
@@ -221,21 +224,26 @@ EyePair *getRefVector(){
     std::vector<cv::Point>leftVectors;
     std::vector<cv::Point>rightVectors;
     int count = 0;
+
+	
     
     
     // grab 40 images and store in images vector
-    for(int j = 0; j < FRAMES; j++){
+    for(int j = 0; j < FRAMES; j++)
+	{
         
         count++;
         
         // break if 80 images are taken and vectors for left and right can't be found
-        if(count == MAXFRAMES){
+        if(count == MAXFRAMES)
+		{
             cout << "could not find " << FRAMES << " frames within a reasonable time frame" << endl;
             return nullptr;
         }
         
         //take image
         Mat capture;
+		
         cap >> capture;
         images.push_back(capture);
         
@@ -332,8 +340,6 @@ void runCalibrate(){
  */
 void runMain(){
 
-    
-    
     // read in eye vectors from parameters.txt
     std::ifstream inputfile(toString(user_path) + "/parameters.txt", std::ios::in);
     
@@ -358,7 +364,6 @@ void runMain(){
         EyePair refPair(leftEye, rightEye);
 
         RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], refPair));
-        
     }
     
     
@@ -366,12 +371,13 @@ void runMain(){
 
     size_t i = 0;
     high_resolution_clock::time_point start, end;
-    VideoCapture cap;
     Mat capture;
 
-	if (!cap.open(0))
+	if (!startCam())
 	{
-		return 0;
+		//camera failed to start
+		cout << "Failed to acquire camera." << endl;
+		return;
 	}
 
     while (RUN) {
@@ -391,19 +397,16 @@ void runMain(){
         mainEntryPoint.insertFrame(capture);
         end = high_resolution_clock::now();
         duration = duration_cast<microseconds>(end - start).count();
-        cout << duration << endl;
-
-
-        if (waitKey(30) == '9') { break; }
-        cin.get();
+		cout << duration << endl;
         
-        cap.release();
+        
     }
         
+	cap.release();
         
         
         cout << "finito" << endl;
-        return 1;
+        return ;
 }
 
 
@@ -494,12 +497,12 @@ void generateRefImages(){
  * MAIN PROGRAM *
  ****************/
 int main(int argc, char *argv[])
-{
-    
-    // Get screen resolution
-    screenres = singleton->getScreenResolution();
+{    
+	screenres = singleton->getScreenResolution();
 
-    
+	singleton->drag();
+	singleton->drag();
+
     // Create reference images w.r.t. screen resolution
     generateRefImages();
     QApplication app(argc, argv);
