@@ -47,7 +47,6 @@ extern std::unique_ptr<System> singleton;
 extern cv::Point screenres;
 extern VideoCapture cap;
 
-
 struct EyePair {
     cv::Point leftVector;
     cv::Point rightVector;

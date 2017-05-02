@@ -1,5 +1,4 @@
 #include "widget.h"
-//#include <QApplication>
 #include "../EyeLogic/EyeLogic.hpp"
 
 
@@ -32,6 +31,9 @@ int imageCount = 0;                     // which reference image calibration is 
 
 // flag to determine whether to track eyes or not
 bool RUN = false;
+
+//Voice Singleton
+VoiceTool voiceManager;
 
 // error message box size
 QPoint msgBoxSize(500, 300);
@@ -340,6 +342,8 @@ void runCalibrate(){
  */
 void runMain(){
 
+	voiceManager.initVoice();
+
     // read in eye vectors from parameters.txt
     std::ifstream inputfile(toString(user_path) + "/parameters.txt", std::ios::in);
     
@@ -387,7 +391,6 @@ void runMain(){
 
         start = high_resolution_clock::now();
         
-        //sleep(5);
         cap >> capture;
         end = high_resolution_clock::now();
         auto duration = duration_cast<microseconds>(end - start).count();
@@ -403,6 +406,8 @@ void runMain(){
     }
         
 	cap.release();
+
+	voiceManager.stopVoice();
 
 }
 
@@ -489,6 +494,11 @@ void generateRefImages(){
     
 }
 
+void stopCam()
+{
+	RUN = false;
+}
+
 
 /****************
  * MAIN PROGRAM *
@@ -496,9 +506,6 @@ void generateRefImages(){
 int main(int argc, char *argv[])
 {    
 	screenres = singleton->getScreenResolution();
-
-	singleton->drag();
-	singleton->drag();
 
     // Create reference images w.r.t. screen resolution
     generateRefImages();

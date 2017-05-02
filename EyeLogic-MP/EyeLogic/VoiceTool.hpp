@@ -8,8 +8,8 @@ class VoiceTool
 public:
 	bool enableVoice();
 	bool disableVoice();
-
-
+	bool initVoice();
+	void stopVoice();
 
 private:
 
@@ -24,7 +24,6 @@ private:
 	//Command
 	std::string command;
 
-	bool initVoice();
 	void monitor();
 };
 
