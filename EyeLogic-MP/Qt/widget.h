@@ -22,6 +22,7 @@ extern int imageCount;
 extern int REFIMAGES;
 extern cv::Point screenres;
 extern QString user_path;
+extern QString ref_images_path;
 extern bool RUN;
 
 /*********************
@@ -29,6 +30,7 @@ extern bool RUN;
 **********************/
 void runCalibrate();
 void runMain();
+std::string toString(QString qs);
 
 
 /***************

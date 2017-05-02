@@ -1,6 +1,5 @@
 #include "widget.h"
 #include "ui_widget.h"
-#include "../EyeLogic/calibration.hpp"
 
 
 QGroupBox *Widget::userInfoBox()
@@ -181,14 +180,14 @@ void Widget::calibrate()
 {
 
     imageCount = 0;
-    
+
     QString user = userBox->findChild<QLineEdit *>("userName")->text();
     user_path = QDir::currentPath() + "/" + user;
 
     // set text on cancelOrDone button to `"cancel"`
     QPushButton *cancelOrDoneBtn = calibBox->findChild<QPushButton *>("cancelOrDone");
     cancelOrDoneBtn->setText("Cancel");
-    
+
     // enable next button
     QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");
     nextButton->setEnabled(true);
@@ -225,31 +224,31 @@ void Widget::calibrate()
 
     // display red dot full screen
     imageLabel = new QLabel();
-    QString ref_image = ":/ref_images/" + QString::fromStdString(refImagesBefore[imageCount]) + ".jpg";
+    QString ref_image = ref_images_path + QString::fromStdString(refImagesBefore[imageCount]) + ".jpg";
     imageLabel->setPixmap(QPixmap(ref_image));
-//    imageLabel->showFullScreen();
+    imageLabel->showFullScreen();
 
-    
+
     // move calibration box on top of image to bottom-middle of screen
     calibrationPage->show();
     calibrationPage->move(screenres.x/2 - calibrationPage->width()/2, screenres.y - calibrationPage->height() - 30);
-    
-//    // disable next button
-//    nextButton->setEnabled(false);
-//
-//    //***************************
-//    // CALL CALIBRATION FUNCTION
-//    //***************************
-//    runCalibrate();
-//
-//    // display green dot
-//    ref_image = ":/ref_images/" + QString::fromStdString(refImagesAfter[imageCount]) + ".jpg";
-//    imageLabel->setPixmap(QPixmap(ref_image));
-//    imageLabel->showFullScreen();
-//    
-//    // enable next button
-//    nextButton->setEnabled(true);
-//    
+
+    // disable next button
+    nextButton->setEnabled(false);
+
+    //***************************
+    // CALL CALIBRATION FUNCTION
+    //***************************
+    runCalibrate();
+
+    // display green dot
+    ref_image = ref_images_path + QString::fromStdString(refImagesAfter[imageCount]) + ".jpg";
+    imageLabel->setPixmap(QPixmap(ref_image));
+    imageLabel->showFullScreen();
+
+    // enable next button
+    nextButton->setEnabled(true);
+
 }
 
 void Widget::run()
@@ -350,20 +349,19 @@ void Widget::next()
         cancelOrDoneBtn->setText("Done");
     }
     imageCount++;
-    QString ref_image = ":/ref_images/" + QString::fromStdString(refImagesBefore[imageCount]) + ".jpg";
+    QString ref_image = ref_images_path + QString::fromStdString(refImagesBefore[imageCount]) + ".jpg";
     imageLabel->setPixmap(QPixmap(ref_image));
     imageLabel->showFullScreen();
-//    
-//    //***************************
-//    // CALL CALIBRATION FUNCTION
-//    //***************************
-//    runCalibrate();
-//    
-//    
-//    // display green dot
-//    ref_image = ":/ref_images/" + QString::fromStdString(refImagesAfter[imageCount]) + ".jpg";
-//    imageLabel->setPixmap(QPixmap(ref_image));
-//    imageLabel->showFullScreen();
+
+    //***************************
+    // CALL CALIBRATION FUNCTION
+    //***************************
+    runCalibrate();
+
+    // display green dot
+    ref_image = ref_images_path + QString::fromStdString(refImagesAfter[imageCount]) + ".jpg";
+    imageLabel->setPixmap(QPixmap(ref_image));
+    imageLabel->showFullScreen();
 
 
 }
