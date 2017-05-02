@@ -6,6 +6,23 @@ Mat loadImageAtPath(string path)
     return result;
 }
 
+bool startCam()
+{
+	if (!cap.open(0))
+	{
+		return false;
+	}
+	try
+	{
+		cap.set(CV_CAP_PROP_FRAME_WIDTH, 1080);
+		cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1080);
+	}
+	catch(Exception ex)
+	{
+		return false;
+	}
+	return true;
+}
 
 Eye::Eye(){return;};
 
@@ -375,7 +392,7 @@ int ImgFrame::getBlink()
     return 2;
 }
 
-void lotsOfTheProgram() {
+/*void lotsOfTheProgram() {
 	//The following function:
 	//	takes a frame from video input
 	//	preprocesses the video input
@@ -473,7 +490,7 @@ void lotsOfTheProgram() {
 			// circle outline
 			cv::circle(eyeCropColor, center, radius, Scalar(0, 0, 255), 1, 8, 0);
 			}
-			*/
+		
 
 
 			//if only one pupil
@@ -569,4 +586,4 @@ void lotsOfTheProgram() {
 		if (cv::waitKey(100) == 27) { break; }
 	}// end forever loop
 
-}//lotsoftheprogram
+}//lotsoftheprogram */

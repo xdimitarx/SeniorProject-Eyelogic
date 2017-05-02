@@ -32,6 +32,9 @@ int imageCount = 0;                     // which reference image calibration is 
 // flag to determine whether to track eyes or not
 bool RUN = false;
 
+//Voice Singleton
+VoiceTool voiceManager;
+
 // error message box size
 QPoint msgBoxSize(500, 300);
 
@@ -50,6 +53,9 @@ std::unique_ptr<System> singleton (getSystem());
 
 // user directory path
 QString user_path;
+
+//OpenCV Camera
+VideoCapture cap;
 
 // reference image
 cv::Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
@@ -211,9 +217,10 @@ cv::Point *getStabalizedCoord(std::vector<cv::Point>RefVectors){
  *  Output: EyePair with left and right eye vectors for the associated reference image or nullptr
  */
 EyePair *getRefVector(){
-    VideoCapture cap;
 
-    if (!cap.open(0)){
+    if (!startCam())
+	{
+
         cout << "camera is not available" << endl;
         return nullptr;
     }
@@ -222,21 +229,25 @@ EyePair *getRefVector(){
     std::vector<cv::Point>leftVectors;
     std::vector<cv::Point>rightVectors;
     int count = 0;
-
-
+    
+    
     // grab 40 images and store in images vector
-    for(int j = 0; j < FRAMES; j++){
+    for(int j = 0; j < FRAMES; j++)
+	{
+        
 
         count++;
 
         // break if 80 images are taken and vectors for left and right can't be found
-        if(count == MAXFRAMES){
+        if(count == MAXFRAMES)
+		{
             cout << "could not find " << FRAMES << " frames within a reasonable time frame" << endl;
             return nullptr;
         }
 
         //take image
         Mat capture;
+		
         cap >> capture;
         images.push_back(capture);
 
@@ -333,6 +344,7 @@ void runCalibrate(){
  */
 void runMain(){
 
+	voiceManager.initVoice();
 
 
     // read in eye vectors from parameters.txt
@@ -359,7 +371,6 @@ void runMain(){
         EyePair refPair(leftEye, rightEye);
 
         RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], refPair));
-
     }
 
 
@@ -367,13 +378,15 @@ void runMain(){
 
     size_t i = 0;
     high_resolution_clock::time_point start, end;
-    VideoCapture cap;
     Mat capture;
 
-    if (!cap.open(0))
-    {
-        return 0;
-    }
+	if (!startCam())
+	{
+		//camera failed to start
+		cout << "Failed to acquire camera." << endl;
+		return;
+	}
+
 
     while (RUN) {
         //Code to calculate time it takes to do insertFrame operation
@@ -382,7 +395,6 @@ void runMain(){
 
         start = high_resolution_clock::now();
 
-        //sleep(5);
         cap >> capture;
         end = high_resolution_clock::now();
         auto duration = duration_cast<microseconds>(end - start).count();
@@ -392,19 +404,15 @@ void runMain(){
         mainEntryPoint.insertFrame(capture);
         end = high_resolution_clock::now();
         duration = duration_cast<microseconds>(end - start).count();
-        cout << duration << endl;
-
-
-        if (waitKey(30) == '9') { break; }
-        cin.get();
-
-        cap.release();
+		cout << duration << endl;
+        
+        
     }
+        
+	cap.release();
 
+	voiceManager.stopVoice();
 
-
-        cout << "finito" << endl;
-        return 1;
 }
 
 
@@ -486,6 +494,11 @@ void generateRefImages(){
 
 }
 
+void stopCam()
+{
+	RUN = false;
+}
+
 
 /****************
  * MAIN PROGRAM *
@@ -504,6 +517,7 @@ int main(int argc, char *argv[])
     if (!QDir(ref_images_path).exists()){
         generateRefImages();
     }
+
 
     QApplication app(argc, argv);
     Widget w;

@@ -1,6 +1,8 @@
 #include "VoiceTool.hpp"
 #include <memory>
 
+extern void stopCam();
+
 bool VoiceTool::enableVoice()
 {
 	threadLock.lock();
@@ -28,6 +30,11 @@ bool VoiceTool::initVoice()
 	return true;
 }
 
+void VoiceTool::stopVoice()
+{
+	kill = true;
+}
+
 void VoiceTool::monitor()
 {
 	while (!kill)
@@ -50,9 +57,7 @@ void VoiceTool::monitor()
 			}
 			else if (command.compare("double") == 0)
 			{
-				singleton->click();
-				boost::this_thread::sleep(boost::posix_time::microseconds(300));
-				singleton->click();
+				singleton->doubleClick();
 			}
 			else if (command.compare("right") == 0)
 			{
@@ -60,9 +65,8 @@ void VoiceTool::monitor()
 			}
 			else if (command.compare("exit") == 0)
 			{
-				//check if second time saying exit?
 				kill = true;
-				//exit handler?
+				stopCam();
 			}
 		}
 

@@ -239,7 +239,7 @@ void Widget::calibrate()
     //***************************
     // CALL CALIBRATION FUNCTION
     //***************************
-    runCalibrate();
+//    runCalibrate();
 
     // display green dot
     ref_image = ref_images_path + QString::fromStdString(refImagesAfter[imageCount]) + ".jpg";
@@ -356,7 +356,7 @@ void Widget::next()
     //***************************
     // CALL CALIBRATION FUNCTION
     //***************************
-    runCalibrate();
+//    runCalibrate();
 
     // display green dot
     ref_image = ref_images_path + QString::fromStdString(refImagesAfter[imageCount]) + ".jpg";
