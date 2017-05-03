@@ -14,7 +14,7 @@ using namespace std;
 **********************/
 extern QPoint msgBoxSize;
 extern int trackEye;
-extern int clickType;
+extern int voiceOption;
 extern const std::string filenames [];
 extern const std::string refImagesBefore [];
 extern const std::string refImagesAfter [];
@@ -41,10 +41,11 @@ enum TrackEye {
     leftEye
 };
 
-enum ClickType {
-    voice,
-    blink
+enum Voice {
+    on,
+    off
 };
+
 
 /****************
  * WIDGET CLASS *
