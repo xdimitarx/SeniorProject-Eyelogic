@@ -343,9 +343,7 @@ void runCalibrate(){
  * Runs main program
  */
 void runMain(){
-
 	voiceManager.initVoice();
-
 
     // read in eye vectors from parameters.txt
     std::ifstream inputfile(toString(user_path) + "/parameters.txt", std::ios::in);
@@ -494,7 +492,7 @@ void generateRefImages(){
 
 }
 
-void stopCam()
+void stopProg()
 {
 	RUN = false;
 }

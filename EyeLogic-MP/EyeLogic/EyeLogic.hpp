@@ -68,7 +68,7 @@ public:
     //Cuts Out Eye from half image
     //left is true if using the users left half
     //of their face when looking at them
-    bool detectKeyFeatures(Mat input);
+    bool detectKeyFeatures(Mat &input);
     
     cv::Point &getEyeVector(){return eyeVector;};
     bool getBlink();
@@ -82,7 +82,6 @@ public:
     Mat original;
     Mat filtered;
     Mat filtforIris;
-    Mat faceHalf;
     
     cv::Point vectorPupilToLeftCorner;
     cv::Point vectorPupilToRightCorner;
@@ -118,7 +117,7 @@ public:
     ImgFrame();
     ~ImgFrame();
     
-    bool insertFrame(Mat frame);
+    bool insertFrame(Mat &frame);
     bool setCursor();
     Eye getLeftEye(){return leftEye;};
     Eye getRightEye(){return rightEye;};

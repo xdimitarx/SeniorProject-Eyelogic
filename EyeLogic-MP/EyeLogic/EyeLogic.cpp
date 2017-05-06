@@ -60,9 +60,8 @@ void Eye::createEyeVector(){
     
 }
 
-bool Eye::detectKeyFeatures(Mat input)
+bool Eye::detectKeyFeatures(Mat &input)
 {
-    faceHalf = input;
     vector<cv::Rect_<int> > eyesCoord;
     
     detector.detectMultiScale(input, eyesCoord, 1.2, 3, 0, CvSize(40,20));
@@ -110,14 +109,10 @@ bool Eye::detectKeyFeatures(Mat input)
         blink = false;
         if(findEyeCorner()){
             createEyeVector();
-        }
-        
+			return true;
+		}      
     }
-    else
-    {
-        blink = true;
-    }
-    return true;
+	return false;
 }
 
 bool Eye::getBlink()
@@ -305,12 +300,12 @@ ImgFrame::~ImgFrame()
     
 }
 
-bool ImgFrame::insertFrame(Mat frame)
+bool ImgFrame::insertFrame(Mat &frame)
 {
     vector<cv::Rect_<int>> faceCoord;
     
     //THIS LINE IS BREAKING THE PROGRAM when i try to run it (exceptions) -Pouneh
-    faceDetector.detectMultiScale(frame, faceCoord, 1.2, 3, 0, CvSize(150,150));
+    faceDetector.detectMultiScale(frame, faceCoord, 1.2, 3, 0, CvSize(400,400));
     std::cout << faceCoord.capacity() << endl;
     
     if(faceCoord.capacity() < 1)
@@ -347,25 +342,7 @@ bool ImgFrame::setCursor()
     
     newcoord.y = deltaVy / changeInEyeY * screenres.y + screenres.y/2;
     
-    singleton->setCurPos(newcoord);
-    
-    
-    
-    //Pouneh: I commented out what this function originally did so that I can get cursor location stuff
-    /*
-     if(!leftEye.getBlink())
-     {
-     result = leftEye.getEyeVector();
-     return true;
-     }
-     else if (!rightEye.getBlink())
-     {
-     result = rightEye.getEyeVector();
-     return true;
-     }
-     return false;
-     */
-    
+    singleton->setCurPos(newcoord);    
     
     return true;
 }
