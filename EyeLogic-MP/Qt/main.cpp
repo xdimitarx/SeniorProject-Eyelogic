@@ -40,7 +40,7 @@ QPoint msgBoxSize(500, 300);
 
 // calibration options for tracking eyes + method for clicking
 int trackEye = 0;
-int clickType = 0;
+int voiceOption = 0;
 
 // screen resolution
 cv::Point screenres;
@@ -241,7 +241,7 @@ EyePair *getRefVector(){
         // break if 80 images are taken and vectors for left and right can't be found
         if(count == MAXFRAMES)
 		{
-            cout << "could not find " << FRAMES << " frames within a reasonable time frame" << endl;
+            cout << "could not find " << FRAMES << " frames in " << MAXFRAMES << " tries." << endl;
             return nullptr;
         }
 
@@ -400,6 +400,7 @@ void runMain(){
 
         start = high_resolution_clock::now();
         mainEntryPoint.insertFrame(capture);
+        
         end = high_resolution_clock::now();
         duration = duration_cast<microseconds>(end - start).count();
 		cout << duration << endl;

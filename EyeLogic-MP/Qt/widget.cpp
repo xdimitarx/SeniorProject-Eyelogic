@@ -54,26 +54,27 @@ QGroupBox *Widget::calibrationSettingsBox()
 QGroupBox *Widget::clickSettingsBox()
 {
     // define widget to hold click settings
-    QGroupBox *clickGroupBox = new QGroupBox(tr("Enable Click Settings"));
+    QGroupBox *clickGroupBox = new QGroupBox(tr("Set Voice Option"));
 
     // define layout for the widget
     QVBoxLayout *vbox = new QVBoxLayout();
 
     // add the click setting buttons
-    QRadioButton *voiceClick = new QRadioButton(tr("Enable Voice Clicks"));
-    voiceClick->setProperty("clickType", voice);
-    voiceClick->setObjectName("clickSettingsButton");
-    QRadioButton *blinkClick = new QRadioButton(tr("Enable Blink Clicks"));
-    blinkClick->setProperty("clickType", blink);
-    blinkClick->setObjectName("clickSettingsButton");
+    QRadioButton *onVoice = new QRadioButton(tr("On"));
+    onVoice->setProperty("Voice", on);
+    onVoice->setObjectName("clickSettingsButton");
+    QRadioButton *offVoice = new QRadioButton(tr("Off"));
+    offVoice->setProperty("Voice", off);
+    offVoice->setObjectName("clickSettingsButton");
+
 
 
     // set first radio button checked by default
-    voiceClick->setChecked(true);
+    onVoice->setChecked(true);
 
     // add buttons to layout to widget, return widget
-    vbox->addWidget(voiceClick);
-    vbox->addWidget(blinkClick);
+    vbox->addWidget(onVoice);
+    vbox->addWidget(offVoice);
     clickGroupBox->setLayout(vbox);
 
     return clickGroupBox;
@@ -302,11 +303,11 @@ void Widget::run()
         {
           group2.addButton(clickSettingsButtons[i],i);
         }
-        if(group2.checkedButton()->property("clickType") == voice){
-          clickType = voice;
+        if(group2.checkedButton()->property("Voice") == on){
+          voiceOption = on;
         }
-        else if(group2.checkedButton()->property("clickType") == blink){
-          clickType = blink;
+        else if(group2.checkedButton()->property("Voice") == off){
+          voiceOption = off;
         }
 
 
@@ -324,7 +325,7 @@ void Widget::run()
         // CALL MAIN PROGRAM
         //*********************
         RUN = true;
-        runMain();
+//        runMain();
 
 
 

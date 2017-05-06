@@ -70,7 +70,7 @@ public:
     //of their face when looking at them
     bool detectKeyFeatures(Mat &input);
     
-    cv::Point &getEyeVector(){return eyeVector;};
+    cv::Point getEyeVector(){return eyeVector;};
     bool getBlink();
     
     bool leftEye;
