@@ -186,6 +186,12 @@ public:
 		mouse_event(MOUSEEVENTF_RIGHTUP, cursor.x, cursor.y, 0, 0);
 	}
 
+	void sleep(int timeMS) override
+	{
+		Sleep((unsigned long)timeMS);
+		return;
+	}
+
 };
 
 

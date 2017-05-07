@@ -503,8 +503,7 @@ void stopProg()
  * MAIN PROGRAM *
  ****************/
 int main(int argc, char *argv[])
-{
-    
+{    
     // Get screen resolution
     screenres = singleton->getScreenResolution();
     

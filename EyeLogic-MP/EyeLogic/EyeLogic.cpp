@@ -21,6 +21,7 @@ bool startCam()
 	{
 		return false;
 	}
+	singleton->sleep(4000);
 	return true;
 }
 
@@ -60,12 +61,12 @@ void Eye::createEyeVector(){
     
 }
 
-bool Eye::detectKeyFeatures(Mat &input)
+bool Eye::detectKeyFeatures(Mat input)
 {
     vector<cv::Rect_<int> > eyesCoord;
     
     detector.detectMultiScale(input, eyesCoord, 1.2, 3, 0, CvSize(40,20));
-    if(eyesCoord.size() <= 0)
+    if(eyesCoord.capacity() < 1)
     {
         string text = "right";
         if(leftEye)
@@ -79,30 +80,11 @@ bool Eye::detectKeyFeatures(Mat &input)
     eyeLocationOnImageHalf = eyesCoord[0];
     
     //Cutout Eyebrow
+	//doesn't crop width, height is 40%-90%
+	//basically top 40% and bottom 10% are cut off
     cv::Rect eyebrowCrop = cv::Rect(0, (int)(original.rows*0.4), (int)(original.cols), (int)(original.rows*0.5));
-    
-    original = Mat(original, eyebrowCrop);
-    
-    //calculate offset from original eye box coordinates to the CROPPED VERSION
-    //Same width (number of cols/starting x)
-    //starting y = eyeLocationOnImageHalf.y + (int)(original.rows*0.4)
-    //vertical height =  (int)(original.rows*0.5))
-    //basicall top 40% and bottom 10% are cut off
-    
-    cvtColor(original, filtered, CV_BGR2GRAY);
-    equalHist();
-    
-    binaryThreshForIris();
-    Mat erodeElement = getStructuringElement( MORPH_ELLIPSE, cv::Size(4,4));
-    dilate(filtforIris,filtforIris,erodeElement);
-    
-    //applyGaussian();
-    equalHist();
-    addLighting(-80);
-    binaryThreshForSc();
-    //    imshow("after dilate", filtforIris);
-    //    imshow("filtered", filtered);
-    //    waitKey(10);
+    original = Mat(original, eyebrowCrop); //eyebrow crop stored
+	//eyeLocationOnImageHalf should be adjusted here accordingly DIMITRI/POUNEH
     
     if(findPupil())
     {
@@ -120,36 +102,87 @@ bool Eye::getBlink()
     return blink;
 }
 
-void Eye::equalHist()
+Mat Eye::filterForPupil(Mat input)
 {
-    equalizeHist(filtered,filtered);
-}
+	Mat result;
 
-void Eye::addLighting(int intensity)
-{
-    add(filtered, Scalar(intensity,intensity,intensity), filtered);
-}
+	cvtColor(input, result, CV_BGR2GRAY);
+	equalizeHist(result, result);
+	threshold(result, result, 10, 255, THRESH_BINARY_INV); //Only keeps darkest pixels
 
-void Eye::binaryThreshForSc()
-{
-    threshold(filtered, filtered, 10, 255, THRESH_BINARY);
-}
+	cv::Point left, right;
+	for (int i = 0; i < result.cols; i++)
+	{
+		for (int j = 0; j < result.rows; j++)
+		{
+			if (result.at<uchar>(j, i) == 255)
+			{
+				left = cv::Point(i, j);
+				j = result.rows;
+				i = result.cols;
+			}
+		}
+	}
 
-void Eye::binaryThreshForIris()
-{
-    threshold(filtered, filtforIris, 10, 255, THRESH_BINARY_INV);
-}
+	for (int i = result.cols-1; i >= 0; i--)
+	{
+		for (int j = 0; j < result.rows; j++)
+		{
+			if (result.at<uchar>(j, i) == 255)
+			{
+				right = cv::Point(i, j);
+				j = result.rows;
+				i = 0;
+			}
+		}
+	}
 
-void Eye::applyGaussian()
-{
-    GaussianBlur(filtforIris, filtforIris, CvSize(3,3), 0, 0);
+	int slopeY = (right.y - left.y);
+	int slopeX = (right.x - left.x);
+
+	double deltY = (double)slopeY / (double)slopeX;
+
+	double limitY = left.y;
+
+	for (int i = left.x; i < right.x; i++)
+	{
+		for (int j = 0; j < round(limitY); j++)
+		{
+			result.at<uchar>(j, i) = 0;
+		}
+		limitY += deltY;
+	}
+
+	cv::Rect crop = cv::Rect(0, result.rows/2, result.cols, result.rows - result.rows/2);
+	Mat bottomHalf = Mat(result, crop);
+	Mat topHalf;
+	flip(bottomHalf, topHalf, 0);
+	
+	for (int i = 0; i < bottomHalf.cols; i++)
+	{
+		for (int j = 0; j < bottomHalf.rows; j++)
+		{
+			result.at<uchar>(j, i) = topHalf.at<uchar>(j, i);
+		}
+	}
+
+	Mat erodeElement = getStructuringElement(MORPH_ELLIPSE, cv::Size(4, 4));
+	dilate(result, result, erodeElement);
+
+	return result;
 }
 
 bool Eye::findPupil()
 {
+	Mat preparedImage = filterForPupil(original.clone());
+
+	imshow("filtered", preparedImage);
+	waitKey(10000);
+
     vector<Vec4i> hierarchy;
-    vector<vector<cv::Point> > contours;
-    findContours(filtforIris, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0,0));
+    vector<vector<cv::Point> > contours; //find contours of blob in preparedImage
+    findContours(preparedImage, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0,0));
+
     if(contours.size() != 0)
     {
         double area = 0;
@@ -163,13 +196,13 @@ bool Eye::findPupil()
                 area = calculatedArea;
             }
         }
+		Moments mo = moments(contours[largest], false);
         cv::Rect bounding = boundingRect(contours[largest]);
-        eyeCenter = cv::Point(cvRound(bounding.x+bounding.width/2), cvRound(bounding.y+bounding.height/2));
-        eyeRadius = cvRound(bounding.height*1.05);
-        cv::circle(filtered, eyeCenter, eyeRadius, Scalar(122,122,122), 2);
-        //rectangle(filtered, bounding,  Scalar(122,122,122),2, 8,0);
-        // imshow("eye", original);
-        // waitKey(0);
+		eyeCenter = cv::Point(mo.m10 / mo.m00, mo.m01 / mo.m00);
+        eyeRadius = cvRound(bounding.height);
+        //cv::circle(original, eyeCenter, eyeRadius, Scalar(122,122,122), 2);
+		//cv::circle(original, eyeCenter, 3, Scalar(122, 122, 122), 2);
+
         return true;
     }
     cerr << "findPupil: COULDN'T DETERMINE IRIS" << endl;
@@ -300,12 +333,12 @@ ImgFrame::~ImgFrame()
     
 }
 
-bool ImgFrame::insertFrame(Mat &frame)
+bool ImgFrame::insertFrame(Mat frame)
 {
     vector<cv::Rect_<int>> faceCoord;
     
     //THIS LINE IS BREAKING THE PROGRAM when i try to run it (exceptions) -Pouneh
-    faceDetector.detectMultiScale(frame, faceCoord, 1.2, 3, 0, CvSize(400,400));
+    faceDetector.detectMultiScale(frame, faceCoord, 1.2, 3, 0, CvSize(300,300));
     std::cout << faceCoord.capacity() << endl;
     
     if(faceCoord.capacity() < 1)

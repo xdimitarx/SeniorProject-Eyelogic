@@ -66,22 +66,22 @@ public:
     ~Eye();
     
     //Cuts Out Eye from half image
-    //left is true if using the users left half
+    //leftEye is true if using the users left half
     //of their face when looking at them
-    bool detectKeyFeatures(Mat &input);
+	//technically right eye ---> ;)
+    bool detectKeyFeatures(Mat input);
+	bool leftEye;
+
+	bool getBlink(); //True if pupil was not detected
     
     cv::Point getEyeVector(){return eyeVector;};
-    bool getBlink();
     
-    bool leftEye;
     //private:
     CascadeClassifier detector;
     
-    //technically right eye ---> ;)
+    
     Rect_<int> eyeLocationOnImageHalf;
     Mat original;
-    Mat filtered;
-    Mat filtforIris;
     
     cv::Point vectorPupilToLeftCorner;
     cv::Point vectorPupilToRightCorner;
@@ -91,23 +91,11 @@ public:
     int eyeRadius;
     cv::Point eyeVector = cv::Point(-1,-1);   //set default to 0,0
     
-    bool blink;
-    
-    void equalHist();
-    
-    //+ brightens the eye, -darkens
-    void addLighting(int intensity);
-    
-    void binaryThreshForSc();
-    
-    void binaryThreshForIris();
-    
-    void applyGaussian();
-    
+	bool blink = true;
+
+	inline Mat filterForPupil(Mat input); //applies filters on image that allow for pupil detection, used in findPupil
     inline bool findPupil();
-    
     inline bool findEyeCorner();
-    
     void createEyeVector();
 };
 
@@ -117,7 +105,7 @@ public:
     ImgFrame();
     ~ImgFrame();
     
-    bool insertFrame(Mat &frame);
+    bool insertFrame(Mat frame);
     bool setCursor();
     Eye getLeftEye(){return leftEye;};
     Eye getRightEye(){return rightEye;};
