@@ -77,6 +77,10 @@ public slots:
     void run();
     void next();
     void cancel();
+    void toggleLeftEye();
+    void toggleRightEye();
+    void toggleVoiceOn();
+    void toggleVoiceOff();
 
 private:
     Ui::Widget *ui;

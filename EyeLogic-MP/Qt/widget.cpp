@@ -31,13 +31,12 @@ QGroupBox *Widget::calibrationSettingsBox()
 
     // radio buttons to determine what settings user wants for calibration
     QRadioButton *right = new QRadioButton(tr("Use Right Eye"));
-    right->setProperty("trackEye", rightEye);
-    right->setObjectName("calibrationButton");
     QRadioButton *left = new QRadioButton(tr("Use Left Eye"));
-    left->setProperty("trackEye", leftEye);
-    left->setObjectName("calibrationButton");
     QPushButton *startCalib = new QPushButton(tr("Start Calibration Process"));
 
+
+    QObject::connect(left, SIGNAL(toggled(bool)), this, SLOT(toggleLeftEye()));
+    QObject::connect(right, SIGNAL(toggled(bool)), this, SLOT(toggleRightEye()));
     QObject::connect(startCalib, SIGNAL(clicked(bool)), this, SLOT(calibrate()));
 
     // set first radio button checked by default
@@ -61,13 +60,11 @@ QGroupBox *Widget::clickSettingsBox()
 
     // add the click setting buttons
     QRadioButton *onVoice = new QRadioButton(tr("On"));
-    onVoice->setProperty("Voice", on);
-    onVoice->setObjectName("clickSettingsButton");
     QRadioButton *offVoice = new QRadioButton(tr("Off"));
-    offVoice->setProperty("Voice", off);
-    offVoice->setObjectName("clickSettingsButton");
 
 
+    QObject::connect(onVoice, SIGNAL(toggled(bool)), this, SLOT(toggleVoiceOn()));
+    QObject::connect(offVoice, SIGNAL(toggled(bool)), this, SLOT(toggleVoiceOff()));
 
     // set first radio button checked by default
     onVoice->setChecked(true);
@@ -280,38 +277,7 @@ void Widget::run()
            return;
        }
 
-        // find whether left or right eye selected
-        QButtonGroup group;
-        QList<QRadioButton *> calibrationButtons = calibSettingsBox->findChildren<QRadioButton *>("calibrationButton");
-        for(int i = 0; i < calibrationButtons.size(); ++i)
-        {
-          group.addButton(calibrationButtons[i],i);
-        }
-
-        if(group.checkedButton()->property("trackEye") == leftEye){
-          trackEye = leftEye;
-        }
-        else if(group.checkedButton()->property("trackEye") == rightEye){
-          trackEye = rightEye;
-        }
-
-
-        // find whether user or voice option selected
-        QButtonGroup group2;
-        QList<QRadioButton *> clickSettingsButtons = clickBox->findChildren<QRadioButton *>("clickSettingsButton");
-        for(int i = 0; i < clickSettingsButtons.size(); ++i)
-        {
-          group2.addButton(clickSettingsButtons[i],i);
-        }
-        if(group2.checkedButton()->property("Voice") == on){
-          voiceOption = on;
-        }
-        else if(group2.checkedButton()->property("Voice") == off){
-          voiceOption = off;
-        }
-
-
-        // set start button to false
+        // set start button text to pause
         userBox->findChild<QLineEdit *>("userName")->setDisabled(true);
         runButton->setText("Pause");
 
@@ -391,4 +357,26 @@ void Widget::cancel()
     }
 
 
+}
+
+void Widget::toggleLeftEye(){
+    trackEye = leftEye;
+    cout << "trackEye = " << trackEye << endl;
+}
+
+void Widget::toggleRightEye(){
+    trackEye = rightEye;
+    cout << "trackEye = " << trackEye << endl;
+    
+}
+
+void Widget::toggleVoiceOn(){
+    voiceOption = on;
+    cout << "voiceOption = " << voiceOption << endl;
+}
+
+void Widget::toggleVoiceOff(){
+    voiceOption = off;
+    cout << "voiceOption = " << voiceOption << endl;
+    
 }
