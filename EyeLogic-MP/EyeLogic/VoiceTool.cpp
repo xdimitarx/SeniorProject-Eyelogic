@@ -1,7 +1,7 @@
 #include "VoiceTool.hpp"
 #include <memory>
 
-extern void stopCam();
+extern void stopProg();
 
 bool VoiceTool::enableVoice()
 {
@@ -41,7 +41,7 @@ void VoiceTool::monitor()
 	{
 		std::string command = singleton->readFromJulius();
 		boost::algorithm::to_lower(command);
-
+		threadLock.lock();
 		if(enabled)
 		{
 			std::string command = singleton->readFromJulius();
@@ -66,9 +66,10 @@ void VoiceTool::monitor()
 			else if (command.compare("exit") == 0)
 			{
 				kill = true;
-				stopCam();
+				stopProg();
 			}
 		}
+		threadLock.unlock();
 
 		if (command.compare("mute") == 0)
 		{

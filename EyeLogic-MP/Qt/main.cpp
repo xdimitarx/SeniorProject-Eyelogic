@@ -343,9 +343,7 @@ void runCalibrate(){
  * Runs main program
  */
 void runMain(){
-
 	voiceManager.initVoice();
-
 
     // read in eye vectors from parameters.txt
     std::ifstream inputfile(toString(user_path) + "/parameters.txt", std::ios::in);
@@ -495,7 +493,7 @@ void generateRefImages(){
 
 }
 
-void stopCam()
+void stopProg()
 {
 	RUN = false;
 }
@@ -505,8 +503,26 @@ void stopCam()
  * MAIN PROGRAM *
  ****************/
 int main(int argc, char *argv[])
-{
-    
+{    
+	startCam();
+
+	singleton->sleep(10000);
+
+	Mat frame;
+	cap >> frame;
+
+	ImgFrame mainFrame;
+	mainFrame.insertFrame(frame);
+	Mat second;
+	cap >> second;
+	mainFrame.insertFrame(second);
+	cap >> frame;
+	mainFrame.insertFrame(frame);
+	cap >> second;
+	mainFrame.insertFrame(second);
+
+	cap.release();
+
     // Get screen resolution
     screenres = singleton->getScreenResolution();
     

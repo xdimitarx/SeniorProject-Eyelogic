@@ -70,6 +70,7 @@ public:
     virtual bool voiceFork(){return false;};
     virtual std::string readFromJulius(){return "";};
     virtual cv::Point getScreenResolution(){return cv::Point(); };
+	virtual void sleep(int timeMS) { return; };
 };
 
 #endif /* System_h */
