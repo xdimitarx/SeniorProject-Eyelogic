@@ -34,7 +34,6 @@ debug
 GeneratedFiles
 release
 *.exe
-Info.plist
 usingQtDesigner.xcodeproj
 .qmake.stash
 /EyeLogic-MP/Qt/moc_widget.cpp
