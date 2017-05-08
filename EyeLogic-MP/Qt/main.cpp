@@ -504,6 +504,25 @@ void stopProg()
  ****************/
 int main(int argc, char *argv[])
 {    
+	startCam();
+
+	singleton->sleep(10000);
+
+	Mat frame;
+	cap >> frame;
+
+	ImgFrame mainFrame;
+	mainFrame.insertFrame(frame);
+	Mat second;
+	cap >> second;
+	mainFrame.insertFrame(second);
+	cap >> frame;
+	mainFrame.insertFrame(frame);
+	cap >> second;
+	mainFrame.insertFrame(second);
+
+	cap.release();
+
     // Get screen resolution
     screenres = singleton->getScreenResolution();
     

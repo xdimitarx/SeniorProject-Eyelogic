@@ -81,22 +81,34 @@ public:
     
     
     Rect_<int> eyeLocationOnImageHalf;
-    Mat original;
     
     cv::Point vectorPupilToLeftCorner;
     cv::Point vectorPupilToRightCorner;
     cv::Point eyeCornerLeft;
     cv::Point eyeCornerRight;
+	cv::Point eyeVector = cv::Point(-1, -1);   //set default to 0,0
+
+	bool findEyeCorner();
+	void createEyeVector();
+
+	//Dom uses everything Below for pupil and corner template matching
+	Mat original;
+
     cv::Point eyeCenter;
-    int eyeRadius;
-    cv::Point eyeVector = cv::Point(-1,-1);   //set default to 0,0
+
+	bool templateLoaded = false;
+	Mat cornerTemplate;
+	cv::Point eyeOuterCorner;
+
+	int printNum = 0;
+    int eyeRadius; //Not really used...
     
 	bool blink = true;
 
-	inline Mat filterForPupil(Mat input); //applies filters on image that allow for pupil detection, used in findPupil
-    inline bool findPupil();
-    inline bool findEyeCorner();
-    void createEyeVector();
+	Mat filterForPupil(Mat input); //applies filters on image that allow for pupil detection, used in findPupil
+    bool findPupil();
+
+	bool findEyeCornerTMatching();
 };
 
 class ImgFrame
