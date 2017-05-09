@@ -59,16 +59,6 @@ void majumder() {
 
 }
 
-
-
-//function
-//detect eye
-//store rect around eye
-//store corner
-//compare corner location to next pass
-//if within certain threshold, keep
-
-
 Point findPupil(Mat eyeCrop)
 {
 	vector<Vec4i> hierarchy;
@@ -88,131 +78,110 @@ Point findPupil(Mat eyeCrop)
 			}
 		}
 		Moments mo = moments(contours[largest], false);
-		Point eyeCenter = cv::Point(mo.m10 / mo.m00, mo.m01 / mo.m00);
+		Point eyeCenter = cv::Point((int)(mo.m10 / mo.m00), (int)(mo.m01 / mo.m00));
 
 		cv::Rect bounding = boundingRect(contours[largest]);
 		//Point eyeCenter = cv::Point(cvRound(bounding.x + bounding.width / 2), cvRound(bounding.y + bounding.height / 2));	
 		int eyeRadius = cvRound(bounding.height*1.05);
 
-		//cv::circle(filtered, eyeCenter, eyeRadius, Scalar(122, 122, 122), 2);
-		//rectangle(filtered, bounding, Scalar(122, 122, 122), 2, 8, 0);
-		// imshow("eye", original);
-		// waitKey(0);
 		return eyeCenter;
 	}
 	cerr << "findPupil: COULDN'T DETERMINE IRIS" << endl;
 	return Point(-1, -1);
 }
 
+void getReferenceImage(vector<Rect_<int>>& eyes , void(* function)(void) , Mat & refImage, string name , Point & _far) {
+	Point pupil[2];
+	Mat eyeCrop, eyeCropGray;
+	while (1) {
+		//clears vector for eye detection
+		eyes.clear();
+		(*function)();
+		eyeDetector.detectMultiScale(refImage, eyes);
+		if (eyes.size() == 2) {
+			//******
+			cout << name << " Ref" << endl;
+			for (int i = 0; i < 2; i++) {
+				//Preprocessing for pupil detection
+				eyeCrop = Mat(refImage, eyes[i]);//crop eye region
+				cvtColor(eyeCrop, eyeCropGray, CV_BGR2GRAY);
+				cv::equalizeHist(eyeCropGray, eyeCropGray);
+				//pupil detection
+				pupil[i] = findPupil(eyeCropGray);
+				//Making sure pupil is detected
+				if (pupil[i].x == -1 && pupil[i].y == -1) {
+					std::cout << "Fail " << name << " : Cannot find pupil" << endl;
+					i--;
+					continue;
+				}
+				//Make pupil coordinates relative to whole capture image
+				pupil[i].x += eyes[i].x;
+				pupil[i].y += eyes[i].y;
+			}
+			//Calculate average pupil location for looking at the far left reference point
+			_far = Point((pupil[0].x + pupil[1].x) / 2, (pupil[0].y + pupil[1].y) / 2);
+			break;
+		}
+		else {
+			std::cout << "Fail " << name << " : eyes.size() =  " << eyes.size() << endl;
+		}
+		cv::waitKey(5000);
+	}
+}
 
+void updateBoundaryWindows(vector<Rect_<int>>& eyes , Rect_<int>& rightEyeBounds , Rect_<int>& leftEyeBounds) {
+	if (eyes[0].x < eyes[1].x) {
+		rightEyeBounds = eyes[0];
+		leftEyeBounds = eyes[1];
+	}
+	else {
+		leftEyeBounds = eyes[0];
+		rightEyeBounds = eyes[1];
+	}
+	//redefining rectangle search region for eyes
+	//Make eye
+	rightEyeBounds.x = max(rightEyeBounds.x - (rightEyeBounds.width / 2), 0);
+	rightEyeBounds.y = max(rightEyeBounds.y - (rightEyeBounds.height / 2), 0);
+	leftEyeBounds.x = min(leftEyeBounds.x - (leftEyeBounds.width / 2), ref_topRight.cols);
+	leftEyeBounds.y = max(leftEyeBounds.y - (leftEyeBounds.height / 2), 0);
+
+	//Adjust box around 
+	rightEyeBounds.width = 2 * rightEyeBounds.width;
+	leftEyeBounds.width = 2 * leftEyeBounds.width;
+	if (leftEyeBounds.x + leftEyeBounds.width >ref_topRight.cols) {
+		leftEyeBounds.width = ref_topRight.cols - leftEyeBounds.x;
+	}
+	rightEyeBounds.height = 2 * rightEyeBounds.height;
+	leftEyeBounds.height = 2 * leftEyeBounds.height;
+
+}
 
 void averageEyeCenterMethod() {
 	// get pupil centers
 	//calculate average
 	//map to screen
 
-	vector<Rect_<int>> eyes;
+	vector<Rect_<int>> eyes, eyeLeft, eyeRight;
 	vector<Vec3f> circles;
-	Point averageLocal, screenMap;
+	Point averageLocal, screenMap , destinationOld(-1,-1), destinationNew, delta(0,0), direction(0,0); 
 	Point pupil[2];
 	int distance ;
 	Mat eyeCrop, eyeCropGray;
 	//Rect roi;
+	Rect leftEyeBounds, rightEyeBounds;
+	//let leftEye  be the user's left eye, therefore, for analytical purposes, 
+	//it is the right-most eye in the matrix
 
 	Point farLeft, farRight;
 	Point referenceMean;
 
-
-	//TIMER things
-	time_t start;
-	time(&start);
-	time_t end;
-	time(&end);
-	auto diff = difftime(start,end);
-
-
-	//get far left reference, image is flipped so value for farLeft is less than farRight
-	while (1) {
-		eyes.clear();
-		getReferenceLeft();
-		eyeDetector.detectMultiScale(ref_topLeft, eyes);
-		if (eyes.size() >= 2) {
-			for (int i = 0; i < 2; i++) {
-				eyeCrop = Mat(ref_topLeft, eyes[i]);//crop eye region
-				cvtColor(eyeCrop, eyeCropGray, CV_BGR2GRAY);
-				equalizeHist(eyeCropGray, eyeCropGray);
-
-				/*
-				HoughCircles(eyeCropGray, circles, CV_HOUGH_GRADIENT, 1, eyeCrop.rows / 3 * 2, 10, 10, eyeCrop.rows / 10, eyeCrop.rows / 5);
-				if (circles.size() == 1) {
-					pupil[i] = Point(eyes[i].x +circles[0][0], eyes[i].y + circles[0][1]);
-				}
-				else {
-					std::cout << "Fail 1: cirles.size() =  " << circles.size() << endl;	
-					continue;
-				}
-				*/
-
-				pupil[i] = findPupil(eyeCropGray);
-
-				if (pupil[i].x == -1 && pupil[i].y == -1) {
-					std::cout << "Fail 1: cirles.size() =  " << circles.size() << endl;
-					i--;
-					continue;
-				}
-				pupil[i].x += eyes[i].x;
-				pupil[i].y += eyes[i].y;
-			}
-			farLeft = Point((pupil[0].x + pupil[1].x) / 2, (pupil[0].y + pupil[1].y) / 2);
-			//farLeft = pupil[0];
-			break;
-		}
-		else {
-			std::cout << "Fail 1: eyes.size() =  " << eyes.size() << endl;
-		}
-		cv::waitKey(5000);
-	}
-
-	//get far right reference,,image is flipped so value for farRight is more than farLeft
-	while (1) {
-		eyes.clear();
-		getReferenceRight();
-		eyeDetector.detectMultiScale(ref_topRight, eyes);
-		if (eyes.size() >= 2) {
-			for (int i = 0; i < 2; i++) {
-				eyeCrop = Mat(ref_topRight, eyes[i]);//crop eye region
-				cvtColor(eyeCrop, eyeCropGray, CV_BGR2GRAY);
-				equalizeHist(eyeCropGray, eyeCropGray);
-				/*
-				HoughCircles(eyeCropGray, circles, CV_HOUGH_GRADIENT, 1, eyeCrop.rows / 3 * 2, 10, 10, eyeCrop.rows / 10, eyeCrop.rows / 5);
-				if (circles.size() == 1) {
-					pupil[i] = Point(eyes[i].x + circles[0][0], eyes[i].y + circles[0][1]);
-				}
-				else {
-					std::cout << "Fail 2: cirles.size() =  " << circles.size() << endl;
-					continue;
-				}
-				*/
-				pupil[i] = findPupil(eyeCropGray);
-				if (pupil[i].x == -1 && pupil[i].y == -1) {
-					std::cout << "Fail 2: cirles.size() =  " << circles.size() << endl;
-					i--;
-					continue;
-				}
-				pupil[i].x += eyes[i].x;
-				pupil[i].y += eyes[i].y;
-			}
-			farRight = Point((pupil[0].x + pupil[1].x) / 2, (pupil[0].y + pupil[1].y) / 2);
-			//farRight = pupil[0];
-			break;
-		}
-		else {
-			std::cout << "Fail 2: eyes.size() =  " << eyes.size() << endl;
-		}
-		cv:: waitKey(5000);
-	}
+	getReferenceImage(eyes, getReferenceLeft, ref_topLeft, "Left", farLeft);
+	getReferenceImage(eyes, getReferenceRight, ref_topRight, "Right", farRight);
 
 	distance = farLeft.x - farRight.x;
+	if (distance == 0) {
+		return;
+	}
 	//reference mean might be wholly unecessary
 	referenceMean = Point((farLeft.x + farRight.x) / 2, (farLeft.y + farRight.y) / 2);
 
@@ -220,23 +189,33 @@ void averageEyeCenterMethod() {
 	std::cout << "left x   " << farLeft.x << endl;
 	std::cout << "right x   " << farRight.x << endl;
 
-	cv::circle(ref_topRight, farRight, 3, Scalar(0, 255, 0));
-	cv::circle(ref_topRight, farLeft, 3, Scalar(0, 255, 255));
-	cv::circle(ref_topLeft, farRight, 3, Scalar(0, 255, 0));
-	cv::circle(ref_topLeft, farLeft, 3, Scalar(0, 255, 255));
-	//imshow("right", ref_topRight);
-	//imshow("left", ref_topLeft);
-	//waitKey(20000);
-	if (distance == 0) {
-		return;
-	}
+	//redefining rectangle search region for eyes
+	updateBoundaryWindows(eyes, rightEyeBounds, leftEyeBounds);
 
 	//Forever loop to move cursor
 	while (1) {
-		time(&start);
 		eyes.clear();
-		cap >> capture;
-		eyeDetector.detectMultiScale(capture, eyes);
+		eyeLeft.clear();
+		eyeRight.clear();
+		cap >> capture;	
+		eyeDetector.detectMultiScale(Mat(capture, leftEyeBounds ), eyeLeft);
+		eyeDetector.detectMultiScale(Mat(capture, rightEyeBounds), eyeRight);
+		if (eyeLeft.size() == 1 && eyeRight.size() == 1) {
+			eyeLeft[0].x += leftEyeBounds.x;
+			eyeLeft[0].y += leftEyeBounds.y;
+			eyeRight[0].x += rightEyeBounds.x;
+			eyeRight[0].y += rightEyeBounds.y;
+			eyes.push_back(eyeLeft[0]);
+			eyes.push_back(eyeRight[0]);
+			updateBoundaryWindows(eyes, rightEyeBounds, leftEyeBounds);
+		}
+		else {
+			//cout << "Failure of the eyes *sadnesssss* " << endl;
+			//get new rectangles for things??? Need to figure out how to deal with this
+			continue;
+		}
+
+		//eyeDetector.detectMultiScale(capture, eyes);
 		if (eyes.size() == 2) {
 			for (int i = 0; i < eyes.size(); i++) {
 				eyeCrop = Mat(capture, eyes[i]);//crop eye region
@@ -265,6 +244,32 @@ void averageEyeCenterMethod() {
 			//circle(capture, farRight, 3, Scalar(255, 0, 0)); //left most circle if data is correct
 			//circle(capture, averageLocal, 3, Scalar(0, 255, 255));
 
+			//destination point on screen: 
+			destinationNew.x = (screenRes.x - ((averageLocal.x - farRight.x) * screenRes.x / distance));
+			destinationNew.y = screenRes.y / 2;//( averageLocal.y - farRight.y) * screenRes.y / capture.rows;
+
+			if (destinationOld != destinationNew) {
+				destinationOld = destinationNew;
+				delta = Point((destinationNew.x - screenMap.x) / screenRes.x * 80, (destinationNew.y - screenMap.y) / screenRes.y * 80);
+				if (delta.x > 0) { direction.x = 1; }
+				else { direction.x = -1; }
+				if (delta.y > 0) { direction.y = 1; }
+				else { direction.y = -1; }
+			}
+
+			if (direction.x > 0) {
+				screenMap.x = min(destinationNew.x, screenMap.x + delta.x);
+			}
+			else {
+				screenMap.x = max(destinationNew.x, screenMap.x + delta.x);
+			}
+			if (direction.y > 0) {
+				screenMap.y = min(destinationNew.y, screenMap.y + delta.y);
+			}
+			else {
+				screenMap.y = max(destinationNew.y, screenMap.y + delta.y);
+			}
+
 			//point on screen: 
 			screenMap.x =(screenRes.x - ( ( averageLocal.x - farRight.x) * screenRes.x / distance ));
 			screenMap.y = screenRes.y / 2;//( averageLocal.y - farRight.y) * screenRes.y / capture.rows;
@@ -273,27 +278,21 @@ void averageEyeCenterMethod() {
 				//SetCursorPos(screenMap.x, screenMap.y);
 				cv::circle(capture, screenMap, 5, Scalar(235,244,66) , -1);
 				imshow("CAPTURE", capture);
-				waitKey(2);
+				waitKey(1);
 			}
 			else {
-				//imshow("cap", capture);
-				//waitKey(5000);
 				std::cout << "FUCK OUTOFBOUNDS COORDINATES" << endl;
 			}
 		}
 		else {
 			std::cout << "Did not find exactly 2 eyes in this frame" << endl;
-			time(&end);
-			auto seconds = difftime(end, start);
-			std::cout << "Cycle:  " << seconds << endl;
 			continue;
-			//cv::imshow("cap", capture);
+			cv::imshow("cap", capture);
 		}
 		//if (cv:: waitKey(5)) { break; }
+		
 	}//while Loop
-	time(&end);
-	auto seconds = difftime(end, start);
-	std::cout << "Cycle:  " << seconds << endl;
+
 
 }
 
@@ -505,7 +504,7 @@ void getReferenceLeft() {
 	cv::circle(cue, Point(horizontal / 50, vertical / 2), horizontal / 50, Scalar(0, 255, 0), -1);
 	cv::imshow("", cue);
 	cv::moveWindow("", 0, 0);
-	waitKey(2000);
+	waitKey(1000);
 	cv::moveWindow("", 0, 0);
 	cv::imshow("", flash);
 	cap >> ref_topLeft;
@@ -530,7 +529,7 @@ void getReferenceRight() {
 	cue = Scalar(0, 0, 0);
 	cv::circle(cue, Point(horizontal - horizontal / 50, vertical / 2), horizontal / 50, Scalar(0, 255, 0), -1);
 	cv::imshow("", cue);
-	waitKey(2000);
+	waitKey(1000);
 	cv::moveWindow("", 0, 0);
 	cv::imshow("", flash);
 	cap >> ref_topRight;
