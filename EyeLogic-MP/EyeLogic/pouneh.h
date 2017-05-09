@@ -21,7 +21,11 @@ void getReferenceImages();
 void majumder();
 void averageEyeCenterMethod();
 void lotsOfTheProgram();
+void getReferenceTop();
+void getReferenceBottom();
 void getReferenceLeft();
 void getReferenceRight();
+void updateBoundaryWindows(std::vector<cv::Rect_<int>>& eyes, cv::Rect_<int>& rightEyeBounds, cv::Rect_<int>& leftEyeBounds);
+void getReferenceImage(std::vector<cv::Rect_<int>>& eyes, void(*function)(void), cv::Mat & refImage, std::string name, cv::Point & _far);
 
 #endif

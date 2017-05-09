@@ -9,6 +9,7 @@ Mat capture;
 CascadeClassifier eyeDetector;
 Point screenRes;
 Mat ref_topLeft, ref_topRight, ref_bottomLeft, ref_bottomRight, ref_center;
+Mat ref_farLeft, ref_farRight, ref_top, ref_bottom;
 
 
 //www.sciencedirect.com/science/article/pii/S2212017313005689
@@ -147,14 +148,14 @@ void updateBoundaryWindows(vector<Rect_<int>>& eyes , Rect_<int>& rightEyeBounds
 	//Boundary check so that rectangle stays within bounds of image
 	rightEyeBounds.x = max(rightEyeBounds.x - (rightEyeBounds.width / 2), 0);
 	rightEyeBounds.y = max(rightEyeBounds.y - (rightEyeBounds.height / 2), 0);
-	leftEyeBounds.x = min(leftEyeBounds.x - (leftEyeBounds.width / 2), ref_topRight.cols);
+	leftEyeBounds.x = min(leftEyeBounds.x - (leftEyeBounds.width / 2), ref_top.cols);
 	leftEyeBounds.y = max(leftEyeBounds.y - (leftEyeBounds.height / 2), 0);
 
 	//Adjust size of bounding box
 	rightEyeBounds.width = 2 * rightEyeBounds.width;
 	leftEyeBounds.width = 2 * leftEyeBounds.width;
-	if (leftEyeBounds.x + leftEyeBounds.width >ref_topRight.cols) {
-		leftEyeBounds.width = ref_topRight.cols - leftEyeBounds.x;
+	if (leftEyeBounds.x + leftEyeBounds.width >ref_top.cols) {
+		leftEyeBounds.width = ref_top.cols - leftEyeBounds.x;
 	}
 
 	//This bit assumes that the eyes wont hit boundaries
@@ -174,25 +175,28 @@ void averageEyeCenterMethod() {
 	vector<Vec3f> circles;
 	Point averageLocal, screenMap , destinationOld(-1,-1), destinationNew, delta(0,0), direction(0,0); 
 	Point pupil[2];
-	int distance ;
+	Point distance ;
 	Mat eyeCrop, eyeCropGray;
 	//Rect roi;
 	Rect leftEyeBounds, rightEyeBounds;
 	//let leftEye  be the user's left eye, therefore, for analytical purposes, 
 	//it is the right-most eye in the matrix
 
-	Point farLeft, farRight;
+	Point farLeft, farRight, top, bottom;
 	Point referenceMean;
 
-	getReferenceImage(eyes, getReferenceLeft, ref_topLeft, "Left", farLeft);
-	getReferenceImage(eyes, getReferenceRight, ref_topRight, "Right", farRight);
+	getReferenceImage(eyes, getReferenceTop		, ref_top		, "Top"		, top);
+	getReferenceImage(eyes, getReferenceBottom	, ref_bottom	, "Center"	, bottom);
+	getReferenceImage(eyes, getReferenceLeft	, ref_farLeft	, "Left"	, farLeft);
+	getReferenceImage(eyes, getReferenceRight	, ref_farRight	, "Right"	, farRight);
 
-	distance = farLeft.x - farRight.x;
-	if (distance == 0) {
+	distance.x = farLeft.x - farRight.x;
+	distance.y = bottom.y - top.y;
+	if (distance.x == 0 || distance.y == 0) {
 		return;
 	}
 	//reference mean might be wholly unecessary
-	referenceMean = Point((farLeft.x + farRight.x) / 2, (farLeft.y + farRight.y) / 2);
+	referenceMean = Point((farLeft.x + farRight.x) / 2, (top.y + bottom.y) / 2);
 
 	//redefining rectangle search region for eyes
 	updateBoundaryWindows(eyes, rightEyeBounds, leftEyeBounds);
@@ -248,8 +252,8 @@ void averageEyeCenterMethod() {
 
 			//destination point on screen: to develop gradual moving of cursor
 			//TODO: Improve... it's still jumpy
-			destinationNew.x = (screenRes.x - ((averageLocal.x - farRight.x) * screenRes.x / distance));
-			destinationNew.y = screenRes.y / 2;//( averageLocal.y - farRight.y) * screenRes.y / capture.rows;
+			destinationNew.x = (screenRes.x - ((averageLocal.x - farRight.x) * screenRes.x / distance.x));
+			destinationNew.y = (averageLocal.y - top.y) * screenRes.y / distance.y;
 			if (destinationOld != destinationNew) {
 				destinationOld = destinationNew;
 				delta = Point((destinationNew.x - screenMap.x) / screenRes.x * 80, (destinationNew.y - screenMap.y) / screenRes.y * 80);
@@ -272,9 +276,15 @@ void averageEyeCenterMethod() {
 			}
 
 			//point on screen: 
-			screenMap.x =(screenRes.x - ( ( averageLocal.x - farRight.x) * screenRes.x / distance ));
+			screenMap.x =(screenRes.x - ( ( averageLocal.x - farRight.x) * screenRes.x / distance.x ));
 			//TODO: implement y shifting 
-			screenMap.y = screenRes.y / 2;//( averageLocal.y - farRight.y) * screenRes.y / capture.rows;
+			screenMap.y = ( averageLocal.y - top.y) * screenRes.y /distance.y;
+			/*
+			cout << averageLocal.y << endl;
+			cout << top.y << endl;
+			cout << screenRes.y << endl;
+			cout << distance.y << endl;
+			*/
 
 			//Enforce screen resolution as boundaries for movement of cursor
 			if (screenMap.x >= 0 && screenMap.y >= 0 && screenMap.x <= screenRes.x && screenMap.y <= screenRes.y) {
@@ -288,6 +298,7 @@ void averageEyeCenterMethod() {
 			}
 			else {
 				std::cout << "FUCK OUTOFBOUNDS COORDINATES" << endl;
+				std::cout << "\tScreenMap.x: " << screenMap.x << "\tScreenMap.y: " << screenMap.y << endl;
 			}
 		}
 		else {
@@ -488,6 +499,58 @@ void lotsOfTheProgram() {
 
 }
 
+void getReferenceTop() {
+	SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
+
+	int horizontal = screenRes.x;
+	int vertical = screenRes.y;
+
+	Mat cue(vertical, horizontal, CV_8UC3);
+	Mat flash(vertical, horizontal, CV_8UC3);
+	flash = Scalar(255, 255, 255);
+
+	cue = Scalar(0, 0, 0);
+
+	//CenterTop
+	cue = Scalar(0, 0, 0);
+	cv::circle(cue, Point(horizontal / 2, 0), horizontal / 50, Scalar(0, 255, 0), -1);
+	cv::imshow("", cue);
+	cv::moveWindow("", 0, 0);
+	waitKey(1000);
+	cv::moveWindow("", 0, 0);
+	cv::imshow("", flash);
+	cap >> ref_top;
+	cap >> ref_top;
+	waitKey(50);
+	cvDestroyWindow("");
+}
+
+void getReferenceBottom() {
+	SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
+
+	int horizontal = screenRes.x;
+	int vertical = screenRes.y;
+
+	Mat cue(vertical, horizontal, CV_8UC3);
+	Mat flash(vertical, horizontal, CV_8UC3);
+	flash = Scalar(255, 255, 255);
+
+	cue = Scalar(0, 0, 0);
+
+	//Center Bottom
+	cue = Scalar(0, 0, 0);
+	cv::circle(cue, Point(horizontal / 2, vertical - horizontal/50), horizontal / 50, Scalar(0, 255, 0), -1);
+	cv::imshow("", cue);
+	cv::moveWindow("", 0, 0);
+	waitKey(1000);
+	cv::moveWindow("", 0, 0);
+	cv::imshow("", flash);
+	cap >> ref_bottom;
+	cap >> ref_bottom;
+	waitKey(50);
+	cvDestroyWindow("");
+}
+
 void getReferenceLeft() {
 	SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
 
@@ -508,8 +571,8 @@ void getReferenceLeft() {
 	waitKey(1000);
 	cv::moveWindow("", 0, 0);
 	cv::imshow("", flash);
-	cap >> ref_topLeft;
-	cap >> ref_topLeft;
+	cap >> ref_farLeft;
+	cap >> ref_farLeft;
 	waitKey(50);
 	cvDestroyWindow("");
 }
@@ -533,8 +596,8 @@ void getReferenceRight() {
 	waitKey(1000);
 	cv::moveWindow("", 0, 0);
 	cv::imshow("", flash);
-	cap >> ref_topRight;
-	cap >> ref_topRight;
+	cap >> ref_farRight;
+	cap >> ref_farRight;
 	waitKey(50);
 	cv::moveWindow("", 0, 0);
 	cvDestroyWindow("");
