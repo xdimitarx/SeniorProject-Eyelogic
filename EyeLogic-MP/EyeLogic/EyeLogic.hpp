@@ -78,17 +78,9 @@ public:
     
     //private:
     CascadeClassifier detector;
-    
-    
-    Rect_<int> eyeLocationOnImageHalf;
-    
-    cv::Point vectorPupilToLeftCorner;
-    cv::Point vectorPupilToRightCorner;
-    cv::Point eyeCornerLeft;
-    cv::Point eyeCornerRight;
+
 	cv::Point eyeVector = cv::Point(-1, -1);   //set default to 0,0
 
-	bool findEyeCorner();
 	void createEyeVector();
 
 	//Dom uses everything Below for pupil and corner template matching
@@ -121,6 +113,8 @@ public:
     bool setCursor();
     Eye getLeftEye(){return leftEye;};
     Eye getRightEye(){return rightEye;};
+
+	int mouseMovementIntensity(int changeFromOrigin);
     
     //0 = None, 1 = Left, 2 = Right, 3 = Both/No Eyes Detected
     int getBlink();

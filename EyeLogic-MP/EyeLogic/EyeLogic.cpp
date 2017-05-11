@@ -38,27 +38,13 @@ Eye::~Eye()
     
 }
 
-void Eye::createEyeVector(){
+void Eye::createEyeVector()
+{
     //There will be 2 eyeVectors, one based on the left corner and one based on the right corner.
     //This function needs to be modified/fixed to reflect this change
-    vectorPupilToLeftCorner.x = eyeCenter.x - eyeCornerLeft.x;
-    vectorPupilToLeftCorner.y = eyeCenter.y - eyeCornerLeft.y;
-    
-    vectorPupilToRightCorner.x = eyeCenter.x - eyeCornerRight.x;
-    vectorPupilToRightCorner.y = eyeCenter.y - eyeCornerRight.y;
-    
-    
-    if(leftEye){
-        eyeVector.x = eyeCenter.x - eyeCornerLeft.x;
-        eyeVector.y = eyeCenter.y - eyeCornerLeft.y;
-    }
-    else {
-        eyeVector.x = eyeCornerRight.x - eyeCenter.x;
-        eyeVector.y = eyeCornerRight.y - eyeCenter.y;
-    }
-    
-	cout << "Eye Vector" << eyeVector.x << "\t" << eyeVector.y << endl;
-    
+
+    eyeVector.x = eyeCenter.x - eyeOuterCorner.x;
+	eyeVector.y = eyeCenter.y - eyeOuterCorner.y;   
 }
 
 bool Eye::detectKeyFeatures(Mat input)
@@ -77,7 +63,6 @@ bool Eye::detectKeyFeatures(Mat input)
         return false;
     }
     original = Mat(input, eyesCoord[0]);
-    eyeLocationOnImageHalf = eyesCoord[0];
     
     //Cutout Eyebrow
 	//doesn't crop width, height is 40%-90%
@@ -90,7 +75,7 @@ bool Eye::detectKeyFeatures(Mat input)
     {
         blink = false;
         if(findEyeCornerTMatching()){
-            //createEyeVector();
+            createEyeVector();
 			return true;
 		}      
     }
@@ -236,142 +221,10 @@ bool Eye::findEyeCornerTMatching()
 	normalize(result, result, 0, 1, NORM_MINMAX, -1, Mat());
 
 	double minVal; double maxVal; cv::Point minLoc; cv::Point matchLoc;
-	minMaxLoc(result, &minVal, &maxVal, &minLoc, &matchLoc, Mat());
+	minMaxLoc(result, &minVal, &maxVal, &minLoc, &matchLoc, Mat());	
+	eyeOuterCorner = matchLoc;
 
-	cv::Rect templateLoc = cv::Rect(matchLoc.x, matchLoc.y, 2, 2);
-	
-	/*
-	Mat output = original.clone();
-	cv::circle(output, eyeCenter, 2, Scalar(0, 255, 0), 1, 8, 0);
-	cv::circle(output, matchLoc, 2, Scalar(0, 0, 255), 1, 8, 0);
-	imwrite("orig.jpg", output); 
-	int x = 0;
-	int y = 0;
-	*/
-	if (leftEye)
-	{
-		//x = eyeCenter.x - matchLoc.x;
-		//y = eyeCenter.y - matchLoc.y;
-	}
-	else
-	{
-		cout << "wooR" << endl;
-	}
 	return true;
-}
-
-bool Eye::findEyeCorner()
-{
-	Mat framegray, destLeft, destRight, leftCornerRoi, rightCornerRoi, edges;
-	cv::cvtColor(original, framegray, CV_BGR2GRAY);
-	int yOffset = (eyeRadius < eyeCenter.y) ? eyeCenter.y - eyeRadius : 0;
-
-	cv::Rect crop = cv::Rect(0, yOffset, framegray.cols, framegray.rows - yOffset);
-	framegray = Mat(framegray, crop);
-
-	cv::waitKey(2000);
-	int thresh = 150;
-	int max_thresh = 255;
-	int blockSize = 2;
-	int apertureSize = 5;
-	double k = 0.01;
-	//int buffer = 8; //buffer space away from pupil
-
-	//increase contrast
-	cv::equalizeHist(framegray, framegray);
-
-	//circles[0] is the pupil
-	//circle[0][0] = eyecenter.x
-	//circle[0][1] = eyecenter.y + (int)(original.rows*0.4);
-	//circle[0][2] = eyeradius
-
-	int leftbuffer;
-	int rightbuffer;
-
-	int pupil[] = { eyeCenter.x ,  eyeCenter.y ,  eyeRadius };
-	if (leftEye) {
-		leftbuffer = eyeCenter.x / 2 - 1;
-		rightbuffer = (framegray.cols - eyeCenter.x) / 2 + 2;
-	}
-	else {
-		leftbuffer = eyeCenter.x / 2 - 2;
-		rightbuffer = (framegray.cols - eyeCenter.x) / 2 ;
-	}
-
-    while ((cvRound(pupil[0]) - leftbuffer) <= 0 ) {
-        leftbuffer--;
-    }
-
-	while ((cvRound(pupil[0]) + rightbuffer) > framegray.cols) {
-		rightbuffer--;
-	}
-
-	cv::Rect leftroi = cv::Rect(0, 0, (cvRound(pupil[0]) - leftbuffer), framegray.rows);
-    cv::Rect rightroi = cv::Rect((cvRound(pupil[0]) + rightbuffer), 0, framegray.cols - (cvRound(pupil[0]) + rightbuffer), framegray.rows);
-    leftCornerRoi = cv::Mat(framegray, leftroi);
-    rightCornerRoi = cv::Mat(framegray, rightroi);
- 
-    //cout << leftCornerRoi.rows << "\t\t" << leftCornerRoi.cols << "\t\t" << destLeft << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
-    if (leftCornerRoi.rows > 0 && leftCornerRoi.cols) {
-        cornerHarris(leftCornerRoi, destLeft, blockSize, apertureSize, k, BORDER_DEFAULT);
-        normalize(destLeft, destLeft, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
-        convertScaleAbs(destLeft, destLeft);
-    }
-    
-    //cout << rightCornerRoi.rows << "\t\t" << rightCornerRoi.cols << "\t\t" << destRight << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
-    if (rightCornerRoi.rows > 0 && rightCornerRoi.cols) {
-        cornerHarris(rightCornerRoi, destRight, blockSize, apertureSize, k, BORDER_DEFAULT);
-        normalize(destRight, destRight, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
-        convertScaleAbs(destRight, destRight);
-    }
-    
-    //variables to keep track of most likely coordinate to be corner
-    cv::Point cornerLeft;
-    cv::Point cornerRight;
-    int verticalDistanceLeft = 10000;
-    int verticalDistanceRight = 10000;
-    
-    for (int j = 0; j < destLeft.rows; j++) {
-        for (int i = 0; i < destLeft.cols; i++) {
-            if (thresh < destLeft.at<uchar>(j, i) && verticalDistanceLeft > abs(j - pupil[1])) {
-				cornerLeft = cv::Point(i, j);
-                verticalDistanceLeft = abs(j - pupil[1]);
-            }
-        }
-    }
-    
-    for (int j = 0; j < destRight.rows; j++) {
-        for (int i = 0; i < destRight.cols; i++) {
-            if (thresh < destRight.at<uchar>(j, i) && verticalDistanceRight > abs(j - pupil[1])) {
-                cornerRight = cv::Point(i + (cvRound(pupil[0]) + rightbuffer), j);
-                verticalDistanceRight = abs(j - pupil[1]);
-            }
-        }
-    }
-    
-	Mat threechanelFramegray;
-	cv::cvtColor(framegray, threechanelFramegray, CV_GRAY2BGR);
-
-	//cv::line(threechanelFramegray, Point((cvRound(pupil[0]) - leftbuffer), 0), Point((cvRound(pupil[0]) - leftbuffer), framegray.rows), Scalar(0, 255, 255));
-	//cv::line(threechanelFramegray, Point((cvRound(pupil[0]) + rightbuffer), 0), Point((cvRound(pupil[0]) + rightbuffer), framegray.rows), Scalar(0, 0, 255));
-
-    cv::circle(threechanelFramegray, cornerLeft, 3, Scalar(255,0,0), -1);
-    cv::circle(threechanelFramegray, cornerRight, 3, Scalar(0,255,0), -1);
-	//cv::circle(threechanelFramegray, eyeCenter, eyeRadius, Scalar(0, 0, 255), -1);
-    
-    eyeCornerLeft = cornerLeft;
-    eyeCornerRight = cornerRight;
-    cv::imshow("With corners", threechanelFramegray);
-	waitKey(10000);
-    
-    destLeft.release();
-    destRight.release();
-    framegray.release();
-    cv::destroyWindow("With corners");
-    //eyeCropColor.release();
-    //eyeCropGray.release();
-    std::cout << "END FIND CORNERS" << endl;
-    return true;
 }
 
 ImgFrame::ImgFrame() : leftEye("haarcascade_righteye_2splits.xml", true), rightEye("haarcascade_lefteye_2splits.xml", false)
@@ -406,25 +259,45 @@ bool ImgFrame::insertFrame(Mat frame)
     return (leftEye.detectKeyFeatures(leftHalf) /*&& rightEye.detectKeyFeatures(rightHalf)*/);
 }
 
+int ImgFrame::mouseMovementIntensity(int changeFromOrigin)
+{
+	if (abs(changeFromOrigin) > 3)
+	{
+		if (changeFromOrigin > 0)
+		{
+			return 11;
+		}
+		else
+		{
+			return -11;
+		}
+	}
+	else if (abs(changeFromOrigin) == 2)
+	{
+		if (changeFromOrigin > 0)
+		{
+			return 4;
+		}
+		else
+		{
+			return -4;
+		}
+	}
+	return 0;
+}
+
 // works with leftEyeVector because I don't know what else to use
 bool ImgFrame::setCursor()
 {
-    
-    cv::Point newcoord;
-    //
-    //    // calculate new X coordinate
-    //    // center image has screen coordinates: (width/2, height/2)
-    float deltaVx = (float)(leftEye.getEyeVector().x - RefImageVector[&ref_center].leftVector.x);
-    float changeInEyeX = float(RefImageVector[&ref_bottomLeft].leftVector.x - RefImageVector[&ref_bottomRight].leftVector.x);
-    
-    newcoord.x = deltaVx / changeInEyeX * screenres.x + screenres.x/2;
-    
-    
-    // calculate new Y coordinate
-    float deltaVy = (float)(leftEye.getEyeVector().y - RefImageVector[&ref_center].leftVector.y);
-    float changeInEyeY = (float)(RefImageVector[&ref_bottomLeft].leftVector.x - RefImageVector[&ref_bottomRight].leftVector.x);
-    
-    newcoord.y = deltaVy / changeInEyeY * screenres.y + screenres.y/2;
+	cv::Point newcoord;
+
+	newcoord = singleton->getCurPos();
+
+	int deltaX = leftEye.getEyeVector().x - RefImageVector[&ref_center].leftVector.x;
+	int deltaY = leftEye.getEyeVector().y - RefImageVector[&ref_center].leftVector.y;
+
+	newcoord.x += mouseMovementIntensity(deltaX);
+	newcoord.y += mouseMovementIntensity(deltaY);
     
     singleton->setCurPos(newcoord);    
     
