@@ -225,6 +225,8 @@ EyePair *getRefVector(){
         return nullptr;
     }
 
+	singleton->sleep(4000);
+
     std::vector<Mat>images;
     std::vector<cv::Point>leftVectors;
     std::vector<cv::Point>rightVectors;
@@ -385,25 +387,27 @@ void runMain(){
 		return;
 	}
 
+	singleton->sleep(3000);
+
 
     while (RUN) {
         //Code to calculate time it takes to do insertFrame operation
         //As of 3/22/2017, it takes approximately 1 whole second to get and process a frame
         //As of 3/26/2017, it takes approximately .08 seconds to get and process a frame
 
-        start = high_resolution_clock::now();
+        //start = high_resolution_clock::now();
 
         cap >> capture;
-        end = high_resolution_clock::now();
-        auto duration = duration_cast<microseconds>(end - start).count();
-        cout << "Camera time: " << duration << endl;
+        //end = high_resolution_clock::now();
+        //auto duration = duration_cast<microseconds>(end - start).count();
+        //cout << "Camera time: " << duration << endl;
 
-        start = high_resolution_clock::now();
+        //start = high_resolution_clock::now();
         mainEntryPoint.insertFrame(capture);
-        
-        end = high_resolution_clock::now();
-        duration = duration_cast<microseconds>(end - start).count();
-		cout << duration << endl;
+		mainEntryPoint.setCursor();
+        //end = high_resolution_clock::now();
+        //duration = duration_cast<microseconds>(end - start).count();
+		//cout << duration << endl;
         
         
     }
@@ -504,25 +508,6 @@ void stopProg()
  ****************/
 int main(int argc, char *argv[])
 {    
-	startCam();
-
-	singleton->sleep(10000);
-
-	Mat frame;
-	cap >> frame;
-
-	ImgFrame mainFrame;
-	mainFrame.insertFrame(frame);
-	Mat second;
-	cap >> second;
-	mainFrame.insertFrame(second);
-	cap >> frame;
-	mainFrame.insertFrame(frame);
-	cap >> second;
-	mainFrame.insertFrame(second);
-
-	cap.release();
-
     // Get screen resolution
     screenres = singleton->getScreenResolution();
     
