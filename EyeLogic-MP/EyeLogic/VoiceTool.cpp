@@ -66,7 +66,6 @@ void VoiceTool::monitor()
 			else if (command.compare("exit") == 0)
 			{
 				kill = true;
-				stopProg();
 			}
 		}
 		threadLock.unlock();

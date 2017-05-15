@@ -33,103 +33,68 @@
 using namespace std;
 using namespace cv;
 
-
-//Dev:
-//void lotsOfTheProgram(); //please see function definition for complete description of function's operatives
-
-
-//Helper Functions
+/********************
+ * HELPER FUNCTIONS *
+ ********************/
 Mat loadImageAtPath(string path);
 bool startCam();
+bool getReferenceImage();
+void updateBoundaryWindows();
 
+/*********************
+ * CLASS DEFINITIONS *
+ *********************/
 
+// RefImage class
+class RefImage {
+public:
+    // getters
+    cv::Mat getImage();
+    cv::Point getPupilAvg();
+    
+    // setters
+    void setImage(cv::Mat img);
+    void setPupilAvg(cv::Point avg);
+    
+private:
+    cv::Point pupilAvg;
+    cv::Mat image;
+
+};
+
+// ImgFrame class
+class ImgFrame {
+public:
+    void calculateAverageEyeMethod();
+private:
+};
+
+/***************
+ * GLOBAL ENUM *
+ ***************/
+enum Coordinate{
+    X,
+    Y
+};
+
+/**********************
+ * EXTERNAL VARIABLES *
+ **********************/
 extern std::unique_ptr<System> singleton;
 extern cv::Point screenres;
 extern VideoCapture cap;
-
-struct EyePair {
-    cv::Point leftVector;
-    cv::Point rightVector;
-    
-    EyePair(cv::Point l, cv::Point r){ this->leftVector = l; this->rightVector = r;}
-    EyePair(){}
-};
-
-extern std::map<Mat *, EyePair> RefImageVector;
-extern Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
-
-class Eye
-{
-public:
-    Eye(string pathToClassifier, bool left);
-    Eye();
-    ~Eye();
-    
-    //Cuts Out Eye from half image
-    //leftEye is true if using the users left half
-    //of their face when looking at them
-	//technically right eye ---> ;)
-    bool detectKeyFeatures(Mat input);
-	bool leftEye;
-
-	bool getBlink(); //True if pupil was not detected
-    
-    cv::Point getEyeVector(){return eyeVector;};
-    
-    //private:
-    CascadeClassifier detector;
-    
-    
-    Rect_<int> eyeLocationOnImageHalf;
-    
-    cv::Point vectorPupilToLeftCorner;
-    cv::Point vectorPupilToRightCorner;
-    cv::Point eyeCornerLeft;
-    cv::Point eyeCornerRight;
-	cv::Point eyeVector = cv::Point(-1, -1);   //set default to 0,0
-
-	bool findEyeCorner();
-	void createEyeVector();
-
-	//Dom uses everything Below for pupil and corner template matching
-	Mat original;
-
-    cv::Point eyeCenter;
-
-	bool templateLoaded = false;
-	Mat cornerTemplate;
-	cv::Point eyeOuterCorner;
-
-	int printNum = 0;
-    int eyeRadius; //Not really used...
-    
-	bool blink = true;
-
-	Mat filterForPupil(Mat input); //applies filters on image that allow for pupil detection, used in findPupil
-    bool findPupil();
-
-	bool findEyeCornerTMatching();
-};
-
-class ImgFrame
-{
-public:
-    ImgFrame();
-    ~ImgFrame();
-    
-    bool insertFrame(Mat frame);
-    bool setCursor();
-    Eye getLeftEye(){return leftEye;};
-    Eye getRightEye(){return rightEye;};
-    
-    //0 = None, 1 = Left, 2 = Right, 3 = Both/No Eyes Detected
-    int getBlink();
-    
-    
-private:
-    CascadeClassifier faceDetector;
-    Eye leftEye, rightEye;
-    
-};
+extern cv::Mat capture;
+extern RefImage ref_left, ref_right, ref_top, ref_bottom;;
+extern RefImage *refArray [];
+extern int imageCount;
+extern cv::CascadeClassifier eyeDetector;
+extern cv::Rect_<int>rightEyeBounds;
+extern cv::Rect_<int>leftEyeBounds;
+extern std::vector<cv::Rect_<int>> eyes;
+extern int REFIMAGES;
+extern int FRAMES;
+extern int THRESHOLD;
+extern int MAXFRAMES;
+extern int imageCount;
 
 #endif
