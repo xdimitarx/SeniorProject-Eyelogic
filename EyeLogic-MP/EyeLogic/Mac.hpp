@@ -7,8 +7,11 @@ using namespace std;
 class Mac : public System {
 public:
     
-    cv::Point *currentPos;
+    cv::Point currentPos;
 
+    
+    Mac() : currentPos(cv::Point(0,0)) {return;};
+    
 	virtual int getOs()
 	{
 		return 1;
@@ -82,16 +85,16 @@ public:
         CGEventPost(kCGHIDEventTap, move1);
         CFRelease(move1);
         
-        currentPos->x = x;
-        currentPos->y = y;
+        currentPos.x = x;
+        currentPos.y = y;
         
          
     }
     
     virtual void click() override {
         
-        float x = currentPos->x;
-        float y = currentPos->y;
+        float x = currentPos.x;
+        float y = currentPos.y;
         
         CGEventRef click1_down = CGEventCreateMouseEvent(
                                                          NULL, kCGEventLeftMouseDown,

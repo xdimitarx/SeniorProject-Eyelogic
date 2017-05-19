@@ -12,6 +12,12 @@ System * getSystem()
     return NULL;
 }
 
+// global singleton variable used for different OS calls
+std::unique_ptr<System> singleton (getSystem());
+
+// Voice Singleton
+VoiceTool voiceManager;
+
 
 /**************************
  * NAMESPACE DECLARATIONS *
@@ -20,20 +26,28 @@ System * getSystem()
 using namespace std;
 using namespace std::chrono;
 
+
 /*********************
  * GLOBAL VARIABLES *
  *********************/
-int REFIMAGES = 6;                      // number of reference points
+int REFIMAGES = 4;                      // number of reference points
 int FRAMES = 40;                        // number of ref frames per ref point
 int THRESHOLD = 10;                     // max deviation ref frames inside buffer
 int MAXFRAMES = 100;                    // max number of tries to find 40 valid frames
 int imageCount = 0;                     // which reference image calibration is currently on
 
+// global variable that determines if user ran calibration before running program
+bool CALIBRATED = false;
+
 // flag to determine whether to track eyes or not
 bool RUN = false;
 
-//Voice Singleton
-VoiceTool voiceManager;
+// Eye detector
+cv::CascadeClassifier eyeDetector;
+
+//OpenCV Camera
+VideoCapture cap;
+cv::Mat capture;
 
 // error message box size
 QPoint msgBoxSize(500, 300);
@@ -45,35 +59,22 @@ int voiceOption = 0;
 // screen resolution
 cv::Point screenres;
 
-// Map to retrieve EyePair based on the image.
-std::map<Mat *, EyePair> RefImageVector;
-
-// global singleton variable used for different OS calls
-std::unique_ptr<System> singleton (getSystem());
-
 // user directory path
 QString user_path;
 
-//OpenCV Camera
-VideoCapture cap;
-
-// reference image
-cv::Mat ref_camera, ref_topLeft, ref_bottomLeft, ref_center, ref_topRight, ref_bottomRight;
-cv::Mat *refArray [] {&ref_camera, &ref_topLeft, &ref_bottomLeft, &ref_center, &ref_topRight, &ref_bottomRight};
-const std::string filenames [] = {"camera.jpg", "topleft.jpg", "bottomleft.jpg", "center.jpg", "topright.jpg", "bottomright.jpg"};
-const std::string refImagesBefore [] = {"topLeftBefore", "bottomLeftBefore", "centerBefore", "topRightBefore", "bottomRightBefore"};
-const std::string refImagesAfter [] = {"topLeftAfter", "bottomLeftAfter", "centerAfter", "topRightAfter", "bottomRightAfter"};
+// reference images
+cv::Point ref_left, ref_right, ref_top, ref_bottom;
+cv::Point *refArray [] {&ref_left, &ref_right, &ref_top, &ref_bottom};
+const std::string refImageNames [] = {"left", "right", "top", "bottom"};
 
 // reference images path
 QString ref_images_path;
 
-/***************
- * GLOBAL ENUM *
- ***************/
-enum Coordinate{
-    X,
-    Y
-};
+// bounds for eyes
+cv::Rect_<int>rightEyeBounds;
+cv::Rect_<int>leftEyeBounds;
+std::vector<cv::Rect_<int>> eyes;
+
 
 /********************
  * GLOBAL FUNCTIONS *
@@ -86,226 +87,19 @@ std::string toString(QString qs){
     return qs.toUtf8().constData();
 }
 
-
-/*
- *  Find the maximum of a set of points
- *
- *  Input: vector of Points, X or Y coordinate
- *
- *  Output: min
- */
-cv::Point Max(std::vector<cv::Point>data, Coordinate a){
-    cv::Point max;
-
-    // x coordinate
-    if(a == X){
-        max = data[0];
-        for(auto pt: data){
-            if(pt.x > max.x){
-                max = pt;
-            }
-        }
-
-    }
-
-    // y coordinate
-    if (a == Y){
-        max = data[0];
-        for(auto pt: data){
-            if(pt.y > max.y){
-                max = pt;
-            }
-        }
-    }
-
-    return max;
-
+void disableVoice(){
+    voiceManager.disableVoice();
 }
 
-/*
- *  Find the minimum of a set of points
- *
- *  Input: vector of Points, X or Y coordinate
- *
- *  Output: min
- */
-cv::Point Min(std::vector<cv::Point>data, Coordinate a){
-
-    cv::Point min;
-    // x coordinate
-    if(a == X){
-        min = data[0];
-        for(auto pt: data){
-            if(pt.x < min.x){
-                min = pt;
-            }
-        }
-
-    }
-
-    // y coordinate
-    if (a == Y){
-        min = data[0];
-        for(auto pt: data){
-            if(pt.y < min.y){
-                min = pt;
-            }
-        }
-    }
-
-    return min;
-
+void enableVoice(){
+    voiceManager.enableVoice();
 }
 
-/*
- *  checks if half of values in RefVectors are within a certain threshold (currently set to 10) of each other
- *  performs check first on x values and then y values and returns the average of those values if it finds and x and y
- *
- *  Input: vector of Points
- *
- *  Output: pointer to average coordinates or nullptr
- */
-cv::Point *getStabalizedCoord(std::vector<cv::Point>RefVectors){
-
-    if(RefVectors.empty()){
-        return nullptr;
-    }
-
-    int buffer = floor(FRAMES/2) + 1;
-
-    // sort by x coordinate
-    std::sort(RefVectors.begin(), RefVectors.end(),
-              [](const cv::Point p1, const cv::Point p2){return (p1.x!=p2.x)?(p1.x < p2.x):(p1.y < p2.y);});
-
-    for(int i = 0; i < FRAMES - buffer; i++){
-        vector<cv::Point>tmp;
-
-        // vector of size buffer
-        for(int j = 0; j < buffer; j++){
-            tmp.push_back(RefVectors[i+j]);
-        }
-
-
-        cv::Point Xmin = tmp[0];;
-        cv::Point Xmax = tmp[tmp.size()-1];
-
-
-        if(Xmax.x - Xmin.x <= THRESHOLD){
-
-
-            cv::Point Ymax = Max(tmp, Y);
-            cv::Point Ymin = Min(tmp, Y);
-            if(Ymax.y - Ymin.y <= THRESHOLD){
-                float sumX = 0, sumY = 0;
-                std::for_each(tmp.begin(), tmp.end(), [&sumX, &sumY](const cv::Point pt) {sumX += pt.x; sumY += pt.y;});
-                sumX /= tmp.size();
-                sumY /= tmp.size();
-                return new cv::Point(sumX, sumY);
-            }
-
-        }
-    }
-
-    return nullptr;
+void stopVoice(){
+    voiceManager.stopVoice();
 }
 
 
-/*
- *  Takes 40 images and calculates the eyeVector for each image frame. Keeps looping until 40 valid frames
- *  with left and right vectors are found or until MAX_FRAMES has been reached
- *
- *  Output: EyePair with left and right eye vectors for the associated reference image or nullptr
- */
-EyePair *getRefVector(){
-
-    if (!startCam())
-	{
-
-        cout << "camera is not available" << endl;
-        return nullptr;
-    }
-
-    std::vector<Mat>images;
-    std::vector<cv::Point>leftVectors;
-    std::vector<cv::Point>rightVectors;
-    int count = 0;
-    
-    
-    // grab 40 images and store in images vector
-    for(int j = 0; j < FRAMES; j++)
-	{
-        
-
-        count++;
-
-        // break if 80 images are taken and vectors for left and right can't be found
-        if(count == MAXFRAMES)
-		{
-            cout << "could not find " << FRAMES << " frames in " << MAXFRAMES << " tries." << endl;
-            return nullptr;
-        }
-
-        //take image
-        Mat capture;
-		
-        cap >> capture;
-        images.push_back(capture);
-
-        // calculate eyeVector
-        ImgFrame camera_frame;
-        camera_frame.insertFrame(images.at(j));
-        EyePair pair(camera_frame.getLeftEye().getEyeVector(), camera_frame.getRightEye().getEyeVector());
-
-        // dropped frame if can't calculate both left and right eye vectors
-        if(pair.leftVector.x < 0 || pair.rightVector.x < 0){
-            j--;
-            continue;
-        }
-
-        // store in array
-        leftVectors.push_back(cv::Point(pair.leftVector.x, pair.leftVector.y));
-        rightVectors.push_back(cv::Point(pair.rightVector.x, pair.rightVector.y));
-
-    }
-
-    // close camera
-    cap.release();
-
-    // 40 valid frames with eye vectors should be found at this point
-    assert((int)leftVectors.size() == FRAMES && (int)rightVectors.size() == FRAMES);
-
-//    **************************** TEST DATA
-    std::vector<cv::Point>data = {
-                                        {22,50},{47,29},{56,75},{40,26},{47,28},{41,34},{15,17},{81,77},{45,26},{22,44},
-                                        {44,32},{42,27},{75,62},{52,99},{32,33},{42,34},{40,34},{45,26},{25,30},{46,30},
-                                        {41,33},{14,69},{47,32},{42,26},{50,50},{36,17},{42,29},{41,31},{62,29},{20,25},
-                                        {40,30},{77,19},{28,28},{44,32},{41,35},{27,29},{46,27},{50,61},{91,2},{47,26}
-                                    };
-
-        cv::Point *oneEye = getStabalizedCoord(data);
-        cv::Point *noEye = getStabalizedCoord({});
-
-        if(!noEye){
-            cout << "null pointer" << endl;
-        }
-
-    return new EyePair(*oneEye, *noEye);
-//    ****************************
-
-//    // get reference vector for the left and right eye
-//    cv::Point *left = getStabalizedCoord(leftVectors);
-//    cv::Point *right = getStabalizedCoord(rightVectors);
-//
-//
-//    // keep taking new set of 40 images until left and right eye Vector can be found <-- TOO HARSH?
-//    if(!left || !right){
-//        getRefVector();
-//    }
-
-//    return new EyePair(*left, *right);
-
-
-}
 
 
 /*
@@ -313,29 +107,77 @@ EyePair *getRefVector(){
  *  Tied to event listener and called when button is clicked
  */
 void runCalibrate(){
-
+    
+    cv::Point distance;
+    cv::Point referenceMean;
+    
     std::ofstream outfile(toString(user_path) + "/parameters.txt", std::ios::app);
 
-    // get eyeVector pair for that image
-    EyePair *refPair = getRefVector();
-
-
-    if(refPair){
-
-        // insert eyePair and corresponding image into global map
-        RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[imageCount], *refPair));
-
-        // store in file
-        outfile << refPair->leftVector.x << " " << refPair->leftVector.y << std::endl;
-        outfile << refPair->rightVector.x << " " << refPair->rightVector.y << std::endl;
+    bool found_reference = getReferenceImage();
+    
+    
+    // wasn't able to calibrate for a reference point
+    if(!found_reference){
+        imageCount = 0;
+        
+        // remove directory
+        QDir dir(user_path);
+        dir.removeRecursively();
+ 
+        return;
+    }
+    
+    // if calibration is on last image
+    if(imageCount == REFIMAGES - 1){
+        
+        for(auto ref : refArray){
+            outfile << ref->x << " " << ref->y << std::endl;
+            outfile << std::endl;
+        }
+        
+        distance.x = ref_left.x - ref_right.x;
+        distance.y = ref_bottom.y - ref_right.y;
+        
+        
+        if (distance.x == 0 || distance.y == 0) {
+            return;
+        }
+        
+        //reference mean might be wholly unecessary
+        referenceMean = cv::Point((ref_left.x + ref_right.x) / 2,
+                                  (ref_top.y + ref_bottom.y) / 2);
+        
+        updateBoundaryWindows();
+        
+        outfile << rightEyeBounds.x << " " << rightEyeBounds.y;
+        outfile << rightEyeBounds.width << " " << rightEyeBounds.height;
+        
         outfile << std::endl;
-
+        
+        outfile << leftEyeBounds.x << " " << leftEyeBounds.y;
+        outfile << leftEyeBounds.width << " " << leftEyeBounds.height;
+        
+        CALIBRATED = true;
     }
-    else {
-        cout << "could not calibrate. Please try again" << endl;
+
+}
+
+/*
+ * Starts global camera
+ */
+bool startCam(){
+    if (!cap.open(0)){
+        return false;
     }
-
-
+    try{
+        cap.set(CV_CAP_PROP_FRAME_WIDTH, 1280);         // 1280
+        cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720);         // 720
+    }
+    catch(Exception ex){
+        return false;
+    }
+    singleton->sleep(2000);
+    return true;
 }
 
 
@@ -343,71 +185,44 @@ void runCalibrate(){
  * Runs main program
  */
 void runMain(){
-	voiceManager.initVoice();
 
     // read in eye vectors from parameters.txt
     std::ifstream inputfile(toString(user_path) + "/parameters.txt", std::ios::in);
 
-    for(int i = 0; i < REFIMAGES; i++){
-        Mat image = imread(toString(user_path) + "/" + filenames[i]);
-        *refArray[i] = image;
+    
+    if(!CALIBRATED){
+    
+        for(int i = 0; i < REFIMAGES; i++){
 
-        std::string line;
-        getline(inputfile, line);
+            std::string line;
+            getline(inputfile, line);
 
-        std::string x, y;
-        std::stringstream iss;
-        iss.str(line);
-        iss >> x >> y;
-        cv::Point leftEye(std::stof(x), std::stof(y));
+            std::string x, y;
+            std::stringstream iss;
+            iss.str(line);
+            iss >> x >> y;
+            cv::Point *pupilAvg = new cv::Point(std::stof(x), std::stof(y));
 
-        iss.clear();
-        getline(inputfile, line);
-        iss >> x >> y;
-        cv::Point rightEye(std::stof(x), std::stof(y));
 
-        EyePair refPair(leftEye, rightEye);
+            refArray[i] = pupilAvg;
 
-        RefImageVector.insert(std::pair<Mat *, EyePair>(refArray[i], refPair));
+        }
     }
 
 
     ImgFrame mainEntryPoint;
 
-    size_t i = 0;
-    high_resolution_clock::time_point start, end;
-    Mat capture;
-
-	if (!startCam())
+    if (!startCam())
 	{
 		//camera failed to start
 		cout << "Failed to acquire camera." << endl;
 		return;
 	}
-
-
-    while (RUN) {
-        //Code to calculate time it takes to do insertFrame operation
-        //As of 3/22/2017, it takes approximately 1 whole second to get and process a frame
-        //As of 3/26/2017, it takes approximately .08 seconds to get and process a frame
-
-        start = high_resolution_clock::now();
-
-        cap >> capture;
-        end = high_resolution_clock::now();
-        auto duration = duration_cast<microseconds>(end - start).count();
-        cout << "Camera time: " << duration << endl;
-
-        start = high_resolution_clock::now();
-        mainEntryPoint.insertFrame(capture);
-        
-        end = high_resolution_clock::now();
-        duration = duration_cast<microseconds>(end - start).count();
-		cout << duration << endl;
-        
-        
+    
+    
+    while(RUN){
+        mainEntryPoint.calculateAverageEyeMethod();
     }
-        
 	cap.release();
 
 	voiceManager.stopVoice();
@@ -430,112 +245,84 @@ void generateRefImages(){
     // make directory
     QDir().mkdir(ref_images_path);
 
-    //Top Left Before
+    // top before
     cue = Scalar(0, 0, 0);
-    cv::circle(cue, cv::Point(0,0), 30, Scalar(0, 0, 255), -1);
-    image_path = toString(QDir::currentPath()) + "/ref_images/topLeftBefore.jpg";
+    cv::circle(cue, cv::Point(horizontal/2, 0), 30, Scalar(0, 0, 255), -1);
+    image_path = toString(QDir::currentPath()) + "/ref_images/topBefore.jpg";
     imwrite(image_path, cue);
 
-    //Top Left After
+    // top after
     cue = Scalar(0, 0, 0);
-    cv::circle(cue, cv::Point(0,0), 30, Scalar(0, 255, 0), -1);
-    image_path = toString(QDir::currentPath()) + "/ref_images/topLeftAfter.jpg";
+    cv::circle(cue, cv::Point(horizontal/2, 0), 30, Scalar(0, 255, 0), -1);
+    image_path = toString(QDir::currentPath()) + "/ref_images/topAfter.jpg";
     imwrite(image_path, cue);
 
-    //Top Right Before
+    // left before
     cue = Scalar(0, 0, 0);
-    cv::circle(cue, cv::Point(horizontal,0), 30, Scalar(0, 0, 255), -1);
-    image_path = toString(QDir::currentPath()) + "/ref_images/topRightBefore.jpg";
+    cv::circle(cue, cv::Point(0, vertical/2), 30, Scalar(0, 0, 255), -1);
+    image_path = toString(QDir::currentPath()) + "/ref_images/leftBefore.jpg";
+    imwrite(image_path, cue);
+    
+    // left after
+    cue = Scalar(0, 0, 0);
+    cv::circle(cue, cv::Point(0, vertical/2), 30, Scalar(0, 255, 0), -1);
+    image_path = toString(QDir::currentPath()) + "/ref_images/leftAfter.jpg";
     imwrite(image_path, cue);
 
-    //Top Right After
+    // bottom before
     cue = Scalar(0, 0, 0);
-    cv::circle(cue, cv::Point(horizontal,0), 30, Scalar(0, 255, 0), -1);
-    image_path = toString(QDir::currentPath()) + "/ref_images/topRightAfter.jpg";
+    cv::circle(cue, cv::Point(horizontal/2, vertical), 30, Scalar(0,0, 255), -1);
+    image_path = toString(QDir::currentPath()) + "/ref_images/bottomBefore.jpg";
     imwrite(image_path, cue);
 
-    //Center Before
+    // bottom after
     cue = Scalar(0, 0, 0);
-    cv::circle(cue, cv::Point(horizontal/2,vertical/2), 30, Scalar(0, 0, 255), -1);
-    image_path = toString(QDir::currentPath()) + "/ref_images/centerBefore.jpg";
+    cv::circle(cue, cv::Point(horizontal/2, vertical), 30, Scalar(0, 255, 0), -1);
+    image_path = toString(QDir::currentPath()) + "/ref_images/bottomAfter.jpg";
     imwrite(image_path, cue);
 
-    //Center After
+    // right before
     cue = Scalar(0, 0, 0);
-    cv::circle(cue, cv::Point(horizontal/2,vertical/2), 30, Scalar(0, 255, 0), -1);
-    image_path = toString(QDir::currentPath()) + "/ref_images/centerAfter.jpg";
+    cv::circle(cue, cv::Point(horizontal, vertical/2), 30, Scalar(0, 0, 255), -1);
+    image_path = toString(QDir::currentPath()) + "/ref_images/rightBefore.jpg";
     imwrite(image_path, cue);
 
-    //bottom Left Before
+    // right after
     cue = Scalar(0, 0, 0);
-    cv::circle(cue, cv::Point(0,vertical), 30, Scalar(0, 0, 255), -1);
-    image_path = toString(QDir::currentPath()) + "/ref_images/bottomLeftBefore.jpg";
-    imwrite(image_path, cue);
-
-    //bottom Left After
-    cue = Scalar(0, 0, 0);
-    cv::circle(cue, cv::Point(0,vertical), 30, Scalar(0, 255, 0), -1);
-    image_path = toString(QDir::currentPath()) + "/ref_images/bottomLeftAfter.jpg";
-    imwrite(image_path, cue);
-
-    //bottom Right Before
-    cue = Scalar(0, 0, 0);
-    cv::circle(cue, cv::Point(horizontal,vertical), 30, Scalar(0, 0, 255), -1);
-    image_path = toString(QDir::currentPath()) + "/ref_images/bottomRightBefore.jpg";
-    imwrite(image_path, cue);
-
-    //bottom Right After
-    cue = Scalar(0, 0, 0);
-    cv::circle(cue, cv::Point(horizontal,vertical), 30, Scalar(0, 255, 0), -1);
-    image_path = toString(QDir::currentPath()) + "/ref_images/bottomRightAfter.jpg";
-
+    cv::circle(cue, cv::Point(horizontal, vertical/2), 30, Scalar(0, 255, 0), -1);
+    image_path = toString(QDir::currentPath()) + "/ref_images/rightAfter.jpg";
     imwrite(image_path, cue);
 
 }
-
-void stopProg()
-{
-	RUN = false;
-}
-
 
 /****************
  * MAIN PROGRAM *
  ****************/
 int main(int argc, char *argv[])
-{    
-	startCam();
-
-	singleton->sleep(10000);
-
-	Mat frame;
-	cap >> frame;
-
-	ImgFrame mainFrame;
-	mainFrame.insertFrame(frame);
-	Mat second;
-	cap >> second;
-	mainFrame.insertFrame(second);
-	cap >> frame;
-	mainFrame.insertFrame(frame);
-	cap >> second;
-	mainFrame.insertFrame(second);
-
-	cap.release();
-
+{
     // Get screen resolution
     screenres = singleton->getScreenResolution();
+    
+    // initialize voice singleton
+//    voiceManager.initVoice();
+//    voiceManager.disableVoice();
+    
+    // start camera
+	startCam();
+
+    // load cascade classifier
+    eyeDetector.load("haarcascade_eye_tree_eyeglasses.xml");
     
     // ref images path
     ref_images_path = QDir::currentPath() + "/ref_images/";
     
-    
-    // Create reference images
+    // Create reference images if folder does not exist
     if (!QDir(ref_images_path).exists()){
         generateRefImages();
     }
 
 
+    // Start application
     QApplication app(argc, argv);
     Widget w;
     w.setWindowTitle("Welcome to Eyelogic Setup");

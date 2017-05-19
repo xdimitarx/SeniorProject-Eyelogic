@@ -45,23 +45,6 @@ void updateBoundaryWindows();
  * CLASS DEFINITIONS *
  *********************/
 
-// RefImage class
-class RefImage {
-public:
-    // getters
-    cv::Mat getImage();
-    cv::Point getPupilAvg();
-    
-    // setters
-    void setImage(cv::Mat img);
-    void setPupilAvg(cv::Point avg);
-    
-private:
-    cv::Point pupilAvg;
-    cv::Mat image;
-
-};
-
 // ImgFrame class
 class ImgFrame {
 public:
@@ -84,8 +67,8 @@ extern std::unique_ptr<System> singleton;
 extern cv::Point screenres;
 extern VideoCapture cap;
 extern cv::Mat capture;
-extern RefImage ref_left, ref_right, ref_top, ref_bottom;;
-extern RefImage *refArray [];
+extern cv::Point ref_left, ref_right, ref_top, ref_bottom;;
+extern cv::Point *refArray [];
 extern int imageCount;
 extern cv::CascadeClassifier eyeDetector;
 extern cv::Rect_<int>rightEyeBounds;

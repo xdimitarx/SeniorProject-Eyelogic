@@ -181,15 +181,31 @@ void updateBoundaryWindows() {
     //Boundary check so that rectangle stays within bounds of image
     rightEyeBounds.x = std::max(rightEyeBounds.x - (rightEyeBounds.width / 2), 0);
     rightEyeBounds.y = std::max(rightEyeBounds.y - (rightEyeBounds.height / 2), 0);
-    leftEyeBounds.x = std::min(leftEyeBounds.x - (leftEyeBounds.width / 2), ref_top.getImage().cols);
+
+// ************
+// NEW VERSION
+    leftEyeBounds.x = std::min(leftEyeBounds.x - (leftEyeBounds.height / 2), screenres.x);
+    
+// ************
+// OLD VERSION
+//    leftEyeBounds.x = std::min(leftEyeBounds.x - (leftEyeBounds.width / 2), ref_top.getImage().cols);
+// ************
+    
     leftEyeBounds.y = std::max(leftEyeBounds.y - (leftEyeBounds.height / 2), 0);
     
     //Adjust size of bounding box
     rightEyeBounds.width = 2 * rightEyeBounds.width;
     leftEyeBounds.width = 2 * leftEyeBounds.width;
-    if (leftEyeBounds.x + leftEyeBounds.width > ref_top.getImage().cols) {
-        leftEyeBounds.width = ref_top.getImage().cols - leftEyeBounds.x;
+    
+    if (leftEyeBounds.x + leftEyeBounds.width > screenres.x) {
+        leftEyeBounds.width = screenres.x - leftEyeBounds.x;
     }
+// ************
+// OLD VERSION
+//    if (leftEyeBounds.x + leftEyeBounds.width > ref_top.getImage().cols) {
+//        leftEyeBounds.width = ref_top.getImage().cols - leftEyeBounds.x;
+//    }
+// ************
     
     //This bit assumes that the eyes wont hit boundaries
     //TODO: boundary checking for y coordinates/height
@@ -218,9 +234,12 @@ bool getReferenceImage() {
         // clears vector for eye detection
         eyes.clear();
         
+        // get the image
+        cap >> capture;
+        
         // calls relevant reference image function using function pointers
         // detect eyes in relevant region
-        eyeDetector.detectMultiScale(refArray[imageCount]->getImage(), eyes);
+        eyeDetector.detectMultiScale(capture, eyes);
         
         if (eyes.size() == 2) {
             
@@ -236,7 +255,7 @@ bool getReferenceImage() {
                 }
                 
                 // preprocessing for pupil detection
-                eyeCrop = cv::Mat(refArray[imageCount]->getImage(), eyes[i]);//crop eye region
+                eyeCrop = cv::Mat(capture, eyes[i]);//crop eye region
                 cvtColor(eyeCrop, eyeCropGray, CV_BGR2GRAY);
                 cv::equalizeHist(eyeCropGray, eyeCropGray);
                 
@@ -268,7 +287,7 @@ bool getReferenceImage() {
     
     cv::Point *ref_point = getStabalizedCoord(data);
     
-    refArray[imageCount]->setPupilAvg(*ref_point);
+    refArray[imageCount] = ref_point;
     
     return true;
 }
@@ -331,20 +350,20 @@ void ImgFrame::calculateAverageEyeMethod(){
         //calculate difference between current gaze, and far left, divide by num pixels, and multiply by resolution
         //average pupil location for current frame
         averageLocal = cv::Point((int)((pupil[0].x + pupil[1].x) / 2), (int)((pupil[0].y + pupil[1].y) / 2));
-        if (averageLocal.x < ref_right.getPupilAvg().x || averageLocal.x > ref_left.getPupilAvg().x || averageLocal.y < ref_top.getPupilAvg().y || averageLocal.y > ref_bottom.getPupilAvg().y) {
+        if (averageLocal.x < ref_right.x || averageLocal.x > ref_left.x || averageLocal.y < ref_top.y || averageLocal.y > ref_bottom.y) {
             //TODO: head moving things
-            std::cout << (int)(averageLocal.x < ref_right.getPupilAvg().x) << std::endl;
-            std::cout << (int)(averageLocal.x > ref_left.getPupilAvg().x) << std::endl;
-            std::cout << (int)(averageLocal.y < ref_top.getPupilAvg().y) << std::endl;
-            std::cout << (int)(averageLocal.y > ref_bottom.getPupilAvg().y) << std::endl;
+            std::cout << (int)(averageLocal.x < ref_right.x) << std::endl;
+            std::cout << (int)(averageLocal.x > ref_left.x) << std::endl;
+            std::cout << (int)(averageLocal.y < ref_top.y) << std::endl;
+            std::cout << (int)(averageLocal.y > ref_bottom.y) << std::endl;
             continue;
         }
         
         //destination point on screen: to develop gradual moving of cursor
         //TODO: Improve... it's still jumpy
         
-        destinationNew.x = (screenres.x - ((averageLocal.x - ref_right.getPupilAvg().x) * screenres.x / distance.x));
-        destinationNew.y = (averageLocal.y - ref_top.getPupilAvg().y) * screenres.y / distance.y; //screenRes.y / 2;
+        destinationNew.x = (screenres.x - ((averageLocal.x - ref_right.x) * screenres.x / distance.x));
+        destinationNew.y = (averageLocal.y - ref_top.y) * screenres.y / distance.y; //screenRes.y / 2;
         
         if (destinationOld != destinationNew) {
             destinationOld = destinationNew;
@@ -370,9 +389,9 @@ void ImgFrame::calculateAverageEyeMethod(){
         }
         
         //point on screen:
-        screenMap.x =(screenres.x - ( ( averageLocal.x - ref_right.getPupilAvg().x) * screenres.x / distance.x ));
+        screenMap.x =(screenres.x - ( ( averageLocal.x - ref_right.x) * screenres.x / distance.x ));
         //TODO: implement y shifting
-        screenMap.y = ( averageLocal.y - ref_top.getPupilAvg().y) * screenres.y /distance.y; //screenRes.y / 2;//
+        screenMap.y = ( averageLocal.y - ref_top.y) * screenres.y /distance.y; //screenRes.y / 2;//
         
         
         //Enforce screen resolution as boundaries for movement of cursor
@@ -392,23 +411,4 @@ void ImgFrame::calculateAverageEyeMethod(){
         }
         
     }//while Loop
-}
-
-
-
-
-void RefImage::setImage(cv::Mat img){
-    image = img;
-}
-
-void RefImage::setPupilAvg(cv::Point avg){
-    pupilAvg = avg;
-}
-
-cv::Mat RefImage::getImage(){
-    return image;
-}
-
-cv::Point RefImage::getPupilAvg(){
-    return pupilAvg;
-}
+}  

@@ -1,7 +1,9 @@
 #include "widget.h"
 #include "ui_widget.h"
 
-
+/*
+ * Returns groupbox for user name
+ */
 QGroupBox *Widget::userInfoBox()
 {
     // define widget to add to main widget
@@ -21,6 +23,9 @@ QGroupBox *Widget::userInfoBox()
     return userGroupBox;
 }
 
+/*
+ * Returns groupbox for tracking left or right eye
+ */
 QGroupBox *Widget::calibrationSettingsBox()
 {
     // define widget to be added to main widget
@@ -50,6 +55,9 @@ QGroupBox *Widget::calibrationSettingsBox()
     return calibGroupBox;
 }
 
+/*
+ * Returns groupbox for voice settings
+ */
 QGroupBox *Widget::clickSettingsBox()
 {
     // define widget to hold click settings
@@ -77,7 +85,9 @@ QGroupBox *Widget::clickSettingsBox()
     return clickGroupBox;
 }
 
-
+/*
+ * Returns groupbox for run and stop buttons
+ */
 QGroupBox *Widget::startOrStopBox()
 {
     // initilize widget to be added to mainLayout
@@ -91,7 +101,7 @@ QGroupBox *Widget::startOrStopBox()
     start->setObjectName("runButton");
     QPushButton *quit = new QPushButton(tr("Quit Eyelogic"));
 
-    QObject::connect(quit, SIGNAL(clicked(bool)), QApplication::instance(), SLOT(quit()));
+    QObject::connect(quit, SIGNAL(clicked(bool)), this, SLOT(stop()));
     QObject::connect(start, SIGNAL(clicked(bool)), this, SLOT(run()));
 
     // add buttons to layout to widget, return widget
@@ -102,6 +112,9 @@ QGroupBox *Widget::startOrStopBox()
     return box;
 }
 
+/*
+ * Returns groupbox for calibration button
+ */
 QGroupBox *Widget::getCalibBox()
 {
     // create calibration page
@@ -125,6 +138,9 @@ QGroupBox *Widget::getCalibBox()
     return calib_box;
 }
 
+/*
+ * Constructor
+ */
 Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 {
    ui->setupUi(this);
@@ -162,18 +178,17 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 
 }
 
+/*
+ * Destructor
+ */
 Widget::~Widget()
 {
     delete ui;
 }
 
-void Widget::moveToCenter(QWidget *w)
-{
-    QSize window_size = this->size();
-    QPoint center = QPoint(screenres.x/2 - w->width()/2, screenres.y/2 - w->height()/2);
-    w->move(center);
-}
-
+/*
+ * Event handler for calibration button
+ */
 void Widget::calibrate()
 {
 
@@ -222,14 +237,14 @@ void Widget::calibrate()
 
     // display red dot full screen
     imageLabel = new QLabel();
-    QString ref_image = ref_images_path + QString::fromStdString(refImagesBefore[imageCount]) + ".jpg";
+    QString ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "Before.jpg";
     imageLabel->setPixmap(QPixmap(ref_image));
     imageLabel->showFullScreen();
 
 
     // move calibration box on top of image to bottom-middle of screen
     calibrationPage->show();
-    calibrationPage->move(screenres.x/2 - calibrationPage->width()/2, screenres.y - calibrationPage->height() - 30);
+    calibrationPage->move(screenres.x/2 - calibrationPage->width()/2, screenres.y/2 - calibrationPage->height()/2);
 
     // disable next button
     nextButton->setEnabled(false);
@@ -237,10 +252,10 @@ void Widget::calibrate()
     //***************************
     // CALL CALIBRATION FUNCTION
     //***************************
-//    runCalibrate();
+    runCalibrate();
 
     // display green dot
-    ref_image = ref_images_path + QString::fromStdString(refImagesAfter[imageCount]) + ".jpg";
+    ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "After.jpg";
     imageLabel->setPixmap(QPixmap(ref_image));
     imageLabel->showFullScreen();
 
@@ -249,6 +264,37 @@ void Widget::calibrate()
 
 }
 
+/*
+ * Event handler for next button
+ */
+void Widget::next()
+{
+    if(imageCount == REFIMAGES - 1){
+        QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");
+        QPushButton *cancelOrDoneBtn = calibBox->findChild<QPushButton *>("cancelOrDone");
+        nextButton->setEnabled(false);
+        cancelOrDoneBtn->setText("Done");
+    }
+    imageCount++;
+    QString ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "Before.jpg";
+    imageLabel->setPixmap(QPixmap(ref_image));
+    imageLabel->showFullScreen();
+    
+    //***************************
+    // CALL CALIBRATION FUNCTION
+    //***************************
+     runCalibrate();
+    
+    // display green dot
+    ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "After.jpg";
+    imageLabel->setPixmap(QPixmap(ref_image));
+    imageLabel->showFullScreen();
+}
+
+
+/*
+ * Event handler for run button
+ */
 void Widget::run()
 {
 
@@ -281,6 +327,7 @@ void Widget::run()
         userBox->findChild<QLineEdit *>("userName")->setDisabled(true);
         runButton->setText("Pause");
 
+        
         // run main program message box
         messageBox.setText("running main program");
         messageBox.setFixedSize(msgBoxSize.x(), msgBoxSize.y());
@@ -293,46 +340,23 @@ void Widget::run()
         RUN = true;
 //        runMain();
 
-
-
    }
    else if (runButton->text() == "Pause"){
-
+       
+       // change text on runButton to 'Pause'
+       userBox->findChild<QLineEdit *>("userName")->setDisabled(false);
+       runButton->setText("Start Eyelogic");
+       
        //********************
        // PAUSE MAIN PROGRAM
        //********************
-        RUN = false;
-        userBox->findChild<QLineEdit *>("userName")->setDisabled(false);
-        runButton->setText("Start Eyelogic");
+       RUN = false;
    }
 }
 
-void Widget::next()
-{
-    if(imageCount == REFIMAGES - 3){
-        QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");
-        QPushButton *cancelOrDoneBtn = calibBox->findChild<QPushButton *>("cancelOrDone");
-        nextButton->setEnabled(false);
-        cancelOrDoneBtn->setText("Done");
-    }
-    imageCount++;
-    QString ref_image = ref_images_path + QString::fromStdString(refImagesBefore[imageCount]) + ".jpg";
-    imageLabel->setPixmap(QPixmap(ref_image));
-    imageLabel->showFullScreen();
-
-    //***************************
-    // CALL CALIBRATION FUNCTION
-    //***************************
-//    runCalibrate();
-
-    // display green dot
-    ref_image = ref_images_path + QString::fromStdString(refImagesAfter[imageCount]) + ".jpg";
-    imageLabel->setPixmap(QPixmap(ref_image));
-    imageLabel->showFullScreen();
-
-
-}
-
+/*
+ * Event handler for cancel button
+ */
 void Widget::cancel()
 {
 
@@ -359,24 +383,43 @@ void Widget::cancel()
 
 }
 
+void Widget::stop(){
+//    stopVoice();
+    QApplication::quit();
+}
+
+/*
+ * Event handler for left eye radio button
+ */
 void Widget::toggleLeftEye(){
     trackEye = leftEye;
     cout << "trackEye = " << trackEye << endl;
 }
 
+/*
+ * Event handler for right eye radio button
+ */
 void Widget::toggleRightEye(){
     trackEye = rightEye;
     cout << "trackEye = " << trackEye << endl;
     
 }
 
+/*
+ * Event handler for voice on radio button
+ */
 void Widget::toggleVoiceOn(){
     voiceOption = on;
+    enableVoice();
     cout << "voiceOption = " << voiceOption << endl;
 }
 
+/*
+ * Event handler for voice off radio button
+ */
 void Widget::toggleVoiceOff(){
     voiceOption = off;
+    disableVoice();
     cout << "voiceOption = " << voiceOption << endl;
     
 }

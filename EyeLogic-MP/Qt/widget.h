@@ -15,15 +15,14 @@ using namespace std;
 extern QPoint msgBoxSize;
 extern int trackEye;
 extern int voiceOption;
-extern const std::string filenames [];
-extern const std::string refImagesBefore [];
-extern const std::string refImagesAfter [];
+extern const std::string refImageNames [];
 extern int imageCount;
 extern int REFIMAGES;
 extern cv::Point screenres;
 extern QString user_path;
 extern QString ref_images_path;
 extern bool RUN;
+extern bool CALIBRATED;
 
 /*********************
 * EXTERNAL FUNCTIONS *
@@ -31,19 +30,21 @@ extern bool RUN;
 void runCalibrate();
 void runMain();
 std::string toString(QString qs);
-
+void disableVoice();
+void enableVoice();
+void stopVoice();
 
 /***************
  * GLOBAL ENUM *
  ***************/
 enum TrackEye {
-    rightEye,
-    leftEye
+    rightEye,       // 0
+    leftEye         // 1
 };
 
 enum Voice {
-    on,
-    off
+    on,             // 0
+    off             // 1
 };
 
 
@@ -64,8 +65,6 @@ public:
     explicit Widget(QWidget *parent = 0);
     ~Widget();
 
-    void moveToCenter(QWidget *w);
-
     QGroupBox *clickSettingsBox();
     QGroupBox *calibrationSettingsBox();
     QGroupBox *userInfoBox();
@@ -81,6 +80,7 @@ public slots:
     void toggleRightEye();
     void toggleVoiceOn();
     void toggleVoiceOff();
+    void stop();
 
 private:
     Ui::Widget *ui;
