@@ -160,7 +160,7 @@ void runCalibrate(){
         CALIBRATED = true;
     }
 
-}
+} 
 
 /*
  * Starts global camera

@@ -237,9 +237,9 @@ bool getReferenceImage() {
         // get the image
         cap >> capture;
         
-        // calls relevant reference image function using function pointers
         // detect eyes in relevant region
         eyeDetector.detectMultiScale(capture, eyes);
+        
         
         if (eyes.size() == 2) {
             

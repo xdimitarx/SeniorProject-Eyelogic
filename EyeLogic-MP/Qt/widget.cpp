@@ -269,12 +269,7 @@ void Widget::calibrate()
  */
 void Widget::next()
 {
-    if(imageCount == REFIMAGES - 1){
-        QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");
-        QPushButton *cancelOrDoneBtn = calibBox->findChild<QPushButton *>("cancelOrDone");
-        nextButton->setEnabled(false);
-        cancelOrDoneBtn->setText("Done");
-    }
+    
     imageCount++;
     QString ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "Before.jpg";
     imageLabel->setPixmap(QPixmap(ref_image));
@@ -289,6 +284,13 @@ void Widget::next()
     ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "After.jpg";
     imageLabel->setPixmap(QPixmap(ref_image));
     imageLabel->showFullScreen();
+    
+    if(imageCount == REFIMAGES - 1){
+        QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");
+        QPushButton *cancelOrDoneBtn = calibBox->findChild<QPushButton *>("cancelOrDone");
+        nextButton->setEnabled(false);
+        cancelOrDoneBtn->setText("Done");
+    }
 }
 
 
