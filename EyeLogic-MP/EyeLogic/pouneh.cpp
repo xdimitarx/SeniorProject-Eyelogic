@@ -1,6 +1,7 @@
 #include "pouneh.h"
 #include <time.h> 
-
+#include <iostream>
+#include <windows.h>
 
 
 cv::VideoCapture cap;
@@ -10,6 +11,78 @@ cv::Point screenRes;
 cv::Mat ref_topLeft, ref_topRight, ref_bottomLeft, ref_bottomRight, ref_center;
 cv::Mat ref_farLeft, ref_farRight, ref_top, ref_bottom;
 
+void testkeystroke() {
+	short releaseR = 1;
+	short releaseESC = 1;
+	std::cout << std::hex;
+
+	while (!(GetKeyState(VK_F7) & 0x8000))
+	{
+		//Check if R pressed
+		if ((GetKeyState(0x52) & 0x8000) ) {
+			if (releaseR != GetKeyState(0x52)) {
+				// if previous toggle state was 0 and current state is 1 OR previous toggle state was 1 and current state is 0
+				std::cout << "R" << std::endl;
+				releaseR = (GetKeyState(0x52) << 7) >> 7;
+			}
+		}
+
+		//Check if ESC pressed
+		if ((GetKeyState(VK_ESCAPE) & 0x8000)) {
+			if (releaseESC != GetKeyState(VK_ESCAPE)) {
+				// if previous toggle state was 0 and current state is 1 OR previous toggle state was 1 and current state is 0
+				std::cout << "ESC" << std::endl;
+				releaseESC = (GetKeyState(VK_ESCAPE) << 7) >> 7;
+			}
+		}
+		Sleep(25);
+	}
+	return ;
+}
+
+void screenShot() {
+	std::vector<cv::Rect_<int>> eyes;
+	cv::Point pupil[2];
+	cv::Mat eyeCrop, eyeCropGray, grayCapture;
+
+
+	cap >> capture;
+
+	cvtColor(capture, grayCapture, CV_BGR2GRAY);
+	cvtColor(grayCapture, grayCapture, CV_GRAY2BGR);
+
+
+	//Detect eyes in relevant region
+	eyeDetector.detectMultiScale(capture, eyes);
+	if (eyes.size() == 2) {
+		//Loop to operate stuff for each eye
+		for (int i = 0; i < 2; i++) {
+			//Preprocessing for pupil detection
+			eyeCrop = cv::Mat(capture, eyes[i]);//crop eye region
+			cvtColor(eyeCrop, eyeCropGray, CV_BGR2GRAY);
+			cv::equalizeHist(eyeCropGray, eyeCropGray);
+			//pupil detection
+			pupil[i] = findPupil(eyeCropGray);
+			//Making sure pupil is detected - if not, repeat process
+			if (pupil[i].x == -1 && pupil[i].y == -1) {
+				std::cout << "Fail : Cannot find pupil" << std::endl;
+				i--;
+				continue;
+			}
+			//Make pupil coordinates relative to whole capture image and not just eye bounding box
+			pupil[i].x += eyes[i].x;
+			pupil[i].y += eyes[i].y;
+
+			cv::rectangle(grayCapture, eyes[i], cv::Scalar(0,i*255, std::abs(i - 1) *255), 3);
+			cv::circle(grayCapture, pupil[i], 5, cv::Scalar(0, 255, 255), -1);
+		}
+		
+		//Calculate average pupil location for looking at the reference point
+	}
+	cv::imshow("Capture", grayCapture);
+	cv::waitKey(5000);
+	return;
+}
 
 cv::Point findPupil(cv::Mat eyeCrop)
 {
@@ -108,7 +181,7 @@ void getReferenceImage2(std::vector<cv::Rect_<int>>& eyes, cv::Point center, cv:
 		cv::circle(cue, center, horizontal / 50, cv::Scalar(0, 255, 0), -1);
 		cv::imshow("", cue);
 		cv::moveWindow("", 0, 0);
-		cv::waitKey(1000);
+		cv::waitKey(2000);
 		cv::moveWindow("", 0, 0);
 		cv::imshow("", flash);
 		cap >> refImage;
@@ -178,13 +251,12 @@ void updateBoundaryWindows(std::vector<cv::Rect_<int>>& eyes , cv::Rect_<int>& r
 	leftEyeBounds.height = 2 * leftEyeBounds.height;
 }
 
-void calibrate(std::vector<cv::Rect_<int>>& eyes , cv::Point top, cv::Point bottom, cv::Point farLeft, cv::Point farRight, 
-				cv::Point distance, cv::Point referenceMean, cv::Rect_<int>& rightEyeBounds, cv::Rect_<int>& leftEyeBounds, int& distanceBetweenPupil) {
+void calibrate(std::vector<cv::Rect_<int>>& eyes , cv::Point& top, cv::Point& bottom, cv::Point& farLeft, cv::Point& farRight, 
+				cv::Point& distance, cv::Point& referenceMean, cv::Rect_<int>& rightEyeBounds, cv::Rect_<int>& leftEyeBounds, int& distanceBetweenPupil) {
 	getReferenceImage2(eyes, cv::Point(screenRes.x / 2, 0), ref_top, "Top", top, distanceBetweenPupil);
-	getReferenceImage2(eyes, cv::Point(screenRes.x / 2, screenRes.y - screenRes.x / 50), ref_bottom, "Center", bottom, distanceBetweenPupil);
+	getReferenceImage2(eyes, cv::Point(screenRes.x / 2, screenRes.y - screenRes.x / 50), ref_bottom, "Bottom", bottom, distanceBetweenPupil);
 	getReferenceImage2(eyes, cv::Point(screenRes.x / 50, screenRes.y / 2), ref_farLeft, "Left", farLeft, distanceBetweenPupil);
 	getReferenceImage2(eyes, cv::Point(screenRes.x - screenRes.x / 50, screenRes.y / 2), ref_farRight, "Right", farRight , distanceBetweenPupil);
-
 
 	distance.x = farLeft.x - farRight.x;
 	distance.y = bottom.y - top.y;
@@ -196,6 +268,17 @@ void calibrate(std::vector<cv::Rect_<int>>& eyes , cv::Point top, cv::Point bott
 
 	//redefining rectangle search region for eyes
 	updateBoundaryWindows(eyes, rightEyeBounds, leftEyeBounds);
+
+	std::cout << "\tTop: " << top.y << std::endl;
+	std::cout << "\tBottom: " << bottom.y << std::endl;
+	std::cout << "\tLeft: " << farLeft.x << std::endl;
+	std::cout << "\tRight: " << farRight.x << std::endl;
+}
+
+void headMoveOut() {
+	//when the head moves out away from screen
+	//Distance betweent he pupils decreases
+	//so new 
 }
 
 void averageEyeCenterMethod() {
@@ -203,6 +286,10 @@ void averageEyeCenterMethod() {
 	//calculate average
 	//map to screen
 	//TODO: make robust against head movement.
+	short releaseR = 1;
+	short releaseESC = 1;
+	short releaseSpace = 1;
+	short captureWindowShowing = 0;
 	int distanceBetweenPupils = 0 , tempDistanceBetweenPupils;
 	std::vector<cv::Rect_<int>> eyes, eyeLeft, eyeRight;
 	std::vector<cv::Vec3f> circles;
@@ -211,7 +298,7 @@ void averageEyeCenterMethod() {
 	cv::Point distance;
 	cv::Mat eyeCrop, eyeCropGray;
 	//Rect roi;
-	cv::Rect leftEyeBounds, rightEyeBounds;
+	cv::Rect leftEyeBounds, rightEyeBounds; //Rectangles where the eye must be (after Boundary windows are updated)
 	//let leftEye  be the user's left eye, therefore, for analytical purposes, 
 	//it is the right-most eye in the matrix
 
@@ -219,15 +306,66 @@ void averageEyeCenterMethod() {
 	cv::Point referenceMean;
 
 	calibrate(eyes, top, bottom, farLeft, farRight, distance, referenceMean, rightEyeBounds, leftEyeBounds, distanceBetweenPupils);
+	std::cout << "POST CALIBRATION " << std::endl;
+	std::cout << "\tDistance: " << distance.x << "     " << distance.y << std::endl;
 
 	//Forever loop to move cursor
 	while (1) {	
+
+		//Check if R pressed
+		if ((GetKeyState(0x52) & 0x8000)) {
+			if (releaseR != GetKeyState(0x52)) {
+				// if previous toggle state was 0 and current state is 1 OR previous toggle state was 1 and current state is 0
+				releaseR = (GetKeyState(0x52) << 7) >> 7;
+
+				//Recalibrate
+				calibrate(eyes, top, bottom, farLeft, farRight, distance, referenceMean, rightEyeBounds, leftEyeBounds, distanceBetweenPupils);
+			}
+		}
+
+		//Check if ESC pressed
+		if ((GetKeyState(VK_ESCAPE) & 0x8000)) {
+			if (releaseESC != GetKeyState(VK_ESCAPE)) {
+				// if previous toggle state was 0 and current state is 1 OR previous toggle state was 1 and current state is 0
+				releaseESC = (GetKeyState(VK_ESCAPE) << 7) >> 7;
+
+				//exit program
+				return;
+			}
+		}
+
+		//Check if Spacebar pressed
+		if ((GetKeyState(VK_SPACE) & 0x8000)) {
+			if (releaseSpace != GetKeyState(VK_SPACE)) {
+				// if previous toggle state was 0 and current state is 1 OR previous toggle state was 1 and current state is 0
+				releaseSpace = (GetKeyState(VK_SPACE) << 7) >> 7;
+
+				//exit program
+			if (captureWindowShowing == 1) {
+					//destroy capture window
+					cv::destroyWindow("CAPTURE");
+					captureWindowShowing = 0;
+				}
+				else {
+					cv::imshow("CAPTURE", capture);
+					cv::waitKey(1);
+					captureWindowShowing = 1;
+				}
+			}
+		}
+
 		cap >> capture;	
 		//detect eyes in subboxes
 		eyeLeft.clear();
 		eyeRight.clear();
 		eyeDetector.detectMultiScale(cv::Mat(capture, leftEyeBounds ), eyeLeft);
 		eyeDetector.detectMultiScale(cv::Mat(capture, rightEyeBounds), eyeRight);
+
+		cvtColor(capture, capture, CV_BGR2GRAY);
+		cvtColor(capture, capture, CV_GRAY2BGR);
+		cv::rectangle(capture, leftEyeBounds, cv::Scalar(0xff, 0x33, 0xf4));
+		cv::rectangle(capture, rightEyeBounds, cv::Scalar(0x33, 0xff, 0x3d));
+
 		if (eyeLeft.size() == 1 && eyeRight.size() == 1) {
 			eyes.clear();
 			eyeLeft[0].x += leftEyeBounds.x;
@@ -249,20 +387,14 @@ void averageEyeCenterMethod() {
 			updateBoundaryWindows(eyes, rightEyeBounds, leftEyeBounds);
 		}
 		else {
-			std::cout << "Failure of the eyes *sadnesssss* " << std::endl;
+			//std::cout << "Failure of the eyes *sadnesssss* " << std::endl;
 			//get new rectangles for things??? 
-			//TODO: Need to figure out how to deal with this
-			//for now just recalibrate ....
-			calibrate(eyes, top, bottom, farLeft, farRight, distance, referenceMean, rightEyeBounds, leftEyeBounds, distanceBetweenPupils );
+			//TODO: Need to figure out how to deal with this 
+			// ^^ maybe check if head is detected: if yes, probably a blink, can just continue. Otherwise, may need to recalibrate. 
+			//		Maybe recalibrate after several consecutive failures of the eyes
+			//for now just recalibrrate ....
+			//calibrate(eyes, top, bottom, farLeft, farRight, distance, referenceMean, rightEyeBounds, leftEyeBounds, distanceBetweenPupils );
 			continue;
-		}
-		if (cv::waitKey(2) == 'r' || cv::waitKey(2) == 'R') {
-			//Recalibrate
-			calibrate(eyes, top, bottom, farLeft, farRight, distance, referenceMean, rightEyeBounds, leftEyeBounds, distanceBetweenPupils);
-		}
-		else if (cv::waitKey(2) == 27) {
-			//exit program
-			return;
 		}
 
 			//Detect pupil for each image
@@ -283,16 +415,22 @@ void averageEyeCenterMethod() {
 				pupil[i].y += eyes[i].y;
 			}
 
+
 			//calculate difference between current gaze, and far left, divide by num pixels, and multiply by resolution
 			//average pupil location for current frame
+
 			averageLocal = cv::Point((int)((pupil[0].x + pupil[1].x) / 2), (int)((pupil[0].y + pupil[1].y) / 2));
-			if (averageLocal.x < farRight.x || averageLocal.x > farLeft.x || averageLocal.y < top.y || averageLocal.y > bottom.y) {		
-				std::cout << (int)(averageLocal.x < farRight.x) << std::endl;
-				std::cout << (int)(averageLocal.x > farLeft.x) << std::endl;
-				std::cout << (int)(averageLocal.y < top.y) << std::endl;
-				std::cout << (int)(averageLocal.y > bottom.y) << std::endl;
+			cv::circle(capture, averageLocal, 2, cv::Scalar(0, 255, 255), -1);
+			cv::rectangle(capture, cv::Rect(farRight.x, top.y, farLeft.x - farRight.x, bottom.y - top.y), cv::Scalar(0, 255, 0));
+
+			if (averageLocal.x < farRight.x || averageLocal.x > farLeft.x || averageLocal.y < top.y || averageLocal.y > bottom.y) {	
+				//imshow("CAPTURE", capture);
+				//cv::waitKey(1);
 				//TODO: head moving things
 				continue;
+			}
+			else {
+				
 			}
 
 			//destination point on screen: to develop gradual moving of cursor
@@ -329,13 +467,15 @@ void averageEyeCenterMethod() {
 
 			//Enforce screen resolution as boundaries for movement of cursor
 			if (screenMap.x >= 0 && screenMap.y >= 0 && screenMap.x <= screenRes.x && screenMap.y <= screenRes.y) {
-				//SetCursorPos(screenMap.x, screenMap.y);
+				SetCursorPos(screenMap.x, screenMap.y);
 				//draw circle instead of moving cursor
 				//TODO: Make program good enough with escape sequence so that we can actually use the cursor
 				//		instead of the circle drawn below
 				cv::circle(capture, screenMap, 5, cv::Scalar(235,244,66) , -1);
-				imshow("CAPTURE", capture);
-				cv::waitKey(1);
+				if (captureWindowShowing == 1) {
+					imshow("CAPTURE", capture);
+					cv::waitKey(1);
+				}
 			}
 			else {
 				std::cout << "FUCK OUTOFBOUNDS COORDINATES" << std::endl;
@@ -344,309 +484,13 @@ void averageEyeCenterMethod() {
 	}//while Loop
 }
 
-void lotsOfTheProgram() {
-	//The following function:
-	//	takes a frame from video input
-	//	preprocesses the video input
-	//	detects the eyes in the image
-	//	detects the pupils in each eye
-	//	detects the eyecorners for each eye
-	//	desplays the findings on the frame
-
-	int thresh = 100;
-	int max_thresh = 255;
-	int blockSize = 2;
-	int apertureSize = 5;
-	double k = 0.01;
-
-
-	//Mat framegray, destLeft, destRight, leftCornerRoi, rightCornerRoi, edges;
-
-
-	cv::Mat framegray, eyeCropGray, eyeCropColor, destLeft, destRight, leftCornerRoi, rightCornerRoi;
-	std::vector<cv::Rect_<int>> eyes, eyes2;
-	std::vector<cv::Vec3f> circles;
-	cv::Point eyeCornerRight, eyeCornerLeft;
-
-
-	while (1)
-	{
-		cap >> capture;
-		cap >> capture;
-		cv::cvtColor(capture, framegray, CV_BGR2GRAY);
-
-		//increase contrast
-		cv::equalizeHist(framegray, framegray);
-
-		//increase contrast of grayscale image
-		int change = 10;
-		for (int i = 0; i < capture.cols; i++) {
-			for (int j = 0; j < capture.rows; j++) {
-				if (framegray.at<uchar>(cv::Point(i, j)) > 20) {
-					if (framegray.at<uchar>(cv::Point(i, j)) < 255 - change) {
-						framegray.at<uchar>(cv::Point(i, j)) += change;
-					}
-					else {
-						framegray.at<uchar>(cv::Point(i, j)) = 255;
-					}
-				}
-				else {
-					if (framegray.at<uchar>(cv::Point(i, j)) > change)
-					{
-						framegray.at<uchar>(cv::Point(i, j)) -= change;
-					}
-					else {
-						framegray.at<uchar>(cv::Point(i, j)) = 0;
-					}
-				}
-			}
-		}
-
-		//detect Eyes
-		eyeDetector.detectMultiScale(framegray, eyes);
-		if (eyes.capacity() == 0) {
-			cv::imshow("capture", capture);
-			cv::waitKey(1000);
-			continue;
-		}
-		for (int i = 0; i < eyes.size(); i++) {
-			//draw rectangels around eye
-			std::cout << "rectangles" << std::endl;
-			rectangle(capture, cv::Point(eyes[i].x, eyes[i].y), cv::Point(eyes[i].x + eyes[i].width, eyes[i].y + eyes[i].height), cv::Scalar(255, 0, 0));
-			cv::Rect roiRect = cv::Rect(eyes[i].x, eyes[i].y, eyes[i].width, eyes[i].height);
-			eyeCropGray = cv::Mat(framegray, roiRect);
-			eyeCropColor = cv::Mat(capture, roiRect);
-
-			//detect pupil for eye
-			std::cout << "pupil" << std::endl;
-			HoughCircles(eyeCropGray, circles, CV_HOUGH_GRADIENT, 1, eyeCropGray.rows / 3 * 2, 10, 10, eyeCropGray.rows / 10, eyeCropGray.rows / 5);
-			std::cout << "cookie mookie" << std::endl;
-
-			// Draw the pupils detected
-			/*
-			for (size_t i = 0; i < circles.size(); i++)
-			{
-			cv::Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-			int radius = cvRound(circles[i][2]);
-			std::cout << "(" << center.x << ", " << center.y << ")" << endl;
-			// circle center
-			cv::circle(eyeCropColor, center, 3,cv::Scalar(0, 255, 0), 1, 8, 0);
-			// circle outline
-			cv::circle(eyeCropColor, center, radius,cv::Scalar(0, 0, 255), 1, 8, 0);
-			}
-			*/
-
-
-			//if only one pupil
-			//circles[0] is the pupil
-			//circles[0][0] = eyecenter.x
-			//circles[0][1] = eyecenter.y 
-			//circles[0][2] = eyeradius
-
-			std::cout << circles.size() << std::endl;
-			if (circles.size() < 1) { continue; }
-
-			int yOffset = (int)((circles[0][2] < circles[0][0]) ? circles[0][0] - circles[0][2] : 0);
-			cv::Rect crop = cv::Rect(0, yOffset, eyeCropGray.cols, eyeCropGray.rows - yOffset);
-			//eyeCropGray = Mat(eyeCropGray, crop);
-
-			int leftbuffer;
-			int rightbuffer;
-			//int pupili] = { eyeCenter.x ,  eyeCenter.y ,  eyeRadius };
-
-			if (0 == i) {
-				leftbuffer = (int)(circles[0][0] / 2 - 1);
-				rightbuffer = (int)((eyeCropGray.cols - circles[0][0]) / 2 + 2);
-			}
-			else {
-				leftbuffer = (int)(circles[0][0] / 2 - 2);
-				rightbuffer = (int)((eyeCropGray.cols - circles[0][0]) / 2);
-			}
-
-			while ((cvRound(circles[0][0]) - leftbuffer) <= 0) {
-				leftbuffer--;
-			}
-
-			while ((cvRound(circles[0][0]) + rightbuffer) > eyeCropGray.cols) {
-				rightbuffer--;
-			}
-
-			cv::Rect leftroi = cv::Rect(0, 0, (cvRound(circles[0][0]) - leftbuffer), eyeCropGray.rows);
-			cv::Rect rightroi = cv::Rect((cvRound(circles[0][0]) + rightbuffer), 0, eyeCropGray.cols - (cvRound(circles[0][0]) + rightbuffer), eyeCropGray.rows);
-			leftCornerRoi = cv::Mat(eyeCropGray, leftroi);
-			rightCornerRoi = cv::Mat(eyeCropGray, rightroi);
-
-			//cout << leftCornerRoi.rows << "\t\t" << leftCornerRoi.cols << "\t\t" << destLeft << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
-			if (leftCornerRoi.rows && leftCornerRoi.cols) {
-				cornerHarris(leftCornerRoi, destLeft, blockSize, apertureSize, k, cv::BORDER_DEFAULT);
-				normalize(destLeft, destLeft, 0, 255, cv::NORM_MINMAX, CV_32FC1, cv::Mat());
-				convertScaleAbs(destLeft, destLeft);
-			}
-
-			//cout << rightCornerRoi.rows << "\t\t" << rightCornerRoi.cols << "\t\t" << destRight << "\t\t" << blockSize << "\t\t" << apertureSize << "\t\t" << k << endl;
-			if (rightCornerRoi.rows && rightCornerRoi.cols) {
-				cornerHarris(rightCornerRoi, destRight, blockSize, apertureSize, k, cv::BORDER_DEFAULT);
-				normalize(destRight, destRight, 0, 255, cv::NORM_MINMAX, CV_32FC1, cv::Mat());
-				convertScaleAbs(destRight, destRight);
-			}
-
-			//variables to keep track of most likely coordinate to be corner
-			cv::Point cornerLeft;
-			cv::Point cornerRight;
-			int verticalDistanceLeft = 10000;
-			int verticalDistanceRight = 10000;
-
-			for (int j = 0; j < destLeft.rows; j++) {
-				for (int i = 0; i < destLeft.cols; i++) {
-					if (thresh < destLeft.at<uchar>(j, i) && verticalDistanceLeft > abs(j - circles[0][1])) {
-						cornerLeft = cv::Point(i, j);
-						verticalDistanceLeft = abs((int)(j - circles[0][1]));
-					}
-				}
-			}
-
-			cv::circle(leftCornerRoi, cornerLeft, 3, cv::Scalar(0), -1);
-
-			for (int j = 0; j < destRight.rows; j++) {
-				for (int i = 0; i < destRight.cols; i++) {
-					if (thresh < destRight.at<uchar>(j, i) && verticalDistanceRight > abs(j - circles[0][1])) {
-						cornerRight = cv::Point(i, j);
-						verticalDistanceRight = abs((int)(j - circles[0][1]));
-					}
-				}
-			}
-
-			cv::circle(rightCornerRoi, cornerRight, 3, cv::Scalar(0), -1);
-
-			eyeCornerLeft = cv::Point(cornerLeft.x + roiRect.x, cornerLeft.y + roiRect.y);
-			eyeCornerRight = cv::Point(cornerRight.x + rightroi.x + roiRect.x, cornerRight.y + roiRect.y);
-
-			std::cout << "Left  corner: " << cornerLeft.x << "    " << cornerLeft.y << std::endl;
-			std::cout << "Right corner: " << cornerRight.x << "    " << cornerRight.y << std::endl;
-
-			cv::circle(capture, eyeCornerLeft, 3, cv::Scalar(255, 0, 0), -1);
-			cv::circle(capture, eyeCornerRight, 3, cv::Scalar(0, 255, 0), -1);
-
-			imshow("cap", capture);
-			//cv::imshow("With corners", threechanelFramegray);
-		}//for
-		if (cv::waitKey(100) == 27) { break; }
-	}// end forever loop
-
-}
-
-void getReferenceTop() {
-	SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
-
-	int horizontal = screenRes.x;
-	int vertical = screenRes.y;
-
-	cv::Mat cue(vertical, horizontal, CV_8UC3);
-	cv::Mat flash(vertical, horizontal, CV_8UC3);
-	flash = cv::Scalar(255, 255, 255);
-
-	cue = cv::Scalar(0, 0, 0);
-
-	//CenterTop
-	cue = cv::Scalar(0, 0, 0);
-	cv::circle(cue, cv::Point(horizontal / 2, 0), horizontal / 50, cv::Scalar(0, 255, 0), -1);
-	cv::imshow("", cue);
-	cv::moveWindow("", 0, 0);
-	cv::waitKey(1000);
-	cv::moveWindow("", 0, 0);
-	cv::imshow("", flash);
-	cap >> ref_top;
-	cap >> ref_top;
-	cv::waitKey(50);
-	cvDestroyWindow("");
-}
-
-void getReferenceBottom() {
-	SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
-
-	int horizontal = screenRes.x;
-	int vertical = screenRes.y;
-
-	cv::Mat cue(vertical, horizontal, CV_8UC3);
-	cv::Mat flash(vertical, horizontal, CV_8UC3);
-	flash = cv::Scalar(255, 255, 255);
-
-	cue = cv::Scalar(0, 0, 0);
-
-	//Center Bottom
-	cue = cv::Scalar(0, 0, 0);
-	cv::circle(cue, cv::Point(horizontal / 2, vertical - horizontal/50), horizontal / 50, cv::Scalar(0, 255, 0), -1);
-	cv::imshow("", cue);
-	cv::moveWindow("", 0, 0);
-	cv::waitKey(1000);
-	cv::moveWindow("", 0, 0);
-	cv::imshow("", flash);
-	cap >> ref_bottom;
-	cap >> ref_bottom;
-	cv::waitKey(50);
-	cvDestroyWindow("");
-}
-
-void getReferenceLeft() {
-	SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
-
-	int horizontal = screenRes.x;
-	int vertical = screenRes.y;
-
-	cv::Mat cue(vertical, horizontal, CV_8UC3);
-	cv::Mat flash(vertical, horizontal, CV_8UC3);
-	flash = cv::Scalar(255, 255, 255);
-
-	cue = cv::Scalar(0, 0, 0);
-
-	//Far Left
-	cue = cv::Scalar(0, 0, 0);
-	cv::circle(cue, cv::Point(horizontal / 50, vertical / 2), horizontal / 50, cv::Scalar(0, 255, 0), -1);
-	cv::imshow("", cue);
-	cv::moveWindow("", 0, 0);
-	cv::waitKey(1000);
-	cv::moveWindow("", 0, 0);
-	cv::imshow("", flash);
-	cap >> ref_farLeft;
-	cap >> ref_farLeft;
-	cv::waitKey(50);
-	cvDestroyWindow("");
-}
-
-void getReferenceRight() {
-	SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE), CONSOLE_FULLSCREEN_MODE, 0);
-
-	int horizontal = screenRes.x;
-	int vertical = screenRes.y;
-
-	cv::Mat cue(vertical, horizontal, CV_8UC3);
-	cv::Mat flash(vertical, horizontal, CV_8UC3);
-	flash = cv::Scalar(255, 255, 255);
-
-	cue = cv::Scalar(0, 0, 0);
-
-	//Far Right
-	cue =cv::Scalar(0, 0, 0);
-	cv::circle(cue, cv::Point(horizontal - horizontal / 50, vertical / 2), horizontal / 50,cv::Scalar(0, 255, 0), -1);
-	cv::imshow("", cue);
-	cv::waitKey(1000);
-	cv::moveWindow("", 0, 0);
-	cv::imshow("", flash);
-	cap >> ref_farRight;
-	cap >> ref_farRight;
-	cv::waitKey(50);
-	cv::moveWindow("", 0, 0);
-	cvDestroyWindow("");
-}
 
 /*
 Function to do preliminary capture things
 */
 
 bool startCap() {
-
 	eyeDetector.load("haarcascade_eye_tree_eyeglasses.xml");
-
 	//Get screen resolution
 	RECT desktop;
 	const HWND hDesktop = GetDesktopWindow();
@@ -657,7 +501,7 @@ bool startCap() {
 
 	bool videofeed = cap.open(0);
 	if (videofeed) {
-		cap.set(CV_CAP_PROP_FRAME_WIDTH, 1200);
+		cap.set(CV_CAP_PROP_FRAME_WIDTH, 1920);
 		cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1080);
 	}
 
