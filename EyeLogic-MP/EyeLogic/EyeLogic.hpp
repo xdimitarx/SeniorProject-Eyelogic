@@ -13,10 +13,8 @@
 #include <memory>
 
 //BOOST
-#include <boost/thread.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/chrono.hpp>
-#include <boost/thread/mutex.hpp>
 #include <boost/algorithm/string.hpp>
 
 #include "System.hpp"
@@ -38,46 +36,89 @@ using namespace cv;
  ********************/
 Mat loadImageAtPath(string path);
 bool startCam();
-bool getReferenceImage();
-void updateBoundaryWindows();
+//bool getReferenceImage();
+//void updateBoundaryWindows();
 
 /*********************
  * CLASS DEFINITIONS *
  *********************/
 
-// ImgFrame class
-class ImgFrame {
+enum class RefPoint { LEFT, RIGHT, TOP, BOTTOM};
+
+class EyeLogic {
+
 public:
-    void calculateAverageEyeMethod();
+
+	//basic public function, forceNewTemplate forces a creation of new template images
+	bool insertFrame(Mat frame, bool forceNewTemplate = false);
+
+	// returns empty Mat if not all templates are available
+	Mat getTemplate(Rect * faceCrop, Rect * leftEyeCrop, Rect * rightEyeCrop);
+
+	/*
+	version 1
+	storeTemplate(image, faceBound)
+	Calculates template matching strip and stores it in faceRect
+
+	version 2
+	storeTemplate(image, faceBound, leftEyeCrop, rightEyeCrop);
+	Take in image as template strip and store corresponding cropping information to be used in insertframe
+	*/
+	void storeTemplate(Mat image, Rect faceBound, Rect leftEyeCrop = Rect(), Rect rightEyeCrop = Rect());
+
+	// returns point bounded by screen size
+	cv::Point eyeVectorToScreenCoord();
+
+	// returns Avg Eye Position in reference to faceRect
+	cv::Point getEyeVector();
+
+	// sets reference positions individually (LEFT, RIGHT, TOP, BOTTOM)
+	void setReferencePoint(cv::Point eyeVector, RefPoint refPosition);
+
+	// returns vector of points in order (LEFT, RIGHT, TOP, BOTTOM)
+	vector <cv::Point> * getReferencePointData();
+
+	// sets reference positions according to input vector ^^^
+	void setReferencePointData(vector <cv::Point> * data);
+
+	EyeLogic(cv::Point screenres);
+
 private:
-};
 
-/***************
- * GLOBAL ENUM *
- ***************/
-enum Coordinate{
-    X,
-    Y
-};
+	bool Calibrated = false;
 
-/**********************
- * EXTERNAL VARIABLES *
- **********************/
-extern std::unique_ptr<System> singleton;
-extern cv::Point screenres;
-extern VideoCapture cap;
-extern cv::Mat capture;
-extern cv::Point ref_left, ref_right, ref_top, ref_bottom;;
-extern cv::Point *refArray [];
-extern int imageCount;
-extern cv::CascadeClassifier eyeDetector;
-extern cv::Rect_<int>rightEyeBounds;
-extern cv::Rect_<int>leftEyeBounds;
-extern std::vector<cv::Rect_<int>> eyes;
-extern int REFIMAGES;
-extern int FRAMES;
-extern int THRESHOLD;
-extern int MAXFRAMES;
-extern int imageCount;
+	//Template Matching Vars
+	Mat userTemplate; //strip of face including the nose used for template matching
+	bool faceTemplateExists = false;
+	Rect faceRect; // face bounding box
+
+	bool eyeTemplatesExists = false;
+	Rect leftEyeBound; //relative to face rect
+	Rect rightEyeBound; //relative to face rect
+
+	//frame that is inserted
+	Mat currentFrame;
+
+	//Current Avg Pupil Value
+	cv::Point eyeVector;
+
+	//Outer limits for EyeVector
+	cv::Point screenResolution;
+	cv::Point ref_Right, ref_Top, ref_Left, ref_Bottom;
+	
+	CascadeClassifier faceExtractor;
+	CascadeClassifier leftEyeExtractor;
+	CascadeClassifier rightEyeExtractor;
+	
+	//applies dom filters for pupil detection
+	Mat applyPupilFilters(Mat eyeCrop);
+
+	//uses image moments to detect center of pupil
+	cv::Point findPupil(Mat filteredEyeCrop);
+
+	//returns a faceCrop that matches the template if true
+	bool checkTemplate(Mat frame, Rect * faceCrop);
+
+};
 
 #endif

@@ -1,22 +1,6 @@
 #include "widget.h"
 #include "../EyeLogic/EyeLogic.hpp"
-
-
-System * getSystem()
-{
-#ifdef __APPLE__
-    return new Mac();
-#else
-    return new Win();
-#endif
-    return NULL;
-}
-
-// global singleton variable used for different OS calls
-std::unique_ptr<System> singleton (getSystem());
-
-// Voice Singleton
-VoiceTool voiceManager;
+#include "../EyeLogic/VoiceTool.hpp"
 
 
 /**************************
@@ -26,14 +10,25 @@ VoiceTool voiceManager;
 using namespace std;
 using namespace std::chrono;
 
+System * getSystem()
+{
+#ifdef __APPLE__
+	return new Mac();
+#else
+	return new Win();
+#endif
+}
+
+std::unique_ptr<System> systemSingleton(getSystem());
+EyeLogic * mainEntryPoint;
 
 /*********************
  * GLOBAL VARIABLES *
  *********************/
 int REFIMAGES = 4;                      // number of reference points
-int FRAMES = 40;                        // number of ref frames per ref point
-int THRESHOLD = 10;                     // max deviation ref frames inside buffer
-int MAXFRAMES = 100;                    // max number of tries to find 40 valid frames
+//int FRAMES = 40;                        // number of ref frames per ref point
+//int THRESHOLD = 10;                     // max deviation ref frames inside buffer
+//int MAXFRAMES = 100;                    // max number of tries to find 40 valid frames
 int imageCount = 0;                     // which reference image calibration is currently on
 
 // global variable that determines if user ran calibration before running program
@@ -41,9 +36,6 @@ bool CALIBRATED = false;
 
 // flag to determine whether to track eyes or not
 bool RUN = false;
-
-// Eye detector
-cv::CascadeClassifier eyeDetector;
 
 //OpenCV Camera
 VideoCapture cap;
@@ -63,8 +55,6 @@ cv::Point screenres;
 QString user_path;
 
 // reference images
-cv::Point ref_left, ref_right, ref_top, ref_bottom;
-cv::Point *refArray [] {&ref_left, &ref_right, &ref_top, &ref_bottom};
 const std::string refImageNames [] = {"left", "right", "top", "bottom"};
 
 // reference images path
@@ -88,15 +78,15 @@ std::string toString(QString qs){
 }
 
 void disableVoice(){
-    voiceManager.disableVoice();
+    VoiceTool::voiceSingleton().disableVoice();
 }
 
 void enableVoice(){
-    voiceManager.enableVoice();
+	VoiceTool::voiceSingleton().enableVoice();
 }
 
 void stopVoice(){
-    voiceManager.stopVoice();
+	VoiceTool::voiceSingleton().stopVoice();
 }
 
 
@@ -113,20 +103,41 @@ void runCalibrate(){
     
     std::ofstream outfile(toString(user_path) + "/parameters.txt", std::ios::app);
 
-    bool found_reference = getReferenceImage();
+	bool found_reference = false;
+	while (!found_reference)
+	{
+		cap >> capture;
+		found_reference = mainEntryPoint->insertFrame(capture);
+	}
+
+	// wasn't able to calibrate for a reference point
+	if(!found_reference){
+		imageCount = 0;
+
+		// remove directory
+		QDir dir(user_path);
+		dir.removeRecursively();
+
+		return;
+	}
+
+	cv::Point refPoint = mainEntryPoint->getEyeVector();
+	switch (imageCount) {
+	case 0:
+		mainEntryPoint->setReferencePoint(refPoint, RefPoint::LEFT);
+		break;
+	case 1:
+		mainEntryPoint->setReferencePoint(refPoint, RefPoint::RIGHT);
+		break;
+	case 2:	
+		mainEntryPoint->setReferencePoint(refPoint, RefPoint::TOP);
+		break;
+	case 3:
+		mainEntryPoint->setReferencePoint(refPoint, RefPoint::BOTTOM);
+		break;
+	}
     
-    
-    // wasn't able to calibrate for a reference point
-    if(!found_reference){
-        imageCount = 0;
-        
-        // remove directory
-        QDir dir(user_path);
-        dir.removeRecursively();
- 
-        return;
-    }
-    
+    /*
     // if calibration is on last image
     if(imageCount == REFIMAGES - 1){
         
@@ -147,7 +158,7 @@ void runCalibrate(){
         referenceMean = cv::Point((ref_left.x + ref_right.x) / 2,
                                   (ref_top.y + ref_bottom.y) / 2);
         
-        updateBoundaryWindows();
+        //updateBoundaryWindows();
         
         outfile << rightEyeBounds.x << " " << rightEyeBounds.y;
         outfile << rightEyeBounds.width << " " << rightEyeBounds.height;
@@ -159,6 +170,7 @@ void runCalibrate(){
         
         CALIBRATED = true;
     }
+	*/
 
 } 
 
@@ -176,7 +188,7 @@ bool startCam(){
     catch(Exception ex){
         return false;
     }
-    singleton->sleep(2000);
+    systemSingleton->sleep(2000);
     return true;
 }
 
@@ -204,13 +216,10 @@ void runMain(){
             cv::Point *pupilAvg = new cv::Point(std::stof(x), std::stof(y));
 
 
-            refArray[i] = pupilAvg;
+            //refArray[i] = pupilAvg;
 
         }
     }
-
-
-    ImgFrame mainEntryPoint;
 
     if (!startCam())
 	{
@@ -219,13 +228,16 @@ void runMain(){
 		return;
 	}
     
-    
     while(RUN){
-        mainEntryPoint.calculateAverageEyeMethod();
+		cap >> capture;
+		if (mainEntryPoint->insertFrame(capture))
+		{
+			systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
+		}
     }
 	cap.release();
 
-	voiceManager.stopVoice();
+	VoiceTool::voiceSingleton().stopVoice();
 
 }
 
@@ -249,49 +261,49 @@ void generateRefImages(){
     cue = Scalar(0, 0, 0);
     cv::circle(cue, cv::Point(horizontal/2, 0), 30, Scalar(0, 0, 255), -1);
     image_path = toString(QDir::currentPath()) + "/ref_images/topBefore.jpg";
-    imwrite(image_path, cue);
+    cv::imwrite(image_path, cue);
 
     // top after
     cue = Scalar(0, 0, 0);
     cv::circle(cue, cv::Point(horizontal/2, 0), 30, Scalar(0, 255, 0), -1);
     image_path = toString(QDir::currentPath()) + "/ref_images/topAfter.jpg";
-    imwrite(image_path, cue);
+    cv::imwrite(image_path, cue);
 
     // left before
     cue = Scalar(0, 0, 0);
     cv::circle(cue, cv::Point(0, vertical/2), 30, Scalar(0, 0, 255), -1);
     image_path = toString(QDir::currentPath()) + "/ref_images/leftBefore.jpg";
-    imwrite(image_path, cue);
+    cv::imwrite(image_path, cue);
     
     // left after
     cue = Scalar(0, 0, 0);
     cv::circle(cue, cv::Point(0, vertical/2), 30, Scalar(0, 255, 0), -1);
     image_path = toString(QDir::currentPath()) + "/ref_images/leftAfter.jpg";
-    imwrite(image_path, cue);
+    cv::imwrite(image_path, cue);
 
     // bottom before
     cue = Scalar(0, 0, 0);
     cv::circle(cue, cv::Point(horizontal/2, vertical), 30, Scalar(0,0, 255), -1);
     image_path = toString(QDir::currentPath()) + "/ref_images/bottomBefore.jpg";
-    imwrite(image_path, cue);
+    cv::imwrite(image_path, cue);
 
     // bottom after
     cue = Scalar(0, 0, 0);
     cv::circle(cue, cv::Point(horizontal/2, vertical), 30, Scalar(0, 255, 0), -1);
     image_path = toString(QDir::currentPath()) + "/ref_images/bottomAfter.jpg";
-    imwrite(image_path, cue);
+    cv::imwrite(image_path, cue);
 
     // right before
     cue = Scalar(0, 0, 0);
     cv::circle(cue, cv::Point(horizontal, vertical/2), 30, Scalar(0, 0, 255), -1);
     image_path = toString(QDir::currentPath()) + "/ref_images/rightBefore.jpg";
-    imwrite(image_path, cue);
+    cv::imwrite(image_path, cue);
 
     // right after
     cue = Scalar(0, 0, 0);
     cv::circle(cue, cv::Point(horizontal, vertical/2), 30, Scalar(0, 255, 0), -1);
     image_path = toString(QDir::currentPath()) + "/ref_images/rightAfter.jpg";
-    imwrite(image_path, cue);
+    cv::imwrite(image_path, cue);
 
 }
 
@@ -299,28 +311,19 @@ void generateRefImages(){
  * MAIN PROGRAM *
  ****************/
 int main(int argc, char *argv[])
-{
-    // Get screen resolution
-    screenres = singleton->getScreenResolution();
-    
-    // initialize voice singleton
-//    voiceManager.initVoice();
-//    voiceManager.disableVoice();
-    
+{        
+	mainEntryPoint = new EyeLogic(systemSingleton->getScreenResolution());
+
     // start camera
 	startCam();
 
-    // load cascade classifier
-    eyeDetector.load("haarcascade_eye_tree_eyeglasses.xml");
-    
-    // ref images path
+	// ref images path
     ref_images_path = QDir::currentPath() + "/ref_images/";
     
     // Create reference images if folder does not exist
     if (!QDir(ref_images_path).exists()){
         generateRefImages();
     }
-
 
     // Start application
     QApplication app(argc, argv);
@@ -329,7 +332,3 @@ int main(int argc, char *argv[])
     w.show();
     return app.exec();
 }
-
-
-
-

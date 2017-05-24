@@ -59,14 +59,17 @@
 class System {
 
 public:
+	
 	bool dragging = false;
 	cv::Point dragStart;
 	virtual void setCurPos(cv::Point setCursor) { return; };
 	virtual cv::Point getCurPos() { return cv::Point(); };
+
 	virtual void click() { return; };
 	virtual void drag() { return; };
 	virtual void doubleClick() { return; }
 	virtual void rightClick() { return; };
+
     virtual bool voiceFork(){return false;};
     virtual std::string readFromJulius(){return "";};
     virtual cv::Point getScreenResolution(){return cv::Point(); };

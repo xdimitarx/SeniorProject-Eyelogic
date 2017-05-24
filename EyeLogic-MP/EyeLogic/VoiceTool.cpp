@@ -1,7 +1,4 @@
 #include "VoiceTool.hpp"
-#include <memory>
-
-extern void stopProg();
 
 bool VoiceTool::enableVoice()
 {
@@ -21,7 +18,7 @@ bool VoiceTool::disableVoice()
 
 bool VoiceTool::initVoice()
 {
-	if(!singleton->voiceFork())
+	if(!systemSingleton->voiceFork())
 	{
 		//ERROR
 	}
@@ -32,50 +29,50 @@ bool VoiceTool::initVoice()
 
 void VoiceTool::stopVoice()
 {
+	threadLock.lock();
 	kill = true;
+	threadLock.unlock();
+
 }
 
 void VoiceTool::monitor()
 {
 	while (!kill)
 	{
-		std::string command = singleton->readFromJulius();
+		std::string command = systemSingleton->readFromJulius();
 		boost::algorithm::to_lower(command);
-		threadLock.lock();
+
+		if (command.compare("mute") == 0)
+		{
+			enabled = !enabled;
+		}
+
 		if(enabled)
 		{
-			std::string command = singleton->readFromJulius();
-			boost::algorithm::to_lower(command);
-
 			if (command.compare("click"))
 			{
-				singleton->click();
+				systemSingleton->click();
 			}
 			else if (command.compare("drag") == 0)
 			{
-				singleton->drag();
+				systemSingleton->drag();
 			}
 			else if (command.compare("double") == 0)
 			{
-				singleton->doubleClick();
+				systemSingleton->doubleClick();
 			}
 			else if (command.compare("right") == 0)
 			{
-				singleton->rightClick();
+				systemSingleton->rightClick();
 			}
 			else if (command.compare("exit") == 0)
 			{
 				kill = true;
 			}
+			else if (command.compare("pause") == 0)
+			{
+				//pause command
+			}
 		}
-		threadLock.unlock();
-
-		if (command.compare("mute") == 0)
-		{
-			threadLock.lock();
-			enabled = !enabled;
-			threadLock.unlock();
-		}
-
 	}
 }

@@ -9,6 +9,140 @@ Mat loadImageAtPath(string path){
     return result;
 }
 
+bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
+{
+	currentFrame = frame;
+
+	Rect faceCrop;
+	if (!faceTemplateExists || !eyeTemplatesExists || forceNewTemplate)
+	{
+		//Presumably slower then template matching
+		vector<cv::Rect_<int>> faces;
+		faceExtractor.detectMultiScale(frame, faces); //Need to apply minimum size
+		if (faces.size() == 0) return false; //No Faces!!
+		faceCrop = faces[0];
+		storeTemplate(frame, faceCrop);
+	}
+	else
+	{
+		if (!checkTemplate(frame, &faceCrop)) return false; //No suitable matches from template
+	}
+
+	Mat cropFace = frame(faceCrop);
+
+	if (!eyeTemplatesExists || forceNewTemplate)
+	{
+		Mat leftHalf = cropFace(Rect(0, 0, cropFace.cols / 2, cropFace.rows));
+		Mat rightHalf = cropFace(Rect(cropFace.cols / 2, 0, cropFace.cols - cropFace.cols / 2, cropFace.rows));
+		
+		//Capture (our right) User's Left Eye Bound box
+		vector<cv::Rect_<int>> eyes;
+		//eyeExtractor.detectMultiScale(rightHalf, eyes);
+		rightEyeBound = eyes[0]; //Class Variable
+		rightEyeBound.width += cropFace.cols / 2;
+
+		//Capture (our left) User's Right Eye Bound box
+		eyes.clear();
+		//eyeExtractor.detectMultiScale(leftHalf,eyes);
+		leftEyeBound = eyes[0];
+	}
+
+	//if (eyes.size() != 2) return false;
+
+
+
+
+	return true;
+}
+
+//check for Mat.empty()
+Mat EyeLogic::getTemplate(Rect * faceCrop, Rect * leftEyeCrop, Rect * rightEyeCrop)
+{
+	return Mat();
+}
+
+void EyeLogic::storeTemplate(Mat image, Rect faceBound, Rect leftEyeCrop, Rect rightEyeCrop)
+{
+
+}
+
+cv::Point EyeLogic::eyeVectorToScreenCoord()
+{
+	return Point();
+}
+
+cv::Point EyeLogic::getEyeVector()
+{
+	return eyeVector;
+}
+
+void EyeLogic::setReferencePoint(cv::Point eyeVector, RefPoint refPosition)
+{
+
+}
+
+//Points are in Enum Order
+vector <cv::Point> * EyeLogic::getReferencePointData()
+{
+	vector <cv::Point> * referencePoints;
+	return referencePoints;
+}
+
+void EyeLogic::setReferencePointData(vector <cv::Point> * data)
+{
+
+}
+
+EyeLogic::EyeLogic(cv::Point screenres)
+{
+	screenres = screenres;
+	faceExtractor.load("haarcascade_frontalface_default.xml");
+	rightEyeExtractor.load("haarcascade_lefteye_2splits.xml");
+	leftEyeExtractor.load("haarcascade_lefteye_2splits.xml");
+}
+
+Mat EyeLogic::applyPupilFilters(Mat eyeCrop)
+{
+	return Mat();
+}
+
+cv::Point EyeLogic::findPupil(cv::Mat eyeCrop) {
+	std::vector<cv::Vec4i> hierarchy;
+	std::vector<std::vector<cv::Point> > contours;
+	findContours(eyeCrop, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+	if (contours.size())
+	{
+		double area = 0;
+		int largest = 0;
+		for (int i = 0; i < contours.size(); ++i)
+		{
+			double calculatedArea = contourArea(contours[i]);
+			if (calculatedArea > area)
+			{
+				largest = i;
+				area = calculatedArea;
+			}
+		}
+		cv::Moments mo = moments(contours[largest], false);
+		cv::Point eyeCenter = cv::Point((int)(mo.m10 / mo.m00), (int)(mo.m01 / mo.m00));
+
+		cv::Rect bounding = boundingRect(contours[largest]);
+		//Point eyeCenter = cv::Point(cvRound(bounding.x + bounding.width / 2), cvRound(bounding.y + bounding.height / 2));
+		int eyeRadius = cvRound(bounding.height*1.05);
+
+		return eyeCenter;
+	}
+	std::cerr << "findPupil: COULDN'T DETERMINE IRIS" << std::endl;
+	return cv::Point(-1, -1);
+}
+
+bool EyeLogic::checkTemplate(Mat frame, Rect * faceCrop)
+{
+	return false;
+}
+
+
+
 
 /*
  *  Find the maximum of a set of points
@@ -16,7 +150,7 @@ Mat loadImageAtPath(string path){
  *  Input: vector of Points, X or Y coordinate
  *
  *  Output: min
- */
+ *
 cv::Point Max(std::vector<cv::Point>data, Coordinate a){
     cv::Point max;
     
@@ -45,13 +179,13 @@ cv::Point Max(std::vector<cv::Point>data, Coordinate a){
     
 }
 
-/*
+*
  *  Find the minimum of a set of points
  *
  *  Input: vector of Points, X or Y coordinate
  *
  *  Output: min
- */
+ *
 cv::Point Min(std::vector<cv::Point>data, Coordinate a){
     
     cv::Point min;
@@ -80,14 +214,14 @@ cv::Point Min(std::vector<cv::Point>data, Coordinate a){
     
 }
 
-/*
+*
  *  checks if half of values in RefVectors are within a certain threshold (currently set to 10) of each other
  *  performs check first on x values and then y values and returns the average of those values if it finds and x and y
  *
  *  Input: vector of Points
  *
  *  Output: pointer to average coordinates or nullptr
- */
+ *
 cv::Point *getStabalizedCoord(std::vector<cv::Point>RefVectors){
     
     if(RefVectors.empty()){
@@ -133,35 +267,7 @@ cv::Point *getStabalizedCoord(std::vector<cv::Point>RefVectors){
 }
 
 
-cv::Point findPupil(cv::Mat eyeCrop){
-    std::vector<cv::Vec4i> hierarchy;
-    std::vector<std::vector<cv::Point> > contours;
-    findContours(eyeCrop, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-    if (contours.size() )
-    {
-        double area = 0;
-        int largest = 0;
-        for (int i = 0; i < contours.size(); ++i)
-        {
-            double calculatedArea = contourArea(contours[i]);
-            if (calculatedArea > area)
-            {
-                largest = i;
-                area = calculatedArea;
-            }
-        }
-        cv::Moments mo = moments(contours[largest], false);
-        cv::Point eyeCenter = cv::Point((int)(mo.m10 / mo.m00), (int)(mo.m01 / mo.m00));
-        
-        cv::Rect bounding = boundingRect(contours[largest]);
-        //Point eyeCenter = cv::Point(cvRound(bounding.x + bounding.width / 2), cvRound(bounding.y + bounding.height / 2));
-        int eyeRadius = cvRound(bounding.height*1.05);
-        
-        return eyeCenter;
-    }
-    std::cerr << "findPupil: COULDN'T DETERMINE IRIS" << std::endl;
-    return cv::Point(-1, -1);
-}
+
 
 
 void updateBoundaryWindows() {
@@ -400,7 +506,7 @@ void ImgFrame::calculateAverageEyeMethod(){
             //draw circle instead of moving cursor
             //TODO: Make program good enough with escape sequence so that we can actually use the cursor
             //		instead of the circle drawn below
-//            singleton->setCurPos(screenMap);
+//            systemSingleton->setCurPos(screenMap);
             cv::circle(capture, screenMap, 5, cv::Scalar(235,244,66) , -1);
             imshow("CAPTURE", capture);
             cv::waitKey(1);
@@ -412,3 +518,5 @@ void ImgFrame::calculateAverageEyeMethod(){
         
     }//while Loop
 }  
+
+*/
