@@ -182,8 +182,8 @@ bool startCam(){
         return false;
     }
     try{
-        cap.set(CV_CAP_PROP_FRAME_WIDTH, 1280);         // 1280
-        cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720);         // 720
+        cap.set(CV_CAP_PROP_FRAME_WIDTH, 10000);         //setting to arbitrarily large size will get max available resolution
+        cap.set(CV_CAP_PROP_FRAME_HEIGHT, 10000);        
     }
     catch(Exception ex){
         return false;
