@@ -5,9 +5,13 @@
 #include <iostream>
 #include <string>
 
+/*********************
+ * MACRO DEFINITIONS *
+ *********************/
+#define REFIMAGES 4                      // number of reference points
+#define MAXFRAMES 30
 
 using namespace std;
-
 
 /*********************
 * EXTERNAL VARIABLES *
@@ -17,7 +21,6 @@ extern int trackEye;
 extern int voiceOption;
 extern const std::string refImageNames [];
 extern int imageCount;
-extern int REFIMAGES;
 extern cv::Point screenres;
 extern QString user_path;
 extern QString ref_images_path;

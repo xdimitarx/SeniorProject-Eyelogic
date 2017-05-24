@@ -327,7 +327,7 @@ void Widget::run()
 
         // set start button text to pause
         userBox->findChild<QLineEdit *>("userName")->setDisabled(true);
-        runButton->setText("Pause");
+        runButton->setText("Stop EyeLogic");
 
         
         // run main program message box
@@ -343,7 +343,7 @@ void Widget::run()
 //        runMain();
 
    }
-   else if (runButton->text() == "Pause"){
+   else if (runButton->text() == "Stop EyeLogic"){
        
        // change text on runButton to 'Pause'
        userBox->findChild<QLineEdit *>("userName")->setDisabled(false);

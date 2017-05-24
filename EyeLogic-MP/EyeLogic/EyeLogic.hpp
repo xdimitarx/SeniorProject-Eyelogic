@@ -53,7 +53,7 @@ public:
 	bool insertFrame(Mat frame, bool forceNewTemplate = false);
 
 	// returns empty Mat if not all templates are available
-	Mat getTemplate(Rect * faceCrop, Rect * leftEyeCrop, Rect * rightEyeCrop);
+	cv::Mat getTemplate(cv::Rect * faceCrop, cv::Rect * leftEyeCrop, cv::Rect * rightEyeCrop);
 
 	/*
 	version 1
@@ -64,7 +64,7 @@ public:
 	storeTemplate(image, faceBound, leftEyeCrop, rightEyeCrop);
 	Take in image as template strip and store corresponding cropping information to be used in insertframe
 	*/
-	void storeTemplate(Mat image, Rect faceBound, Rect leftEyeCrop = Rect(), Rect rightEyeCrop = Rect());
+    void storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEyeCrop = cv::Rect(), cv::Rect rightEyeCrop = cv::Rect());
 
 	// returns point bounded by screen size
 	cv::Point eyeVectorToScreenCoord();
@@ -88,16 +88,16 @@ public:
 private:
 
 	//Template Matching Vars
-	Mat userTemplate; //strip of face including the nose used for template matching
+    cv::Mat userTemplate; //strip of face including the nose used for template matching
 	bool faceTemplateExists = false;
-	Rect faceRect; // face bounding box
+    cv::Rect faceRect; // face bounding box
 
 	bool eyeTemplatesExists = false;
-	Rect leftEyeBound; //relative to face rect
-	Rect rightEyeBound; //relative to face rect
+    cv::Rect leftEyeBound; //relative to face rect
+    cv::Rect rightEyeBound; //relative to face rect
 
 	//frame that is inserted
-	Mat currentFrame;
+    cv::Mat currentFrame;
 
 	//Current Avg Pupil Value
 	cv::Point eyeVector;
@@ -117,7 +117,7 @@ private:
 	cv::Point findPupil(Mat filteredEyeCrop);
 
 	//returns a faceCrop that matches the template if true
-	bool checkTemplate(Mat frame, Rect * faceCrop, cv::Point * frameDifference);
+	bool checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * frameDifference);
 
 };
 

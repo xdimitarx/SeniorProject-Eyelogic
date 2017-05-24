@@ -13,7 +13,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 {
 	currentFrame = frame;
 
-	Rect faceCrop;
+	cv::Rect faceCrop;
 
 	cv::Point frameDiff = cv::Point(0, 0);
 
@@ -33,13 +33,13 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 		if (!checkTemplate(frame, &faceCrop, &frameDiff)) return false; //No suitable matches from template
 	}
 
-	Mat cropFace = frame(faceCrop);
+	cv::Mat cropFace = frame(faceCrop);
 
 	//create new eye templates based off determined face
 	if (!eyeTemplatesExists || forceNewTemplate)
 	{
-		Mat leftHalf = cropFace(Rect(0, 0, cropFace.cols / 2, cropFace.rows));
-		Mat rightHalf = cropFace(Rect(cropFace.cols / 2, 0, cropFace.cols - cropFace.cols / 2, cropFace.rows));
+		cv::Mat leftHalf = cropFace(cv::Rect(0, 0, cropFace.cols / 2, cropFace.rows));
+		cv::Mat rightHalf = cropFace(cv::Rect(cropFace.cols / 2, 0, cropFace.cols - cropFace.cols / 2, cropFace.rows));
 		
 		//Capture (our right) User's Left Eye Bound box
 		vector<cv::Rect_<int>> eyes;
@@ -55,11 +55,11 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 		eyeTemplatesExists = true;
 	}
 
-	Rect lEyeB = leftEyeBound; //This math accounts for shifting from template
+	cv::Rect lEyeB = leftEyeBound; //This math accounts for shifting from template
 	lEyeB.x += frameDiff.x; //if the current frame is the one where the template is generated then frameDiff will be 0
 	lEyeB.y += frameDiff.y; // otherwise frameDiff will be the difference between the original frame and the inserted one
 
-	Rect rEyeB = rightEyeBound;
+	cv::Rect rEyeB = rightEyeBound;
 	rEyeB.x += frameDiff.x;
 	rEyeB.y += frameDiff.y;
 
@@ -77,19 +77,19 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 }
 
 //check for Mat.empty()
-Mat EyeLogic::getTemplate(Rect * faceCrop, Rect * leftEyeCrop, Rect * rightEyeCrop)
+cv::Mat EyeLogic::getTemplate(cv::Rect * faceCrop, cv::Rect * leftEyeCrop, cv::Rect * rightEyeCrop)
 {
 	if (!faceTemplateExists || !eyeTemplatesExists) return Mat();
 
-	faceCrop = new Rect(faceRect);
-	leftEyeCrop = new Rect(leftEyeBound);
-	rightEyeCrop = new Rect(rightEyeBound);
+	faceCrop = new cv::Rect(faceRect);
+	leftEyeCrop = new cv::Rect(leftEyeBound);
+	rightEyeCrop = new cv::Rect(rightEyeBound);
 	return userTemplate;
 }
 
-void EyeLogic::storeTemplate(Mat image, Rect faceBound, Rect leftEyeCrop, Rect rightEyeCrop)
+void EyeLogic::storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEyeCrop, cv::Rect rightEyeCrop)
 {
-	if (leftEyeCrop == Rect() || rightEyeCrop == Rect())
+	if (leftEyeCrop == cv::Rect() || rightEyeCrop == cv::Rect())
 	{
 		faceRect = faceBound; // rect set before template is extracted, template and rect have same width
 
@@ -120,7 +120,7 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 	//ref_Left, ref_Right, ref_Top, ref_Bottom
 	//screenResolution
 	//getEyeVector()
-	return Point(0,0);
+	return cv::Point(0,0);
 }
 
 //Simple get of Eye Vector
@@ -184,9 +184,9 @@ EyeLogic::EyeLogic(cv::Point screenres)
 	leftEyeExtractor.load("haarcascade_lefteye_2splits.xml");
 }
 
-Mat EyeLogic::applyPupilFilters(Mat eyeCrop)
+cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 {
-	Mat result;
+	cv::Mat result;
 
 	cvtColor(eyeCrop, result, CV_BGR2GRAY);
 	equalizeHist(result, result);
@@ -282,22 +282,22 @@ cv::Point EyeLogic::findPupil(cv::Mat eyeCrop) {
 	return cv::Point(-1, -1);
 }
 
-bool EyeLogic::checkTemplate(Mat frame, Rect * faceCrop, cv::Point * frameDifference)
+bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * frameDifference)
 {
-	Mat filteredFrame;
+	cv::Mat filteredFrame;
 	cvtColor(frame, filteredFrame, CV_BGR2GRAY);
 	equalizeHist(filteredFrame, filteredFrame);
 
 	int result_cols = filteredFrame.cols - userTemplate.cols + 1;
 	int result_rows = filteredFrame.rows - userTemplate.rows + 1;
 
-	Mat result;
+	cv::Mat result;
 	result.create(result_rows, result_cols, CV_32FC1);
 
 	matchTemplate(filteredFrame, userTemplate, result, 5);
 	
 	double minVal; double maxVal; cv::Point minLoc; cv::Point matchLoc;
-	minMaxLoc(result, &minVal, &maxVal, &minLoc, &matchLoc, Mat());
+	minMaxLoc(result, &minVal, &maxVal, &minLoc, &matchLoc, cv::Mat());
 
 	//Check match score for plausability?
 
