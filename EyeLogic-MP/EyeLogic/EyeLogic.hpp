@@ -117,7 +117,7 @@ private:
 	cv::Point findPupil(Mat filteredEyeCrop);
 
 	//returns a faceCrop that matches the template if true
-	bool checkTemplate(Mat frame, Rect * faceCrop);
+	bool checkTemplate(Mat frame, Rect * faceCrop, cv::Point * frameDifference);
 
 };
 
