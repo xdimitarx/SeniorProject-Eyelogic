@@ -17,6 +17,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 
 	cv::Point frameDiff = cv::Point(0, 0);
 
+	//Create template or check template
 	if (!faceTemplateExists || !eyeTemplatesExists || forceNewTemplate)
 	{
 		//Presumably slower then template matching
@@ -25,7 +26,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 		if (faces.size() == 0) return false; //No Faces!!
 		faceCrop = faces[0];
 		storeTemplate(frame, faceCrop);
-		eyeTemplatesExists = false;
+		eyeTemplatesExists = false; //create new eyes if new face template
 	}
 	else
 	{
@@ -34,6 +35,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 
 	Mat cropFace = frame(faceCrop);
 
+	//create new eye templates based off determined face
 	if (!eyeTemplatesExists || forceNewTemplate)
 	{
 		Mat leftHalf = cropFace(Rect(0, 0, cropFace.cols / 2, cropFace.rows));
@@ -43,7 +45,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 		vector<cv::Rect_<int>> eyes;
 		rightEyeExtractor.detectMultiScale(rightHalf, eyes);
 		rightEyeBound = eyes[0]; //Class Variable
-		rightEyeBound.x += cropFace.cols / 2;
+		rightEyeBound.x += cropFace.cols / 2; // this is to account for split in half above
 
 		//Capture (our left) User's Right Eye Bound box
 		eyes.clear();
@@ -54,8 +56,8 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 	}
 
 	Rect lEyeB = leftEyeBound; //This math accounts for shifting from template
-	lEyeB.x += frameDiff.x;
-	lEyeB.y += frameDiff.y;
+	lEyeB.x += frameDiff.x; //if the current frame is the one where the template is generated then frameDiff will be 0
+	lEyeB.y += frameDiff.y; // otherwise frameDiff will be the difference between the original frame and the inserted one
 
 	Rect rEyeB = rightEyeBound;
 	rEyeB.x += frameDiff.x;
@@ -89,11 +91,12 @@ void EyeLogic::storeTemplate(Mat image, Rect faceBound, Rect leftEyeCrop, Rect r
 {
 	if (leftEyeCrop == Rect() || rightEyeCrop == Rect())
 	{
-		faceRect = faceBound;
+		faceRect = faceBound; // rect set before template is extracted, template and rect have same width
 
 		faceBound.y += faceBound.height*0.6;
 		faceBound.height = faceBound.height*0.2;
-		userTemplate = image(faceBound);
+
+		userTemplate = image(faceBound); //userTemplate is a region around the upper lip that has been converted to gray scale and equalized historgrams
 		cvtColor(userTemplate, userTemplate, CV_BGR2GRAY);
 		equalizeHist(userTemplate, userTemplate);
 		
@@ -112,9 +115,15 @@ void EyeLogic::storeTemplate(Mat image, Rect faceBound, Rect leftEyeCrop, Rect r
 
 cv::Point EyeLogic::eyeVectorToScreenCoord()
 {
-	return Point();
+	if (!Calibrated()) return cv::Point(0, 0);
+	//Variables accessible within this function
+	//ref_Left, ref_Right, ref_Top, ref_Bottom
+	//screenResolution
+	//getEyeVector()
+	return Point(0,0);
 }
 
+//Simple get of Eye Vector
 cv::Point EyeLogic::getEyeVector()
 {
 	return eyeVector;
@@ -160,6 +169,11 @@ void EyeLogic::setReferencePointData(vector <cv::Point> * data)
 	ref_Right = data->at(1);
 	ref_Top = data->at(2);
 	ref_Bottom = data->at(3);
+}
+
+bool EyeLogic::Calibrated()
+{
+	return (ref_Bottom != cv::Point(0, 0) && ref_Left != cv::Point(0, 0) && ref_Top == cv::Point(0, 0) && ref_Right == cv::Point(0, 0));
 }
 
 EyeLogic::EyeLogic(cv::Point screenres)
@@ -289,8 +303,8 @@ bool EyeLogic::checkTemplate(Mat frame, Rect * faceCrop, cv::Point * frameDiffer
 
 	*faceCrop = faceRect;
 	faceCrop->x = matchLoc.x;
-	faceCrop->y = matchLoc.y;
+	faceCrop->y = matchLoc.y - faceRect.height*0.6;
 	frameDifference->x = matchLoc.x - faceRect.x;
-	frameDifference->y = matchLoc.y - faceRect.y;
+	frameDifference->y = matchLoc.y - (faceRect.y - faceRect.height*0.6);
 	return true;
 }

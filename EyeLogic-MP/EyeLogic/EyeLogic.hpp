@@ -81,11 +81,11 @@ public:
 	// sets reference positions according to input vector ^^^
 	void setReferencePointData(vector <cv::Point> * data);
 
+	bool Calibrated();
+
 	EyeLogic(cv::Point screenres);
 
 private:
-
-	bool Calibrated = false;
 
 	//Template Matching Vars
 	Mat userTemplate; //strip of face including the nose used for template matching
