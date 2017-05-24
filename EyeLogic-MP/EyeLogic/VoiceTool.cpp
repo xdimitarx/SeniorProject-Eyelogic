@@ -69,10 +69,6 @@ void VoiceTool::monitor()
 			{
 				kill = true;
 			}
-			else if (command.compare("pause") == 0)
-			{
-				//pause command
-			}
 		}
 	}
 }
