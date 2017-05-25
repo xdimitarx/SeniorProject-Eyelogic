@@ -18,6 +18,10 @@ bool VoiceTool::disableVoice()
 
 bool VoiceTool::initVoice()
 {
+	threadLock.lock();
+	kill = false;
+	threadLock.unlock();
+
 	if(!systemSingleton->voiceFork())
 	{
 		return false;
@@ -31,22 +35,25 @@ void VoiceTool::stopVoice()
 	threadLock.lock();
 	kill = true;
 	threadLock.unlock();
-
 }
 
 void VoiceTool::monitor()
 {
+	threadLock.lock();
 	while (!kill)
 	{
+		threadLock.unlock();
 		std::string command = systemSingleton->readFromJulius();
 		boost::algorithm::to_lower(command);
 
 		if (command.compare("mute") == 0)
 		{
+			threadLock.lock();
 			enabled = !enabled;
+			threadLock.unlock();
 		}
 
-		if(enabled)
+		if (enabled)
 		{
 			if (command.compare("click"))
 			{
@@ -69,5 +76,7 @@ void VoiceTool::monitor()
 				kill = true;
 			}
 		}
+		threadLock.lock();
 	}
+	threadLock.unlock();
 }

@@ -2,6 +2,9 @@
 #define WIDGET_H
 
 #include "../EyeLogic/System.hpp"
+
+#include "EyeLogic/VoiceTool.hpp"
+
 #include <iostream>
 #include <string>
 
@@ -33,9 +36,6 @@ extern bool CALIBRATED;
 void runCalibrate();
 void runMain();
 std::string toString(QString qs);
-void disableVoice();
-void enableVoice();
-void stopVoice();
 
 /***************
  * GLOBAL ENUM *

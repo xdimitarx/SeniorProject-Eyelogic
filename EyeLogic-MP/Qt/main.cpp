@@ -62,18 +62,6 @@ std::string toString(QString qs){
     return qs.toUtf8().constData();
 }
 
-void disableVoice(){
-    VoiceTool::voiceSingleton().disableVoice();
-}
-
-void enableVoice(){
-	VoiceTool::voiceSingleton().enableVoice();
-}
-
-void stopVoice(){
-	VoiceTool::voiceSingleton().stopVoice();
-}
-
 // reset calibration parameters
 void restartCalibration(){
     imageCount = 0;
@@ -219,6 +207,7 @@ void runMain(){
     
     if(!CALIBRATED){
     
+		vector <cv::Point> data;
         for(int i = 0; i < REFIMAGES; i++){
 
             std::string line;
@@ -230,12 +219,11 @@ void runMain(){
             iss >> x >> y;
             cv::Point *pupilAvg = new cv::Point(std::stof(x), std::stof(y));
 
-
-            //refArray[i] = pupilAvg;
-
+			data.push_back(*pupilAvg);
         }
+		mainEntryPoint->setReferencePointData(&data);
+		// mainEntryPoint->storeTemplate(imageStrip, faceRect, leftEyeBound, rightEyeBound); will need to pass in
     }
-    
 
     while(RUN)
     {
@@ -245,11 +233,8 @@ void runMain(){
             systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
         }
     }
-    
-	cap.release();
 
-	VoiceTool::voiceSingleton().stopVoice();
-
+	VoiceTool::voiceSingleton().disableVoice();
 }
 
 
@@ -323,8 +308,12 @@ void generateRefImages(){
  ****************/
 int main(int argc, char *argv[])
 {
-	bool info = VoiceTool::voiceSingleton().initVoice();
-	VoiceTool::voiceSingleton().enableVoice();
+	// acquire camera
+	if (startCam()) return -1;
+
+	// initialize voice
+	if (!VoiceTool::voiceSingleton().initVoice()) cerr << "Voice could not be started" << endl;
+
     screenres = systemSingleton->getScreenResolution();
 	mainEntryPoint = new EyeLogic(screenres);
 
@@ -332,9 +321,6 @@ int main(int argc, char *argv[])
 	//capture = loadImageAtPath("dom.jpg");
 	//mainEntryPoint->insertFrame(capture);
 	//mainEntryPoint->insertFrame(capture);
-
-    // start camera
-	startCam();
 
 	// ref images path
     ref_images_path = QDir::currentPath() + "/ref_images/";
@@ -349,5 +335,10 @@ int main(int argc, char *argv[])
     Widget w;
     w.setWindowTitle("Welcome to Eyelogic Setup");
     w.show();
-    return app.exec();
+    app.exec();
+
+	//Clean Up
+	VoiceTool::voiceSingleton().stopVoice();
+	cap.release();
+	return 0;
 }

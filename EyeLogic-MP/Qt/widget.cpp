@@ -386,8 +386,7 @@ void Widget::cancel()
 }
 
 void Widget::stop(){
-//    stopVoice();
-    QApplication::quit();
+	QApplication::quit(); //dimitri, i handled voice cleanup in main, delete this comment after you read it
 }
 
 /*
@@ -412,7 +411,7 @@ void Widget::toggleRightEye(){
  */
 void Widget::toggleVoiceOn(){
     voiceOption = on;
-    enableVoice();
+	VoiceTool::voiceSingleton().enableVoice();
     cout << "voiceOption = " << voiceOption << endl;
 }
 
@@ -421,7 +420,7 @@ void Widget::toggleVoiceOn(){
  */
 void Widget::toggleVoiceOff(){
     voiceOption = off;
-    disableVoice();
+	VoiceTool::voiceSingleton().disableVoice();
     cout << "voiceOption = " << voiceOption << endl;
     
 }

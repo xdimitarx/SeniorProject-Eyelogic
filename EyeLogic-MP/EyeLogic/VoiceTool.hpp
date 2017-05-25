@@ -17,7 +17,6 @@ public:
 		static VoiceTool instance;
 		return instance;
 	}
-
 	
 	bool enableVoice();
 	bool disableVoice();
