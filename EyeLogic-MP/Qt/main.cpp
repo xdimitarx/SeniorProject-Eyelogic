@@ -323,8 +323,15 @@ void generateRefImages(){
  ****************/
 int main(int argc, char *argv[])
 {
+	bool info = VoiceTool::voiceSingleton().initVoice();
+	VoiceTool::voiceSingleton().enableVoice();
     screenres = systemSingleton->getScreenResolution();
 	mainEntryPoint = new EyeLogic(screenres);
+
+	//POUNEH THIS IS HOW I TEST vvv
+	//capture = loadImageAtPath("dom.jpg");
+	//mainEntryPoint->insertFrame(capture);
+	//mainEntryPoint->insertFrame(capture);
 
     // start camera
 	startCam();

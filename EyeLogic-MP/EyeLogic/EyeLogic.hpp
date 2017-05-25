@@ -35,9 +35,6 @@ using namespace cv;
  * HELPER FUNCTIONS *
  ********************/
 Mat loadImageAtPath(string path);
-bool startCam();
-//bool getReferenceImage();
-//void updateBoundaryWindows();
 
 /*********************
  * CLASS DEFINITIONS *
@@ -52,7 +49,7 @@ public:
 	//basic public function, forceNewTemplate forces a creation of new template images
 	bool insertFrame(Mat frame, bool forceNewTemplate = false);
 
-	// returns empty Mat if not all templates are available
+	// returns Mat.empty() if not all templates are available
 	cv::Mat getTemplate(cv::Rect * faceCrop, cv::Rect * leftEyeCrop, cv::Rect * rightEyeCrop);
 
 	/*
@@ -81,7 +78,8 @@ public:
 	// sets reference positions according to input vector ^^^
 	void setReferencePointData(vector <cv::Point> * data);
 
-	bool Calibrated();
+	// valid = true also checks if reference points make a valid bounding box
+	bool Calibrated(bool valid);
 
 	EyeLogic(cv::Point screenres);
 
@@ -109,16 +107,18 @@ private:
 	CascadeClassifier faceExtractor;
 	CascadeClassifier leftEyeExtractor;
 	CascadeClassifier rightEyeExtractor;
+
+	//finds and sets eye bounds from faceCrop and sets eyeTemplatesExists = true
+	bool createEyeBounds(cv::Mat faceCrop);
 	
 	//applies dom filters for pupil detection
 	Mat applyPupilFilters(Mat eyeCrop);
 
-	//uses image moments to detect center of pupil
+	//uses image moments to detect center of pupil from filtered image
 	cv::Point findPupil(Mat filteredEyeCrop);
 
-	//returns a faceCrop that matches the template if true
+	//returns a faceCrop that matches the template if true and the difference between the two planes
 	bool checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * frameDifference);
-
 };
 
 #endif

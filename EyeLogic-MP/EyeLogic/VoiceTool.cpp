@@ -20,9 +20,8 @@ bool VoiceTool::initVoice()
 {
 	if(!systemSingleton->voiceFork())
 	{
-		//ERROR
+		return false;
 	}
-	enabled = true;
 	std::unique_ptr<boost::thread> t ( new boost::thread(boost::bind(&VoiceTool::monitor, this)));
 	return true;
 }
