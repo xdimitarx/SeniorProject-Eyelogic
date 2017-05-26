@@ -35,21 +35,11 @@ QGroupBox *Widget::calibrationSettingsBox()
     QVBoxLayout *vbox = new QVBoxLayout();
 
     // radio buttons to determine what settings user wants for calibration
-    QRadioButton *right = new QRadioButton(tr("Use Right Eye"));
-    QRadioButton *left = new QRadioButton(tr("Use Left Eye"));
     QPushButton *startCalib = new QPushButton(tr("Start Calibration Process"));
 
-
-    QObject::connect(left, SIGNAL(toggled(bool)), this, SLOT(toggleLeftEye()));
-    QObject::connect(right, SIGNAL(toggled(bool)), this, SLOT(toggleRightEye()));
     QObject::connect(startCalib, SIGNAL(clicked(bool)), this, SLOT(calibrate()));
 
-    // set first radio button checked by default
-    right->setChecked(true);
-
-    // add buttons to layout, and layout to widget, return widget
-    vbox->addWidget(right);
-    vbox->addWidget(left);
+    // add buttonsto layout, and layout to widget, return widget
     vbox->addWidget(startCalib);
     calibGroupBox->setLayout(vbox);
     return calibGroupBox;
@@ -388,23 +378,6 @@ void Widget::cancel()
 void Widget::stop(){
 //    stopVoice();
     QApplication::quit();
-}
-
-/*
- * Event handler for left eye radio button
- */
-void Widget::toggleLeftEye(){
-    trackEye = leftEye;
-    cout << "trackEye = " << trackEye << endl;
-}
-
-/*
- * Event handler for right eye radio button
- */
-void Widget::toggleRightEye(){
-    trackEye = rightEye;
-    cout << "trackEye = " << trackEye << endl;
-    
 }
 
 /*

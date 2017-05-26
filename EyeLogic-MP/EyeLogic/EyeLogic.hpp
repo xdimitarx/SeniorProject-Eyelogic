@@ -43,7 +43,7 @@ bool startCam();
  * CLASS DEFINITIONS *
  *********************/
 
-enum class RefPoint { LEFT, RIGHT, TOP, BOTTOM};
+enum class RefPoint { LEFT, RIGHT, TOP, BOTTOM };
 
 class EyeLogic {
 

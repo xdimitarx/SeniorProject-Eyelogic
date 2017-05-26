@@ -40,11 +40,6 @@ void stopVoice();
 /***************
  * GLOBAL ENUM *
  ***************/
-enum TrackEye {
-    rightEye,       // 0
-    leftEye         // 1
-};
-
 enum Voice {
     on,             // 0
     off             // 1
@@ -79,8 +74,6 @@ public slots:
     void run();
     void next();
     void cancel();
-    void toggleLeftEye();
-    void toggleRightEye();
     void toggleVoiceOn();
     void toggleVoiceOff();
     void stop();
