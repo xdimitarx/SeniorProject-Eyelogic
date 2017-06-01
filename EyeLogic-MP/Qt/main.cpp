@@ -237,20 +237,35 @@ void captureLoop()
 			cap >> capture;
 			if (mainEntryPoint->insertFrame(capture, true))
 			{
-				systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
-				errorCount = 0;
+				cv::Point screenCoord = mainEntryPoint->eyeVectorToScreenCoord();
+				if (screenCoord == cv::Point(-1, -1))
+				{
+					errorCount++;
+				}
+				else
+				{
+					systemSingleton->setCurPos(screenCoord);
+					errorCount = 0;
+				}
 			}
 			else
 				errorCount++;
-
 		}
 		else
 		{
 			cap >> capture;
 			if (mainEntryPoint->insertFrame(capture, true))
 			{
-				systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
-				errorCount = 0;
+				cv::Point screenCoord = mainEntryPoint->eyeVectorToScreenCoord();
+				if (screenCoord == cv::Point(-1, -1))
+				{
+					errorCount++;
+				}
+				else
+				{
+					systemSingleton->setCurPos(screenCoord);
+					errorCount = 0;
+				}	
 			}
 			else
 				errorCount++;

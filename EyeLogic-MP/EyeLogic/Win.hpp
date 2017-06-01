@@ -13,47 +13,39 @@ public:
 
 	virtual bool voiceFork() override
 	{
-		try
-		{
-			HANDLE g_hChildStd_OUT_Wr = NULL;
+		HANDLE g_hChildStd_OUT_Wr = NULL;
 
-			SECURITY_ATTRIBUTES saAttr;
+		SECURITY_ATTRIBUTES saAttr;
 
-			saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
-			saAttr.bInheritHandle = TRUE;
-			saAttr.lpSecurityDescriptor = NULL;
+		saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+		saAttr.bInheritHandle = TRUE;
+		saAttr.lpSecurityDescriptor = NULL;
 
-			if (!CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0))
-				return false;
-
-			PROCESS_INFORMATION piProcInfo;
-			STARTUPINFO siStartInfo;
-
-			ZeroMemory(&siStartInfo, sizeof(STARTUPINFO));
-			siStartInfo.cb = sizeof(STARTUPINFO);
-			siStartInfo.hStdError = g_hChildStd_OUT_Wr;
-			siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
-			siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
-
-			TCHAR szCmdline[] = TEXT("Grammar\\julius-4.3.1.exe -C Grammar\\Voice.jconf"); //might not work due to working directory
-
-			bool bSuccess = CreateProcess(NULL,
-				szCmdline,     // command line 
-				NULL,          // process security attributes 
-				NULL,          // primary thread security attributes 
-				TRUE,          // handles are inherited 
-				CREATE_NO_WINDOW,             // creation flags 
-				NULL,          // use parent's environment 
-				NULL,          // use parent's current directory 
-				&siStartInfo,  // STARTUPINFO pointer 
-				&piProcInfo);  // receives PROCESS_INFORMATION
-			return true;
-		}
-		catch (...)
-		{
+		if (!CreatePipe(&g_hChildStd_OUT_Rd, &g_hChildStd_OUT_Wr, &saAttr, 0))
 			return false;
-		}
-		return false;		
+
+		PROCESS_INFORMATION piProcInfo;
+		STARTUPINFO siStartInfo;
+
+		ZeroMemory(&siStartInfo, sizeof(STARTUPINFO));
+		siStartInfo.cb = sizeof(STARTUPINFO);
+		siStartInfo.hStdError = g_hChildStd_OUT_Wr;
+		siStartInfo.hStdOutput = g_hChildStd_OUT_Wr;
+		siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+
+		TCHAR szCmdline[] = TEXT("Grammar\\julius-4.3.1.exe -C Grammar\\Voice.jconf"); //might not work due to working directory
+
+		bool bSuccess = CreateProcess(NULL,
+			szCmdline,     // command line 
+			NULL,          // process security attributes 
+			NULL,          // primary thread security attributes 
+			TRUE,          // handles are inherited 
+			CREATE_NO_WINDOW,             // creation flags 
+			NULL,          // use parent's environment 
+			NULL,          // use parent's current directory 
+			&siStartInfo,  // STARTUPINFO pointer 
+			&piProcInfo);  // receives PROCESS_INFORMATION
+		return bSuccess;		
 	}
 
 	virtual string readFromJulius() override
@@ -72,8 +64,8 @@ public:
 			else
 			{
 				string converted(chBuf);
-				int startIndex = converted.rfind("sentence1: <s> ");
-				int endIndex = converted.find(" </s>", startIndex);
+				size_t startIndex = converted.rfind("sentence1: <s> ");
+				size_t endIndex = converted.find(" </s>", startIndex);
 				if (startIndex != string::npos && endIndex != string::npos && endIndex > startIndex)
 				{
 					startIndex += 15;

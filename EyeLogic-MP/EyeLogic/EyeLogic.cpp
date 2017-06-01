@@ -118,6 +118,7 @@ cv::Mat EyeLogic::getTemplate(cv::Rect * faceCrop, cv::Rect * leftEyeCrop, cv::R
 */
 void EyeLogic::storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEyeCrop, cv::Rect rightEyeCrop)
 {
+	//if true then a new template will be created, otherwise is trying to load old template
 	if (leftEyeCrop == cv::Rect() || rightEyeCrop == cv::Rect())
 	{
 		faceRect = faceBound; // rect set before template is extracted, template and rect have same width
@@ -153,10 +154,9 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 	}
 
 	cv::Point averageLocal = getEyeVector();
-
 	cv::Point destinationNew;
 
-
+	//check if detected point is out of maximum bounds
 	if (averageLocal.x < ref_Right.x || averageLocal.x > ref_Left.x || averageLocal.y < ref_Top.y || averageLocal.y > ref_Bottom.y) {
 		//imshow("CAPTURE", capture);
 		//cv::waitKey(1);
@@ -484,9 +484,9 @@ cv::Point EyeLogic::findPupil(cv::Mat eyeCrop) {
 /*
 *	checkTemplate
 *	Description: checks new frame against template and if good match is found returns the
-*	location of the new faceCrop and the difference in locations between the two.
+*	location of the new faceCrop and the difference in locations between the faceCrop and template
 *
-*	return false if a valid match was not found (Note: doesn't current evaluate match scores, just looks for the best one)
+*	return false if a valid match was not found
 */
 bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * frameDifference)
 {

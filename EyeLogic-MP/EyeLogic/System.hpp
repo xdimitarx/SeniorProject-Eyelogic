@@ -62,7 +62,7 @@ public:
 	
 	bool dragging = false;
 	cv::Point dragStart;
-	virtual void setCurPos(cv::Point setCursor) { return; };
+	virtual void setCurPos(cv::Point) { return; };
 	virtual cv::Point getCurPos() { return cv::Point(); };
 
 	virtual void click() { return; };
@@ -73,7 +73,7 @@ public:
     virtual bool voiceFork(){return false;};
     virtual std::string readFromJulius(){return "";};
     virtual cv::Point getScreenResolution(){return cv::Point(); };
-	virtual void sleep(int timeMS) { return; };
+	virtual void sleep(int) { return; };
 };
 
 #endif /* System_h */
