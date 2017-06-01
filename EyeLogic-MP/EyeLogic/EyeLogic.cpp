@@ -137,7 +137,7 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 		//imshow("CAPTURE", capture);
 		//cv::waitKey(1);
 		//TODO: head moving things
-		return Point(0, 0);
+        return cv::Point(0, 0);
 	}
 
 	destinationNew.x = (screenResolution.x - ((averageLocal.x - ref_Right.x) * screenResolution.x / distance.x));
@@ -249,9 +249,9 @@ EyeLogic::EyeLogic(cv::Point screenres)
 {
 	screenResolution = screenres;
 
-	destinationOld = Point(-1, -1);
-	direction = Point(0, 0);
-	delta = Point(0,0);
+    destinationOld = cv::Point(-1, -1);
+    direction = cv::Point(0, 0);
+    delta = cv::Point(0,0);
 	faceExtractor.load("haarcascade_frontalface_default.xml");
 	rightEyeExtractor.load("haarcascade_lefteye_2splits.xml");
 	leftEyeExtractor.load("haarcascade_lefteye_2splits.xml");
@@ -421,7 +421,7 @@ cv::Point EyeLogic::findPupil(cv::Mat eyeCrop) {
 /*
 *	checkTemplate
 *	Description: checks new frame against template and if good match is found returns the
-*	location of the new faceCrop and the difference in locations between the two
+*	location of the new faceCrop and the difference in locations between the two.
 *
 *	return false if a valid match was not found (Note: doesn't current evaluate match scores, just looks for the best one)
 */

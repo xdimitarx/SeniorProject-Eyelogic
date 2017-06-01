@@ -35,10 +35,6 @@ cv::Mat capture;
 // error message box size
 QPoint msgBoxSize(500, 300);
 
-// calibration options for tracking eyes + method for clicking
-int trackEye = 0;
-int voiceOption = 0;
-
 // screen resolution
 cv::Point screenres;
 
@@ -62,6 +58,12 @@ std::string toString(QString qs){
 //    return qs.toUtf8().constData();
 }
 
+// Converts string to QString
+QString toQString(std::string str){
+    return QString::fromStdString(str);
+    
+}
+
 // reset calibration parameters
 void restartCalibration(){
     imageCount = 0;
@@ -71,6 +73,21 @@ void restartCalibration(){
     dir.removeRecursively();
 }
 
+// prints error message - input: string
+void printError(std::string msg){
+    QMessageBox messageBox;
+    messageBox.setText(toQString(msg));
+    messageBox.setFixedSize(msgBoxSize.x(), msgBoxSize.y());
+    messageBox.exec();
+}
+
+// prints error message - input: QString
+void printError(QString msg){
+    QMessageBox messageBox;
+    messageBox.setText(msg);
+    messageBox.setFixedSize(msgBoxSize.x(), msgBoxSize.y());
+    messageBox.exec();
+}
 
 /*
  *  Calibration method that will start calibration process
@@ -100,7 +117,6 @@ bool runCalibrate(){
             }
         }
 	}
-
 
 	cv::Point refPoint = mainEntryPoint->getEyeVector();
 	switch (imageCount) {
@@ -143,6 +159,7 @@ bool runCalibrate(){
         cv::Mat faceStrip =  mainEntryPoint->getTemplate(&faceCrop, &leftEyeCrop, &rightEyeCrop);
         
         if(faceStrip.empty()){
+            std::cerr << "Error in runCalibrate: faceStrip was empty" << std::endl;
 			return false;
         }
         
@@ -181,6 +198,7 @@ bool runCalibrate(){
  */
 bool startCam(){
     if (!cap.open(0)){
+        printError((string)"no webcam detected");
         return false;
     }
     try{
@@ -190,6 +208,7 @@ bool startCam(){
         cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720);
     }
     catch(Exception ex){
+        
         return false;
     }
     systemSingleton->sleep(2000);

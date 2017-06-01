@@ -20,8 +20,6 @@ using namespace std;
 * EXTERNAL VARIABLES *
 **********************/
 extern QPoint msgBoxSize;
-extern int trackEye;
-extern int voiceOption;
 extern const std::string refImageNames [];
 extern int imageCount;
 extern cv::Point screenres;
@@ -37,14 +35,6 @@ extern bool RunOnce;
 bool runCalibrate();
 void runMain();
 std::string toString(QString qs);
-
-/***************
- * GLOBAL ENUM *
- ***************/
-enum Voice {
-    on,             // 0
-    off             // 1
-};
 
 /****************
  * WIDGET CLASS *

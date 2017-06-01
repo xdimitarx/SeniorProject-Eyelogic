@@ -129,6 +129,10 @@ public:
         return screenres;
     }
     
+    virtual void sleep(int timeMS) override {
+        usleep(timeMS*1000);
+    }
+    
 
 };
 

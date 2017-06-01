@@ -231,9 +231,9 @@ void Widget::calibrate()
     // move calibration box on top of image to bottom-middle of screen
     calibrationPage->show();
     calibrationPage->move(screenres.x/2 - calibrationPage->width()/2, screenres.y/2 - calibrationPage->height()/2);
-	qApp->processEvents();
-
-	systemSingleton->sleep(3000);
+	
+    qApp->processEvents();
+	systemSingleton->sleep(2000);
 
     //***************************
     // CALL CALIBRATION FUNCTION
@@ -265,8 +265,8 @@ void Widget::next()
     QString ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "Before.jpg";
     imageLabel->setPixmap(QPixmap(ref_image));
     imageLabel->showFullScreen();
-	qApp->processEvents();
-
+	
+    qApp->processEvents();
 	systemSingleton->sleep(2000);
     
     //***************************
@@ -395,17 +395,16 @@ void Widget::stop(){
  * Event handler for voice on radio button
  */
 void Widget::toggleVoiceOn(){
-    voiceOption = on;
+
 	VoiceTool::voiceSingleton().enableVoice();
-    cout << "voiceOption = " << voiceOption << endl;
+
 }
 
 /*
  * Event handler for voice off radio button
  */
 void Widget::toggleVoiceOff(){
-    voiceOption = off;
 	VoiceTool::voiceSingleton().disableVoice();
-    cout << "voiceOption = " << voiceOption << endl;
+
     
 }
