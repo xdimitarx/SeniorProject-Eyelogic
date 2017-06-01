@@ -225,13 +225,39 @@ void runMain(){
 		// mainEntryPoint->storeTemplate(imageStrip, faceRect, leftEyeBound, rightEyeBound); will need to pass in
     }
 
+	//ErrorLimits
+	int errorCount = 0;
+
     while(RUN)
     {
-        cap >> capture;
-        if (mainEntryPoint->insertFrame(capture))
-        {
-            systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
-        }
+		if (errorCount > 200)
+		{
+			RUN = false;
+			//Display Error
+		}
+		else if (errorCount > 100)
+		{
+			cap >> capture;
+			if (mainEntryPoint->insertFrame(capture, true))
+			{
+				systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
+				errorCount = 0;
+			}
+			else
+				errorCount++;
+
+		}
+		else
+		{
+			cap >> capture;
+			if (mainEntryPoint->insertFrame(capture, true))
+			{
+				systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
+				errorCount = 0;
+			}
+			else
+				errorCount++;
+		}
     }
 
 	VoiceTool::voiceSingleton().disableVoice();
@@ -309,7 +335,7 @@ void generateRefImages(){
 int main(int argc, char *argv[])
 {
 	// acquire camera
-	if (startCam()) return -1;
+	if (!startCam()) return -1;
 
 	// initialize voice
 	if (!VoiceTool::voiceSingleton().initVoice()) cerr << "Voice could not be started" << endl;
