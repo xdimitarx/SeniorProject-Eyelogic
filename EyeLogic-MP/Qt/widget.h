@@ -28,14 +28,13 @@ extern cv::Point screenres;
 extern QString user_path;
 extern QString ref_images_path;
 extern bool RUN;
-extern bool PAUSE;
 extern bool CALIBRATED;
 extern bool RunOnce;
 
 /*********************
 * EXTERNAL FUNCTIONS *
 **********************/
-void runCalibrate();
+bool runCalibrate();
 void runMain();
 std::string toString(QString qs);
 

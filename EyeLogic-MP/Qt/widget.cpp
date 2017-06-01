@@ -179,7 +179,6 @@ Widget::~Widget()
  */
 void Widget::calibrate()
 {
-
     imageCount = 0;
 
     QString user = userBox->findChild<QLineEdit *>("userName")->text();
@@ -229,27 +228,29 @@ void Widget::calibrate()
     imageLabel->setPixmap(QPixmap(ref_image));
     imageLabel->showFullScreen();
 
-
     // move calibration box on top of image to bottom-middle of screen
     calibrationPage->show();
     calibrationPage->move(screenres.x/2 - calibrationPage->width()/2, screenres.y/2 - calibrationPage->height()/2);
+	qApp->processEvents();
 
-    // disable next button
-    nextButton->setEnabled(false);
+	systemSingleton->sleep(3000);
 
     //***************************
     // CALL CALIBRATION FUNCTION
     //***************************
-    runCalibrate();
+
+	if (!runCalibrate())
+	{
+		imageLabel->showNormal();
+		delete imageLabel;
+		calibrationPage->hide();
+		return;
+	}
 
     // display green dot
     ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "After.jpg";
     imageLabel->setPixmap(QPixmap(ref_image));
     imageLabel->showFullScreen();
-
-    // enable next button
-    nextButton->setEnabled(true);
-
 }
 
 /*
@@ -259,14 +260,25 @@ void Widget::next()
 {
     
     imageCount++;
+
+	//display red dot
     QString ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "Before.jpg";
     imageLabel->setPixmap(QPixmap(ref_image));
     imageLabel->showFullScreen();
+	qApp->processEvents();
+
+	systemSingleton->sleep(2000);
     
     //***************************
     // CALL CALIBRATION FUNCTION
     //***************************
-     runCalibrate();
+	if (!runCalibrate())
+	{
+		imageLabel->showNormal();
+		delete imageLabel;
+		calibrationPage->hide();
+		return;
+	}
     
     // display green dot
     ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "After.jpg";
@@ -333,7 +345,7 @@ void Widget::run()
         runMain();
 
    }
-   else if (runButton->text() == "Pause EyeLogic"){
+   else if (runButton->text() == "Stop EyeLogic"){
        
        // change text on runButton to 'Pause'
        userBox->findChild<QLineEdit *>("userName")->setDisabled(false);
@@ -342,7 +354,7 @@ void Widget::run()
        //********************
        // PAUSE MAIN PROGRAM
        //********************
-       PAUSE = false;
+       RUN = false;
    }
 }
 

@@ -73,7 +73,7 @@ public:
 	void setReferencePoint(cv::Point point, RefPoint refPosition);
 
 	// returns vector of points in order (LEFT, RIGHT, TOP, BOTTOM)
-	vector <cv::Point> * getReferencePointData();
+	vector <cv::Point>  getReferencePointData();
 
 	// sets reference positions according to input vector ^^^
 	void setReferencePointData(vector <cv::Point> * data);

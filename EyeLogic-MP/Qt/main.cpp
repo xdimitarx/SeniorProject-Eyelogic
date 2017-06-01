@@ -27,7 +27,6 @@ EyeLogic * mainEntryPoint;
 int imageCount = 0;               // which reference image calibration is currently on
 bool CALIBRATED = false;            // global variable that determines if user ran calibration before running program
 bool RUN = false;                   // flag to determine whether to track eyes or not
-bool PAUSE = false;					// flag to determine whether the user has paused
 
 //OpenCV Camera
 VideoCapture cap;
@@ -70,7 +69,6 @@ void restartCalibration(){
     // remove directory
     QDir dir(user_path);
     dir.removeRecursively();
-    
 }
 
 
@@ -78,13 +76,11 @@ void restartCalibration(){
  *  Calibration method that will start calibration process
  *  Tied to event listener and called when button is clicked
  */
-void runCalibrate(){
-    
-    cv::Point distance;
+bool runCalibrate(){
     cv::Point referenceMean;
-    std::vector<cv::Point> *data;
+    std::vector<cv::Point> data;
     
-    bool frame_count = 0;
+    int frame_count = 0;
 	bool found_reference = false;
 	while (!found_reference)
 	{
@@ -93,7 +89,7 @@ void runCalibrate(){
         // wasn't able to calibrate for a reference point in MAXFRAMES attempts
         if(frame_count == MAXFRAMES){
             restartCalibration();
-            return;
+            return false;
         } else {
             cap >> capture;
             if(frame_count == 0){
@@ -134,13 +130,9 @@ void runCalibrate(){
 
         data = mainEntryPoint->getReferencePointData();
     
-        for(auto ref : *data){
+        for(auto ref : data){
             outfile << ref.x << " " << ref.y << endl;
             outfile << endl;
-        }
-        
-        if (distance.x == 0 || distance.y == 0) {
-            return;
         }
         
         cv::Rect faceCrop;
@@ -151,34 +143,37 @@ void runCalibrate(){
         cv::Mat faceStrip =  mainEntryPoint->getTemplate(&faceCrop, &leftEyeCrop, &rightEyeCrop);
         
         if(faceStrip.empty()){
-            restartCalibration();
+			return false;
         }
         
         // faceCrop
-        outfile << faceCrop.x << " " << faceCrop.y;
+		outfile << faceCrop.x << std::endl;
+		outfile << faceCrop.y << std::endl;
         outfile << faceCrop.width << std::endl;
         outfile << faceCrop.height << std::endl;
         outfile << std::endl;
         
         // leftEyeCrop
-        outfile << leftEyeCrop.x << " " << leftEyeCrop.y;
+		outfile << leftEyeCrop.x << std::endl;
+		outfile << leftEyeCrop.y << std::endl;
         outfile << leftEyeCrop.width << std::endl;
         outfile << leftEyeCrop.height << std::endl;
         outfile << std::endl;
         
         // rightEyeCrop
-        outfile << rightEyeCrop.x << " " << rightEyeCrop.y;
+		outfile << rightEyeCrop.x << std::endl;
+		outfile << rightEyeCrop.y << std::endl;
         outfile << rightEyeCrop.width << std::endl;
         outfile << rightEyeCrop.height << std::endl;
         outfile << std::endl;
         
+		outfile.close();
+
         imwrite(toString(user_path) + "/template.png", faceStrip);
 
-        
         CALIBRATED = true;
     }
-
-
+	return true;
 } 
 
 /*
@@ -203,18 +198,60 @@ bool startCam(){
 
 
 /*
+* The while loop for main
+*
+*/
+void captureLoop()
+{
+	//ErrorLimits
+	int errorCount = 0;
+
+	while (RUN)
+	{
+		if (errorCount > 200)
+		{
+			RUN = false;
+			//Display Error
+		}
+		else if (errorCount > 100)
+		{
+			cap >> capture;
+			if (mainEntryPoint->insertFrame(capture, true))
+			{
+				systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
+				errorCount = 0;
+			}
+			else
+				errorCount++;
+
+		}
+		else
+		{
+			cap >> capture;
+			if (mainEntryPoint->insertFrame(capture, true))
+			{
+				systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
+				errorCount = 0;
+			}
+			else
+				errorCount++;
+		}
+	}
+	//VoiceTool::voiceSingleton().disableVoice();
+}
+
+
+/*
  * Runs main program
  */
 void runMain(){
 
     // read in eye vectors from parameters.txt
     std::string filePath = toString(user_path);
-    qDebug() << user_path << endl;
     filePath.append("/parameters.txt");
-    
-    std::ifstream inputfile(filePath, std::ios::in);
+   
+    std::ifstream inputfile(filePath, std::ios::in);  
 
-    
     if(!CALIBRATED){
     
         std::string line;
@@ -283,52 +320,9 @@ void runMain(){
         
         rightEyeBounds = cv::Rect(std::stoi(x), std::stoi(y), width, height);
                 
-        mainEntryPoint->storeTemplate(image, faceCrop, leftEyeBounds, rightEyeBounds);
-    
-                                      
+        mainEntryPoint->storeTemplate(image, faceCrop, leftEyeBounds, rightEyeBounds);                            
     }
-
-	//ErrorLimits
-	int errorCount = 0;
-
-	PAUSE = false;
-
-    while(RUN)
-    {
-		if (!PAUSE)
-		{
-			if (errorCount > 200)
-			{
-				RUN = false;
-				//Display Error
-			}
-			else if (errorCount > 100)
-			{
-				cap >> capture;
-				if (mainEntryPoint->insertFrame(capture, true))
-				{
-					systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
-					errorCount = 0;
-				}
-				else
-					errorCount++;
-
-			}
-			else
-			{
-				cap >> capture;
-				if (mainEntryPoint->insertFrame(capture, true))
-				{
-					systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
-					errorCount = 0;
-				}
-				else
-					errorCount++;
-			}
-		}
-    }
-
-	//VoiceTool::voiceSingleton().disableVoice();
+	std::unique_ptr<boost::thread> t(new boost::thread(&captureLoop));
 }
 
 
@@ -411,19 +405,6 @@ int main(int argc, char *argv[])
 
     screenres = systemSingleton->getScreenResolution();
 	mainEntryPoint = new EyeLogic(screenres);
-
-	/*
-	while (true)
-	{
-		cap >> capture;
-		if (mainEntryPoint->insertFrame(capture))
-		{
-			Point result = mainEntryPoint->getEyeVector();
-			int randomAssignment = 5;
-			randomAssignment += 2;
-		}
-	}
-	*/
 
 	// ref images path
     ref_images_path = QDir::currentPath() + "/ref_images/";

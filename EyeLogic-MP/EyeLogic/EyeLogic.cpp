@@ -175,7 +175,7 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 
 	}
 	else {
-		std::cout << "FUCK OUTOFBOUNDS COORDINATES" << std::endl;
+		std::cout << "RAWR OUTOFBOUNDS COORDINATES" << std::endl;
 		std::cout << "\tScreenMap.x: " << screenMap.x << "\tScreenMap.y: " << screenMap.y << std::endl;
 	}
 	return cv::Point(0, 0);
@@ -212,13 +212,13 @@ void EyeLogic::setReferencePoint(cv::Point point, RefPoint refPosition)
 }
 
 // returns vector of reference point data in (LEFT,RIGHT,TOP,BOTTOM) order
-vector <cv::Point> * EyeLogic::getReferencePointData()
+vector <cv::Point>  EyeLogic::getReferencePointData()
 {
-	vector <cv::Point> * referencePoints;
-	referencePoints->push_back(ref_Left);
-	referencePoints->push_back(ref_Right);
-	referencePoints->push_back(ref_Top);
-	referencePoints->push_back(ref_Bottom);
+	vector <cv::Point>  referencePoints;
+	referencePoints.push_back(ref_Left);
+	referencePoints.push_back(ref_Right);
+	referencePoints.push_back(ref_Top);
+	referencePoints.push_back(ref_Bottom);
 	return referencePoints;
 }
 

@@ -7,6 +7,7 @@
 #include <boost/algorithm/string.hpp>
 
 extern std::unique_ptr<System> systemSingleton;
+extern bool RUN;
 
 class VoiceTool
 {

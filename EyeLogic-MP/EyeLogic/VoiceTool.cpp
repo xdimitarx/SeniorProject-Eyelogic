@@ -73,7 +73,7 @@ void VoiceTool::monitor()
 			}
 			else if (command.compare("exit") == 0)
 			{
-				kill = true;
+				RUN = false;
 			}
 		}
 		threadLock.lock();
