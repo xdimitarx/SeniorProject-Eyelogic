@@ -260,7 +260,7 @@ void runMain(){
 		}
     }
 
-	VoiceTool::voiceSingleton().disableVoice();
+	//VoiceTool::voiceSingleton().disableVoice();
 }
 
 
@@ -337,8 +337,9 @@ int main(int argc, char *argv[])
 	// acquire camera
 	if (!startCam()) return -1;
 
-	// initialize voice
-	if (!VoiceTool::voiceSingleton().initVoice()) cerr << "Voice could not be started" << endl;
+	// voice only works on windows
+	//if (!VoiceTool::voiceSingleton().initVoice()) cerr << "Voice could not be started" << endl;
+	//VoiceTool::voiceSingleton().enableVoice();
 
     screenres = systemSingleton->getScreenResolution();
 	mainEntryPoint = new EyeLogic(screenres);
@@ -364,7 +365,7 @@ int main(int argc, char *argv[])
     app.exec();
 
 	//Clean Up
-	VoiceTool::voiceSingleton().stopVoice();
+	//VoiceTool::voiceSingleton().stopVoice();
 	cap.release();
 	return 0;
 }
