@@ -222,7 +222,7 @@ vector <cv::Point>  EyeLogic::getReferencePointData()
 	return referencePoints;
 }
 
-// sets reference points, must be a vecor in (LEFT,RIGHT,TOP,BOTTOM) order
+// sets reference points, must be a vector in (LEFT,RIGHT,TOP,BOTTOM) order
 void EyeLogic::setReferencePointData(vector <cv::Point> * data)
 {
 	if (data->size() != 4) return;
