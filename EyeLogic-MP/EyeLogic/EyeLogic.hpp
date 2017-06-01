@@ -40,7 +40,7 @@ Mat loadImageAtPath(string path);
  * CLASS DEFINITIONS *
  *********************/
 
-enum class RefPoint { LEFT, RIGHT, TOP, BOTTOM};
+enum class RefPoint { LEFT, RIGHT, TOP, BOTTOM };
 
 class EyeLogic {
 
@@ -70,7 +70,7 @@ public:
 	cv::Point getEyeVector();
 
 	// sets reference positions individually (LEFT, RIGHT, TOP, BOTTOM)
-	void setReferencePoint(cv::Point eyeVector, RefPoint refPosition);
+	void setReferencePoint(cv::Point point, RefPoint refPosition);
 
 	// returns vector of points in order (LEFT, RIGHT, TOP, BOTTOM)
 	vector <cv::Point> * getReferencePointData();

@@ -29,7 +29,6 @@ bool CALIBRATED = false;            // global variable that determines if user r
 bool RUN = false;                   // flag to determine whether to track eyes or not
 bool PAUSE = false;					// flag to determine whether the user has paused
 
-
 //OpenCV Camera
 VideoCapture cap;
 cv::Mat capture;
@@ -60,7 +59,8 @@ QString ref_images_path;
 
 // Converts QString to std::string
 std::string toString(QString qs){
-    return qs.toUtf8().constData();
+    return qs.toStdString();
+//    return qs.toUtf8().constData();
 }
 
 // reset calibration parameters
@@ -84,8 +84,6 @@ void runCalibrate(){
     cv::Point referenceMean;
     std::vector<cv::Point> *data;
     
-    std::ofstream outfile(toString(user_path) + "/parameters.txt", std::ios::app);
-
     bool frame_count = 0;
 	bool found_reference = false;
 	while (!found_reference)
@@ -98,7 +96,12 @@ void runCalibrate(){
             return;
         } else {
             cap >> capture;
-            found_reference = mainEntryPoint->insertFrame(capture);
+            if(frame_count == 0){
+                found_reference = mainEntryPoint->insertFrame(capture, true);
+            } else {
+                found_reference = mainEntryPoint->insertFrame(capture);
+
+            }
         }
 	}
 
@@ -127,9 +130,10 @@ void runCalibrate(){
     // store faceStrip in file
     if(imageCount == REFIMAGES - 1){
         
-        
+        std::ofstream outfile(toString(user_path) + "/parameters.txt", std::ios::app);
+
         data = mainEntryPoint->getReferencePointData();
-        
+    
         for(auto ref : *data){
             outfile << ref.x << " " << ref.y << endl;
             outfile << endl;
@@ -185,9 +189,10 @@ bool startCam(){
         return false;
     }
     try{
+        
         // defaults to max size of camera
-        cap.set(CV_CAP_PROP_FRAME_WIDTH, 10000);
-        cap.set(CV_CAP_PROP_FRAME_HEIGHT, 10000);
+        cap.set(CV_CAP_PROP_FRAME_WIDTH, 1280);
+        cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720);
     }
     catch(Exception ex){
         return false;
@@ -203,27 +208,84 @@ bool startCam(){
 void runMain(){
 
     // read in eye vectors from parameters.txt
-    std::ifstream inputfile(toString(user_path) + "/parameters.txt", std::ios::in);
+    std::string filePath = toString(user_path);
+    qDebug() << user_path << endl;
+    filePath.append("/parameters.txt");
+    
+    std::ifstream inputfile(filePath, std::ios::in);
 
     
     if(!CALIBRATED){
     
-		vector <cv::Point> data;
+        std::string line;
+        std::string x, y;
+        int width, height;
+        
+        vector <cv::Point> data;
         for(int i = 0; i < REFIMAGES; i++){
-
-            std::string line;
             getline(inputfile, line);
-
-            std::string x, y;
-            std::stringstream iss;
-            iss.str(line);
+            std::stringstream iss(line);
             iss >> x >> y;
             cv::Point *pupilAvg = new cv::Point(std::stof(x), std::stof(y));
 
 			data.push_back(*pupilAvg);
         }
+        
 		mainEntryPoint->setReferencePointData(&data);
-		// mainEntryPoint->storeTemplate(imageStrip, faceRect, leftEyeBound, rightEyeBound); will need to pass in
+
+        // read in image
+        cv::Mat image = imread(toString(user_path) + "/template.png");
+        
+        cv::Rect faceCrop;
+        cv::Rect leftEyeBounds;
+        cv::Rect rightEyeBounds;
+        
+        // faceCrop
+        getline(inputfile, line);
+        std::stringstream iss(line);
+        iss >> x >> y;
+        
+        getline(inputfile, line);
+        width = std::stoi(line);
+        
+        getline(inputfile, line);
+        height = std::stoi(line);
+        
+        faceCrop = cv::Rect(std::stoi(x), std::stoi(y), width, height);
+        
+        
+        // leftEyeBounds
+        getline(inputfile, line);
+        iss.clear();
+        iss.str(line);
+        iss >> x >> y;
+        
+        getline(inputfile, line);
+        width = std::stoi(line);
+        
+        getline(inputfile, line);
+        height = std::stoi(line);
+        
+        leftEyeBounds = cv::Rect(std::stoi(x), std::stoi(y), width, height);
+        
+        
+        // rightEyeBounds
+        getline(inputfile, line);
+        iss.clear();
+        iss.str(line);
+        iss >> x >> y;
+        
+        getline(inputfile, line);
+        width = std::stoi(line);
+        
+        getline(inputfile, line);
+        height = std::stoi(line);
+        
+        rightEyeBounds = cv::Rect(std::stoi(x), std::stoi(y), width, height);
+                
+        mainEntryPoint->storeTemplate(image, faceCrop, leftEyeBounds, rightEyeBounds);
+    
+                                      
     }
 
 	//ErrorLimits
@@ -350,11 +412,6 @@ int main(int argc, char *argv[])
     screenres = systemSingleton->getScreenResolution();
 	mainEntryPoint = new EyeLogic(screenres);
 
-	//POUNEH THIS IS HOW I TEST vvv
-	//capture = loadImageAtPath("dom.jpg");
-	//mainEntryPoint->insertFrame(capture);
-	//mainEntryPoint->insertFrame(capture);
-
 	/*
 	while (true)
 	{
@@ -382,7 +439,9 @@ int main(int argc, char *argv[])
     w.setWindowTitle("Welcome to Eyelogic Setup");
     w.show();
     app.exec();
-
+    
+    
+    
 	//Clean Up
 	//VoiceTool::voiceSingleton().stopVoice();
 	cap.release();

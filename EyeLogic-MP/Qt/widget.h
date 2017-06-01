@@ -3,7 +3,7 @@
 
 #include "../EyeLogic/System.hpp"
 
-#include "EyeLogic/VoiceTool.hpp"
+#include "../EyeLogic/VoiceTool.hpp"
 
 #include <iostream>
 #include <string>
@@ -30,6 +30,7 @@ extern QString ref_images_path;
 extern bool RUN;
 extern bool PAUSE;
 extern bool CALIBRATED;
+extern bool RunOnce;
 
 /*********************
 * EXTERNAL FUNCTIONS *
@@ -41,16 +42,10 @@ std::string toString(QString qs);
 /***************
  * GLOBAL ENUM *
  ***************/
-enum TrackEye {
-    rightEye,       // 0
-    leftEye         // 1
-};
-
 enum Voice {
     on,             // 0
     off             // 1
 };
-
 
 /****************
  * WIDGET CLASS *
@@ -80,8 +75,6 @@ public slots:
     void run();
     void next();
     void cancel();
-    void toggleLeftEye();
-    void toggleRightEye();
     void toggleVoiceOn();
     void toggleVoiceOff();
     void stop();

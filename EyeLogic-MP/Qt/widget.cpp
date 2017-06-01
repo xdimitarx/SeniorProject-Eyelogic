@@ -24,7 +24,7 @@ QGroupBox *Widget::userInfoBox()
 }
 
 /*
- * Returns groupbox for tracking left or right eye
+ * Returns groupbox for calibration button 
  */
 QGroupBox *Widget::calibrationSettingsBox()
 {
@@ -35,21 +35,11 @@ QGroupBox *Widget::calibrationSettingsBox()
     QVBoxLayout *vbox = new QVBoxLayout();
 
     // radio buttons to determine what settings user wants for calibration
-    QRadioButton *right = new QRadioButton(tr("Use Right Eye"));
-    QRadioButton *left = new QRadioButton(tr("Use Left Eye"));
     QPushButton *startCalib = new QPushButton(tr("Start Calibration Process"));
 
-
-    QObject::connect(left, SIGNAL(toggled(bool)), this, SLOT(toggleLeftEye()));
-    QObject::connect(right, SIGNAL(toggled(bool)), this, SLOT(toggleRightEye()));
     QObject::connect(startCalib, SIGNAL(clicked(bool)), this, SLOT(calibrate()));
 
-    // set first radio button checked by default
-    right->setChecked(true);
-
-    // add buttons to layout, and layout to widget, return widget
-    vbox->addWidget(right);
-    vbox->addWidget(left);
+    // add buttonsto layout, and layout to widget, return widget
     vbox->addWidget(startCalib);
     calibGroupBox->setLayout(vbox);
     return calibGroupBox;
@@ -143,39 +133,37 @@ QGroupBox *Widget::getCalibBox()
  */
 Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 {
-   ui->setupUi(this);
+    ui->setupUi(this);
 
-   frontPage = new QWidget;
-   calibrationPage = new QWidget;
+    frontPage = new QWidget;
+    calibrationPage = new QWidget;
 
-   QVBoxLayout *frontPageLayout = new QVBoxLayout;
-   QVBoxLayout *calibrationPageLayout = new QVBoxLayout;
+    QVBoxLayout *frontPageLayout = new QVBoxLayout;
+    QVBoxLayout *calibrationPageLayout = new QVBoxLayout;
 
-   // add widgets to group boxes
-   userBox = userInfoBox();
-   calibSettingsBox = calibrationSettingsBox();
-   clickBox = clickSettingsBox();
-   runBox = startOrStopBox();
+    // add widgets to group boxes
+    userBox = userInfoBox();
+    calibSettingsBox = calibrationSettingsBox();
+    clickBox = clickSettingsBox();
+    runBox = startOrStopBox();
 
-   // add group boxes to frontPageLayout
-   frontPageLayout->addWidget(userBox);
-   frontPageLayout->addWidget(calibSettingsBox);
-   frontPageLayout->addWidget(clickBox);
-   frontPageLayout->addWidget(runBox);
+    // add group boxes to frontPageLayout
+    frontPageLayout->addWidget(userBox);
+    frontPageLayout->addWidget(calibSettingsBox);
+    frontPageLayout->addWidget(clickBox);
+    frontPageLayout->addWidget(runBox);
 
-   // get groupbox and add to calibrationPageLayout
-   calibBox = getCalibBox();
-   calibBox->setWindowFlags(Qt::WindowStaysOnTopHint);
-   calibrationPageLayout->addWidget(calibBox);
-   calibrationPage->setWindowFlags(Qt::WindowStaysOnTopHint);
-   calibrationPage->setLayout(calibrationPageLayout);
-   calibrationPage->hide();
+    // get groupbox and add to calibrationPageLayout
+    calibBox = getCalibBox();
+    calibBox->setWindowFlags(Qt::WindowStaysOnTopHint);
+    calibrationPageLayout->addWidget(calibBox);
+    calibrationPage->setWindowFlags(Qt::WindowStaysOnTopHint);
+    calibrationPage->setLayout(calibrationPageLayout);
+    calibrationPage->hide();
 
-   // add pages to stacked layout
-   frontPage->setLayout(frontPageLayout);
-   setLayout(frontPageLayout);
-
-
+    // add pages to stacked layout
+    frontPage->setLayout(frontPageLayout);
+    setLayout(frontPageLayout);
 }
 
 /*
@@ -299,7 +287,9 @@ void Widget::next()
  */
 void Widget::run()
 {
-
+    QString user = userBox->findChild<QLineEdit *>("userName")->text();
+    user_path = QDir::currentPath() + "/" + user;
+    
     QPushButton *runButton = runBox->findChild<QPushButton *>("runButton");
 
     // Check if program is already running
@@ -340,7 +330,7 @@ void Widget::run()
         // CALL MAIN PROGRAM
         //*********************
         RUN = true;
-//        runMain();
+        runMain();
 
    }
    else if (runButton->text() == "Pause EyeLogic"){
@@ -387,23 +377,6 @@ void Widget::cancel()
 
 void Widget::stop(){
 	QApplication::quit(); //dimitri, i handled voice cleanup in main, delete this comment after you read it
-}
-
-/*
- * Event handler for left eye radio button
- */
-void Widget::toggleLeftEye(){
-    trackEye = leftEye;
-    cout << "trackEye = " << trackEye << endl;
-}
-
-/*
- * Event handler for right eye radio button
- */
-void Widget::toggleRightEye(){
-    trackEye = rightEye;
-    cout << "trackEye = " << trackEye << endl;
-    
 }
 
 /*
