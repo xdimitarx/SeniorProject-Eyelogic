@@ -246,11 +246,11 @@ void EyeLogic::setReferencePoint(cv::Point point, RefPoint refPosition)
 vector <cv::Point>  EyeLogic::getReferencePointData()
 {
 	vector <cv::Point>  referencePoints;
-	if (!Calibrated(false))
+	/*if (!Calibrated(false))
 	{
 		cerr << "Error in getReferencePointData: EyeLogic not calibrated." << endl;
 		return referencePoints;
-	}
+	}*/
 	referencePoints.push_back(ref_Left);
 	referencePoints.push_back(ref_Right);
 	referencePoints.push_back(ref_Top);
@@ -514,11 +514,11 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 	double minVal; double maxVal; cv::Point minLoc; cv::Point matchLoc;
 	minMaxLoc(result, &minVal, &maxVal, &minLoc, &matchLoc, cv::Mat());
 
-	if (maxVal < 0.9) //this threshold needs to be tinkered with!!!
+	/*if (maxVal < 0.9) //this threshold needs to be tinkered with!!!
 	{
 		cerr << "Error in checkTemplate: No suitable match was found." << endl;
 		return false;
-	}
+	}*/
 
 	//set return arguments
 	*faceCrop = faceRect;
