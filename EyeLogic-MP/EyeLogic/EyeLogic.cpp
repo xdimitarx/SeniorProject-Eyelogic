@@ -161,7 +161,8 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 		//imshow("CAPTURE", capture);
 		//cv::waitKey(1);
 		//TODO: head moving things
-        return cv::Point(0, 0);
+		cerr << "Error in eyeVectorToScreenCoord: EyeVector not in bounds of reference images." << endl;
+        return cv::Point(-1, -1);
 	}
 
 	destinationNew.x = (screenResolution.x - ((averageLocal.x - ref_Right.x) * screenResolution.x / distance.x));
@@ -378,7 +379,7 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 		}
 	}
 
-	if (left == Point(-1, -1))
+    if (left == cv::Point(-1, -1))
 	{
 		cerr << "Error in applyPupilFilters: No valid black pixels detected. SERIOUS ERROR." << endl;
 	}
@@ -397,7 +398,7 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 		}
 	}
 
-	if (right == Point(-1, -1))
+    if (right == cv::Point(-1, -1))
 	{
 		cerr << "Error in applyPupilFilters: No valid black pixels detected. SERIOUS ERROR." << endl;
 	}
