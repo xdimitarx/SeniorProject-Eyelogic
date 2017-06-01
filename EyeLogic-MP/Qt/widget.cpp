@@ -343,7 +343,7 @@ void Widget::run()
 //        runMain();
 
    }
-   else if (runButton->text() == "Stop EyeLogic"){
+   else if (runButton->text() == "Pause EyeLogic"){
        
        // change text on runButton to 'Pause'
        userBox->findChild<QLineEdit *>("userName")->setDisabled(false);
@@ -352,7 +352,7 @@ void Widget::run()
        //********************
        // PAUSE MAIN PROGRAM
        //********************
-       RUN = false;
+       PAUSE = false;
    }
 }
 

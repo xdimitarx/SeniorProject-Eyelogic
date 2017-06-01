@@ -27,6 +27,7 @@ EyeLogic * mainEntryPoint;
 int imageCount = 0;               // which reference image calibration is currently on
 bool CALIBRATED = false;            // global variable that determines if user ran calibration before running program
 bool RUN = false;                   // flag to determine whether to track eyes or not
+bool PAUSE = false;					// flag to determine whether the user has paused
 
 
 //OpenCV Camera
@@ -225,16 +226,47 @@ void runMain(){
 		// mainEntryPoint->storeTemplate(imageStrip, faceRect, leftEyeBound, rightEyeBound); will need to pass in
     }
 
+	//ErrorLimits
+	int errorCount = 0;
+
+	PAUSE = false;
+
     while(RUN)
     {
-        cap >> capture;
-        if (mainEntryPoint->insertFrame(capture))
-        {
-            systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
-        }
+		if (!PAUSE)
+		{
+			if (errorCount > 200)
+			{
+				RUN = false;
+				//Display Error
+			}
+			else if (errorCount > 100)
+			{
+				cap >> capture;
+				if (mainEntryPoint->insertFrame(capture, true))
+				{
+					systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
+					errorCount = 0;
+				}
+				else
+					errorCount++;
+
+			}
+			else
+			{
+				cap >> capture;
+				if (mainEntryPoint->insertFrame(capture, true))
+				{
+					systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
+					errorCount = 0;
+				}
+				else
+					errorCount++;
+			}
+		}
     }
 
-	VoiceTool::voiceSingleton().disableVoice();
+	//VoiceTool::voiceSingleton().disableVoice();
 }
 
 
@@ -309,10 +341,11 @@ void generateRefImages(){
 int main(int argc, char *argv[])
 {
 	// acquire camera
-	if (startCam()) return -1;
+	if (!startCam()) return -1;
 
-	// initialize voice
-	if (!VoiceTool::voiceSingleton().initVoice()) cerr << "Voice could not be started" << endl;
+	// voice only works on windows
+	//if (!VoiceTool::voiceSingleton().initVoice()) cerr << "Voice could not be started" << endl;
+	//VoiceTool::voiceSingleton().enableVoice();
 
     screenres = systemSingleton->getScreenResolution();
 	mainEntryPoint = new EyeLogic(screenres);
@@ -321,6 +354,19 @@ int main(int argc, char *argv[])
 	//capture = loadImageAtPath("dom.jpg");
 	//mainEntryPoint->insertFrame(capture);
 	//mainEntryPoint->insertFrame(capture);
+
+	/*
+	while (true)
+	{
+		cap >> capture;
+		if (mainEntryPoint->insertFrame(capture))
+		{
+			Point result = mainEntryPoint->getEyeVector();
+			int randomAssignment = 5;
+			randomAssignment += 2;
+		}
+	}
+	*/
 
 	// ref images path
     ref_images_path = QDir::currentPath() + "/ref_images/";
@@ -338,7 +384,7 @@ int main(int argc, char *argv[])
     app.exec();
 
 	//Clean Up
-	VoiceTool::voiceSingleton().stopVoice();
+	//VoiceTool::voiceSingleton().stopVoice();
 	cap.release();
 	return 0;
 }
