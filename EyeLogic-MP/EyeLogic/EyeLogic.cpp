@@ -140,21 +140,21 @@ cv::Point EyeLogic::getEyeVector()
 * setReferencePoint
 * Description: sets the reference point for the given enum
 */
-void EyeLogic::setReferencePoint(cv::Point eyeVector, RefPoint refPosition)
+void EyeLogic::setReferencePoint(cv::Point point, RefPoint refPosition)
 {
 	switch (refPosition)
 	{
 	case RefPoint::LEFT:
-		ref_Left = eyeVector;
+		ref_Left = point;
 		break;
 	case RefPoint::RIGHT:
-		ref_Right = eyeVector;
+		ref_Right = point;
 		break;
 	case RefPoint::TOP:
-		ref_Top = eyeVector;
+		ref_Top = point;
 		break;
 	case RefPoint::BOTTOM:
-		ref_Bottom = eyeVector;
+		ref_Bottom = point;
 		break;
 	default:
 		break;

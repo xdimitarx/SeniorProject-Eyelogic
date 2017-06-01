@@ -24,7 +24,7 @@ QGroupBox *Widget::userInfoBox()
 }
 
 /*
- * Returns groupbox for tracking left or right eye
+ * Returns groupbox for calibration button 
  */
 QGroupBox *Widget::calibrationSettingsBox()
 {
@@ -133,39 +133,37 @@ QGroupBox *Widget::getCalibBox()
  */
 Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 {
-   ui->setupUi(this);
+    ui->setupUi(this);
 
-   frontPage = new QWidget;
-   calibrationPage = new QWidget;
+    frontPage = new QWidget;
+    calibrationPage = new QWidget;
 
-   QVBoxLayout *frontPageLayout = new QVBoxLayout;
-   QVBoxLayout *calibrationPageLayout = new QVBoxLayout;
+    QVBoxLayout *frontPageLayout = new QVBoxLayout;
+    QVBoxLayout *calibrationPageLayout = new QVBoxLayout;
 
-   // add widgets to group boxes
-   userBox = userInfoBox();
-   calibSettingsBox = calibrationSettingsBox();
-   clickBox = clickSettingsBox();
-   runBox = startOrStopBox();
+    // add widgets to group boxes
+    userBox = userInfoBox();
+    calibSettingsBox = calibrationSettingsBox();
+    clickBox = clickSettingsBox();
+    runBox = startOrStopBox();
 
-   // add group boxes to frontPageLayout
-   frontPageLayout->addWidget(userBox);
-   frontPageLayout->addWidget(calibSettingsBox);
-   frontPageLayout->addWidget(clickBox);
-   frontPageLayout->addWidget(runBox);
+    // add group boxes to frontPageLayout
+    frontPageLayout->addWidget(userBox);
+    frontPageLayout->addWidget(calibSettingsBox);
+    frontPageLayout->addWidget(clickBox);
+    frontPageLayout->addWidget(runBox);
 
-   // get groupbox and add to calibrationPageLayout
-   calibBox = getCalibBox();
-   calibBox->setWindowFlags(Qt::WindowStaysOnTopHint);
-   calibrationPageLayout->addWidget(calibBox);
-   calibrationPage->setWindowFlags(Qt::WindowStaysOnTopHint);
-   calibrationPage->setLayout(calibrationPageLayout);
-   calibrationPage->hide();
+    // get groupbox and add to calibrationPageLayout
+    calibBox = getCalibBox();
+    calibBox->setWindowFlags(Qt::WindowStaysOnTopHint);
+    calibrationPageLayout->addWidget(calibBox);
+    calibrationPage->setWindowFlags(Qt::WindowStaysOnTopHint);
+    calibrationPage->setLayout(calibrationPageLayout);
+    calibrationPage->hide();
 
-   // add pages to stacked layout
-   frontPage->setLayout(frontPageLayout);
-   setLayout(frontPageLayout);
-
-
+    // add pages to stacked layout
+    frontPage->setLayout(frontPageLayout);
+    setLayout(frontPageLayout);
 }
 
 /*
@@ -289,7 +287,9 @@ void Widget::next()
  */
 void Widget::run()
 {
-
+    QString user = userBox->findChild<QLineEdit *>("userName")->text();
+    user_path = QDir::currentPath() + "/" + user;
+    
     QPushButton *runButton = runBox->findChild<QPushButton *>("runButton");
 
     // Check if program is already running
@@ -330,7 +330,7 @@ void Widget::run()
         // CALL MAIN PROGRAM
         //*********************
         RUN = true;
-//        runMain();
+        runMain();
 
    }
    else if (runButton->text() == "Stop EyeLogic"){

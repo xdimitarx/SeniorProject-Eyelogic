@@ -3,7 +3,7 @@
 
 #include "../EyeLogic/System.hpp"
 
-#include "EyeLogic/VoiceTool.hpp"
+#include "../EyeLogic/VoiceTool.hpp"
 
 #include <iostream>
 #include <string>
@@ -29,6 +29,7 @@ extern QString user_path;
 extern QString ref_images_path;
 extern bool RUN;
 extern bool CALIBRATED;
+extern bool RunOnce;
 
 /*********************
 * EXTERNAL FUNCTIONS *
@@ -44,7 +45,6 @@ enum Voice {
     on,             // 0
     off             // 1
 };
-
 
 /****************
  * WIDGET CLASS *
