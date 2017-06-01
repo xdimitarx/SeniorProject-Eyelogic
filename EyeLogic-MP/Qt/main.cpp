@@ -146,7 +146,8 @@ bool runCalibrate(){
         std::ofstream outfile(toString(user_path) + "/parameters.txt", std::ios::app);
 
         data = mainEntryPoint->getReferencePointData();
-    
+		mainEntryPoint->distance = Point(data[0].x - data[1].x, data[3].y - data[2].y);
+
         for(auto ref : data){
             outfile << ref.x << " " << ref.y << endl;
             outfile << endl;

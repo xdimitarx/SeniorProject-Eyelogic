@@ -153,7 +153,7 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 		return cv::Point(-1, -1);
 	}
 
-	distance = Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
+	//distance = Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
 
 	cv::Point averageLocal = getEyeVector();
 	cv::Point destinationNew;
