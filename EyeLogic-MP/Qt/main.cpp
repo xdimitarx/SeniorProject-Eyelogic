@@ -27,6 +27,7 @@ EyeLogic * mainEntryPoint;
 int imageCount = 0;               // which reference image calibration is currently on
 bool CALIBRATED = false;            // global variable that determines if user ran calibration before running program
 bool RUN = false;                   // flag to determine whether to track eyes or not
+bool PAUSE = false;					// flag to determine whether the user has paused
 
 
 //OpenCV Camera
@@ -228,35 +229,40 @@ void runMain(){
 	//ErrorLimits
 	int errorCount = 0;
 
+	PAUSE = false;
+
     while(RUN)
     {
-		if (errorCount > 200)
+		if (!PAUSE)
 		{
-			RUN = false;
-			//Display Error
-		}
-		else if (errorCount > 100)
-		{
-			cap >> capture;
-			if (mainEntryPoint->insertFrame(capture, true))
+			if (errorCount > 200)
 			{
-				systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
-				errorCount = 0;
+				RUN = false;
+				//Display Error
 			}
-			else
-				errorCount++;
+			else if (errorCount > 100)
+			{
+				cap >> capture;
+				if (mainEntryPoint->insertFrame(capture, true))
+				{
+					systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
+					errorCount = 0;
+				}
+				else
+					errorCount++;
 
-		}
-		else
-		{
-			cap >> capture;
-			if (mainEntryPoint->insertFrame(capture, true))
-			{
-				systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
-				errorCount = 0;
 			}
 			else
-				errorCount++;
+			{
+				cap >> capture;
+				if (mainEntryPoint->insertFrame(capture, true))
+				{
+					systemSingleton->setCurPos(mainEntryPoint->eyeVectorToScreenCoord());
+					errorCount = 0;
+				}
+				else
+					errorCount++;
+			}
 		}
     }
 
@@ -348,6 +354,19 @@ int main(int argc, char *argv[])
 	//capture = loadImageAtPath("dom.jpg");
 	//mainEntryPoint->insertFrame(capture);
 	//mainEntryPoint->insertFrame(capture);
+
+	/*
+	while (true)
+	{
+		cap >> capture;
+		if (mainEntryPoint->insertFrame(capture))
+		{
+			Point result = mainEntryPoint->getEyeVector();
+			int randomAssignment = 5;
+			randomAssignment += 2;
+		}
+	}
+	*/
 
 	// ref images path
     ref_images_path = QDir::currentPath() + "/ref_images/";
