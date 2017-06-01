@@ -129,8 +129,8 @@ void runCalibrate(){
     // write faceCrop, leftEyeCrop, rightEyeCrop
     // store faceStrip in file
     if(imageCount == REFIMAGES - 1){
-        
-        std::ofstream outfile(toString(user_path) + "/parameters.txt", std::ios::app);
+
+        std::ofstream outfile(toString(user_path) + "/parameters.txt", std::ios::out);
 
         data = mainEntryPoint->getReferencePointData();
     
@@ -155,19 +155,22 @@ void runCalibrate(){
         }
         
         // faceCrop
-        outfile << faceCrop.x << " " << faceCrop.y;
+        outfile << faceCrop.x << std::endl;
+        outfile << faceCrop.y << std::endl;
         outfile << faceCrop.width << std::endl;
         outfile << faceCrop.height << std::endl;
         outfile << std::endl;
         
         // leftEyeCrop
-        outfile << leftEyeCrop.x << " " << leftEyeCrop.y;
+        outfile << leftEyeCrop.x << std::endl;
+        outfile << leftEyeCrop.y << std::endl;
         outfile << leftEyeCrop.width << std::endl;
         outfile << leftEyeCrop.height << std::endl;
         outfile << std::endl;
         
         // rightEyeCrop
-        outfile << rightEyeCrop.x << " " << rightEyeCrop.y;
+        outfile << rightEyeCrop.x << std::endl;
+        outfile << rightEyeCrop.y << std::endl;
         outfile << rightEyeCrop.width << std::endl;
         outfile << rightEyeCrop.height << std::endl;
         outfile << std::endl;
@@ -208,31 +211,31 @@ bool startCam(){
 void runMain(){
 
     // read in eye vectors from parameters.txt
-    std::string filePath = toString(user_path);
-    qDebug() << user_path << endl;
-    filePath.append("/parameters.txt");
-    
+    std::string filePath = toString(user_path) + "/parameters.txt";
     std::ifstream inputfile(filePath, std::ios::in);
 
+    int x, y;
     
     if(!CALIBRATED){
     
         std::string line;
-        std::string x, y;
         int width, height;
         
         vector <cv::Point> data;
         for(int i = 0; i < REFIMAGES; i++){
             getline(inputfile, line);
-            std::stringstream iss(line);
+            std::stringstream iss;
+            iss.str(line);
             iss >> x >> y;
-            cv::Point *pupilAvg = new cv::Point(std::stof(x), std::stof(y));
 
+            cv::Point *pupilAvg = new cv::Point(x, y);
+
+            getline(inputfile, line);
 			data.push_back(*pupilAvg);
         }
         
 		mainEntryPoint->setReferencePointData(&data);
-
+        
         // read in image
         cv::Mat image = imread(toString(user_path) + "/template.png");
         
@@ -242,8 +245,10 @@ void runMain(){
         
         // faceCrop
         getline(inputfile, line);
-        std::stringstream iss(line);
-        iss >> x >> y;
+        x = std::stoi(line);
+        
+        getline(inputfile, line);
+        y = std::stoi(line);
         
         getline(inputfile, line);
         width = std::stoi(line);
@@ -251,29 +256,35 @@ void runMain(){
         getline(inputfile, line);
         height = std::stoi(line);
         
-        faceCrop = cv::Rect(std::stoi(x), std::stoi(y), width, height);
+        faceCrop = cv::Rect(x, y, width, height);
         
+        getline(inputfile, line);
         
         // leftEyeBounds
         getline(inputfile, line);
-        iss.clear();
-        iss.str(line);
-        iss >> x >> y;
+        x = std::stoi(line);
+        
+        getline(inputfile, line);
+        y = std::stoi(line);
         
         getline(inputfile, line);
         width = std::stoi(line);
-        
+
         getline(inputfile, line);
         height = std::stoi(line);
         
-        leftEyeBounds = cv::Rect(std::stoi(x), std::stoi(y), width, height);
+        leftEyeBounds = cv::Rect(x, y, width, height);
+        
+        // empty space
+        getline(inputfile, line);
         
         
         // rightEyeBounds
         getline(inputfile, line);
-        iss.clear();
-        iss.str(line);
-        iss >> x >> y;
+        x = std::stoi(line);
+        
+        getline(inputfile, line);
+        y = std::stoi(line);
         
         getline(inputfile, line);
         width = std::stoi(line);
@@ -281,7 +292,7 @@ void runMain(){
         getline(inputfile, line);
         height = std::stoi(line);
         
-        rightEyeBounds = cv::Rect(std::stoi(x), std::stoi(y), width, height);
+        rightEyeBounds = cv::Rect(x, y, width, height);
                 
         mainEntryPoint->storeTemplate(image, faceCrop, leftEyeBounds, rightEyeBounds);
     
