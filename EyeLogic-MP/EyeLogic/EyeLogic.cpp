@@ -81,9 +81,9 @@ cv::Mat EyeLogic::getTemplate(cv::Rect * faceCrop, cv::Rect * leftEyeCrop, cv::R
 {
 	if (!faceTemplateExists || !eyeTemplatesExists) return Mat();
 
-	faceCrop = new cv::Rect(faceRect);
-	leftEyeCrop = new cv::Rect(leftEyeBound);
-	rightEyeCrop = new cv::Rect(rightEyeBound);
+	*faceCrop = faceRect;
+	*leftEyeCrop = leftEyeBound;
+	*rightEyeCrop = rightEyeBound;
 	return userTemplate;
 }
 
@@ -429,6 +429,13 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 {
 	//simple filtering
 	cv::Mat filteredFrame;
+
+	if (frame.empty())
+	{
+		cerr << "Error in Check Template: input frame was empty." << endl;
+		return false;
+	}
+
 	cvtColor(frame, filteredFrame, CV_BGR2GRAY);
 	equalizeHist(filteredFrame, filteredFrame);
 
