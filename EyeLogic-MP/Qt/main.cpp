@@ -406,6 +406,12 @@ int main(int argc, char *argv[])
     screenres = systemSingleton->getScreenResolution();
 	mainEntryPoint = new EyeLogic(screenres);
 
+	cap >> capture;
+	mainEntryPoint->insertFrame(capture);
+
+	cap >> capture;
+	mainEntryPoint->insertFrame(capture);
+
 	// ref images path
     ref_images_path = QDir::currentPath() + "/ref_images/";
     
