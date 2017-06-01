@@ -125,10 +125,60 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 {
 	if (!Calibrated(true)) return cv::Point(0, 0);
 	//Variables accessible within this function
-	//ref_Left, ref_Right, ref_Top, ref_Bottom
+	//ref_Left, ref_Right, ref_ref_Top, ref_ref_Bottom
 	//screenResolution
 	//getEyeVector()
-	return cv::Point(0,0);
+	cv::Point averageLocal = getEyeVector();
+
+	cv::Point destinationNew;
+
+
+	if (averageLocal.x < ref_Right.x || averageLocal.x > ref_Left.x || averageLocal.y < ref_Top.y || averageLocal.y > ref_Bottom.y) {
+		//imshow("CAPTURE", capture);
+		//cv::waitKey(1);
+		//TODO: head moving things
+		return Point(0, 0);
+	}
+
+	destinationNew.x = (screenResolution.x - ((averageLocal.x - ref_Right.x) * screenResolution.x / distance.x));
+	destinationNew.y = (averageLocal.y - ref_Top.y) * screenResolution.y / distance.y; //screenRes.y / 2;
+
+	if (destinationOld != destinationNew) {
+		destinationOld = destinationNew;
+		delta = cv::Point((destinationNew.x - screenMap.x) / screenResolution.x * 80, (destinationNew.y - screenMap.y) / screenResolution.y * 80);
+		if (delta.x > 0) { direction.x = 1; }
+		else { direction.x = -1; }
+		if (delta.y > 0) { direction.y = 1; }
+		else { direction.y = -1; }
+	}
+
+	if (direction.x > 0) {
+		screenMap.x = min(destinationNew.x, screenMap.x + delta.x);
+	}
+	else {
+		screenMap.x = std::max(destinationNew.x, screenMap.x + delta.x);
+	}
+	if (direction.y > 0) {
+		screenMap.y = min(destinationNew.y, screenMap.y + delta.y);
+	}
+	else {
+		screenMap.y = std::max(destinationNew.y, screenMap.y + delta.y);
+	}
+
+	//point on screen: 
+	screenMap.x = (screenResolution.x - ((averageLocal.x - ref_Right.x) * screenResolution.x / distance.x));
+	screenMap.y = (averageLocal.y - ref_Top.y) * screenResolution.y / distance.y;
+
+	//Enforce screen resolution as boundaries for movement of cursor
+	if (screenMap.x >= 0 && screenMap.y >= 0 && screenMap.x <= screenResolution.x && screenMap.y <= screenResolution.y) {
+		return screenMap;
+
+	}
+	else {
+		std::cout << "FUCK OUTOFBOUNDS COORDINATES" << std::endl;
+		std::cout << "\tScreenMap.x: " << screenMap.x << "\tScreenMap.y: " << screenMap.y << std::endl;
+	}
+	return cv::Point(0, 0);
 }
 
 cv::Point EyeLogic::getEyeVector()
@@ -198,6 +248,10 @@ bool EyeLogic::Calibrated(bool valid)
 EyeLogic::EyeLogic(cv::Point screenres)
 {
 	screenResolution = screenres;
+
+	destinationOld = Point(-1, -1);
+	direction = Point(0, 0);
+	delta = Point(0,0);
 	faceExtractor.load("haarcascade_frontalface_default.xml");
 	rightEyeExtractor.load("haarcascade_lefteye_2splits.xml");
 	leftEyeExtractor.load("haarcascade_lefteye_2splits.xml");
