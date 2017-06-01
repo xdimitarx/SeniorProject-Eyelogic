@@ -246,11 +246,11 @@ void EyeLogic::setReferencePoint(cv::Point point, RefPoint refPosition)
 vector <cv::Point>  EyeLogic::getReferencePointData()
 {
 	vector <cv::Point>  referencePoints;
-	/*if (!Calibrated(false))
+	if (!Calibrated(false))
 	{
 		cerr << "Error in getReferencePointData: EyeLogic not calibrated." << endl;
 		return referencePoints;
-	}*/
+	}
 	referencePoints.push_back(ref_Left);
 	referencePoints.push_back(ref_Right);
 	referencePoints.push_back(ref_Top);
@@ -279,9 +279,13 @@ bool EyeLogic::Calibrated(bool valid)
 {
 	if (valid)
 	{
-		if (ref_Bottom.y < ref_Top.y || ref_Left.x > ref_Right.x) return false;
+		if (ref_Bottom.y < ref_Top.y || ref_Left.x > ref_Right.x)
+		{
+			cerr << "Error in Calibrated: Valid check failed." << endl;
+			return false;
+		}
 	}
-	return (ref_Bottom != cv::Point(0, 0) && ref_Left != cv::Point(0, 0) && ref_Top == cv::Point(0, 0) && ref_Right == cv::Point(0, 0));
+	return (ref_Bottom != cv::Point(-1, -1) && ref_Left != cv::Point(-1, -1) && ref_Top != cv::Point(-1, -1) && ref_Right != cv::Point(-1, -1));
 }
 
 //loads cascades and stores screen resolution
@@ -292,6 +296,12 @@ EyeLogic::EyeLogic(cv::Point screenres)
     destinationOld = cv::Point(-1, -1);
     direction = cv::Point(0, 0);
     delta = cv::Point(0,0);
+
+	ref_Right = cv::Point(-1, -1);
+	ref_Left = cv::Point(-1, -1);
+	ref_Top = cv::Point(-1, -1);
+	ref_Bottom = cv::Point(-1, -1);
+
 	faceExtractor.load("haarcascade_frontalface_default.xml");
 	rightEyeExtractor.load("haarcascade_lefteye_2splits.xml");
 	leftEyeExtractor.load("haarcascade_lefteye_2splits.xml");

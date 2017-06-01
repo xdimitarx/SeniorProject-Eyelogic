@@ -34,6 +34,7 @@ extern bool RunOnce;
 **********************/
 bool runCalibrate();
 void runMain();
+void printError(std::string);
 std::string toString(QString qs);
 
 /****************

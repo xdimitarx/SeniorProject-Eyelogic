@@ -106,6 +106,7 @@ bool runCalibrate(){
         // wasn't able to calibrate for a reference point in MAXFRAMES attempts
         if(frame_count == MAXFRAMES){
             restartCalibration();
+			printError((string) "Calibration failed, please make sure your face is centered in the frame and well lit.");
             return false;
         } else {
             cap >> capture;
@@ -160,6 +161,7 @@ bool runCalibrate(){
         
         if(faceStrip.empty()){
             std::cerr << "Error in runCalibrate: faceStrip was empty" << std::endl;
+			printError((string) "Calibration failed, please make sure your face is centered in the frame and well lit.");
 			return false;
         }
         
@@ -198,7 +200,7 @@ bool runCalibrate(){
  */
 bool startCam(){
     if (!cap.open(0)){
-        printError((string)"no webcam detected");
+        printError((string)"No webcam detected! Exiting the program...");
         return false;
     }
     try{
@@ -208,7 +210,7 @@ bool startCam(){
         cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720);
     }
     catch(Exception ex){
-        
+		printError((string)"Webcam could not be initialized properly! Exiting the program...");
         return false;
     }
     systemSingleton->sleep(2000);
@@ -230,7 +232,7 @@ void captureLoop()
 		if (errorCount > 200)
 		{
 			RUN = false;
-			//Display Error
+			printError((string)"Too many errors, exiting program, please recalibrate and try again.");
 		}
 		else if (errorCount > 100)
 		{

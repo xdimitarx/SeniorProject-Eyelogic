@@ -197,9 +197,7 @@ void Widget::calibrate()
 
     // no user specified
     if(user == ""){
-        messageBox.setText("Please enter a username first");
-        messageBox.setFixedSize(msgBoxSize.x(), msgBoxSize.y());
-        messageBox.exec();
+		printError((string)"Please enter a username first.");
         return;
     }
 

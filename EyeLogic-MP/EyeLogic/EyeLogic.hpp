@@ -102,6 +102,8 @@ private:
 
 	//Outer limits for EyeVector
 	cv::Point screenResolution;
+
+	//Initialized all as (-1,-1)
 	cv::Point ref_Right, ref_Top, ref_Left, ref_Bottom;
 	
 	CascadeClassifier faceExtractor;
