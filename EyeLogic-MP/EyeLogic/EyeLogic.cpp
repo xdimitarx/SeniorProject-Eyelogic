@@ -147,6 +147,7 @@ void EyeLogic::storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEye
 //To be implemented
 cv::Point EyeLogic::eyeVectorToScreenCoord()
 {
+	distance = Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
 	if (!Calibrated(true))
 	{
 		cerr << "Error in eyeVectorToScreenCoord: EyeLogic not calibrated." << endl;
