@@ -290,7 +290,7 @@ bool EyeLogic::Calibrated(bool valid)
 {
 	if (valid)
 	{
-		if (ref_Bottom.y > ref_Top.y || ref_Left.x < ref_Right.x)
+		if (ref_Bottom.y < ref_Top.y || ref_Left.x < ref_Right.x) //CERTIFIED RIGHT PLEASE DON'T CHANGE, THINK ABOUT IT REALLY HARD TRUE ON ERROR
 		{
 			logError("Error in Calibrated: Valid check failed.");
 			cerr << "ref_Bottom.y\t" << ref_Bottom.y << "\t ref_Top.y\t" << ref_Top.y << endl;
@@ -383,6 +383,8 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 	equalizeHist(result, result);
 	threshold(result, result, 10, 255, THRESH_BINARY_INV); //Only keeps darkest pixels
 
+	logError("apply pupil before", result);
+
 	//get farthest left noise
 	cv::Point left(-1,-1), right(-1,-1);
 	for (int i = 0; i < result.cols; i++)
@@ -434,9 +436,9 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 	//create a line between the two points above and make everything above it white
 	//this appears to cut the top portions of the eye and eyebrow off due to the shape of our eye sockets
 	// the bottome portion can then be flipped which usually means the bottom half of the pupil mirrored
-	for (int i = left.x; i < right.x; i++)
+	for (int i = left.x; i <= right.x; i++)
 	{
-		for (int j = 0; j < round(limitY); j++)
+		for (int j = 0; j <= round(limitY); j++)
 		{
 			result.at<uchar>(j, i) = 0;
 		}
@@ -453,7 +455,7 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 	{
 		for (int j = 0; j < bottomHalf.rows; j++)
 		{
-			result.at<uchar>(j, i) = topHalf.at<uchar>(j, i);
+			result.at<uchar>(j, i) = max(topHalf.at<uchar>(j, i), result.at<uchar>(j,i));
 		}
 	}
 
@@ -462,6 +464,8 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 		logError("Error in applyPupilFilters: Empty result crop", result);
 		return cv::Mat();
 	}
+	
+	logError("Debug-Apply Pupil After", result);
 
 	//dilates all black pixels in the image in a hopes to connect them, find pupil will look for the largest mass 
 	// and until this step the image looks grainy, this turns it more into a solid blob
@@ -518,7 +522,7 @@ cv::Point EyeLogic::findPupil(cv::Mat eyeCrop)
 
 		return eyeCenter;
 	}
-	logError("Error in findPupil: No contours detected.");
+	logError("Error in findPupil: No contours detected.", eyeCrop);
 	return cv::Point(-1, -1);
 }
 
