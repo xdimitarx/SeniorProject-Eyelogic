@@ -45,7 +45,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 	}
 	else
 	{
-		//This uses template matching to determine the corresponding faceCrop in the new frame
+		// This uses template matching to determine the corresponding faceCrop in the new frame
 		// the data gathered is used to adjust the eyebounds accordingly for much faster processing then haarcascades
 		if (!checkTemplate(frame, &faceCrop, &frameDiff))
 		{
@@ -56,10 +56,10 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 
 	cv::Mat cropFace = frame(faceCrop);
 
-	//Check for force or if eye template does not exist
+	// Check for force or if eye template does not exist
 	if (!eyeTemplatesExists || forceNewTemplate)
 	{
-		//Generates the eyebounds from the image and sets them as a template
+		// Generates the eyebounds from the image and sets them as a template
 		if (!createEyeBounds(cropFace))
 		{
 			logError("Error in insertFrame: Could not create eye bounds.");
@@ -91,6 +91,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 	rightPupil.y += rEyeB.y;
 
 	eyeVector = cv::Point((leftPupil.x + rightPupil.x)/2, (leftPupil.y + rightPupil.y)/2);
+    
 	return true;
 }
 
@@ -147,6 +148,7 @@ void EyeLogic::storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEye
 //To be implemented
 cv::Point EyeLogic::eyeVectorToScreenCoord()
 {
+    distance = cv::Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
 	if (!Calibrated(true))
 	{
 		logError("Error in eyeVectorToScreenCoord: EyeLogic not calibrated.");
@@ -164,6 +166,12 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 		//cv::waitKey(1);
 		//TODO: head moving things
 		logError("Error in eyeVectorToScreenCoord: EyeVector not in bounds of reference images.");
+		/*
+		cerr << "\taverageLocal.x  " << averageLocal.x << "\tref_Right.x" << ref_Right.x << endl;
+		cerr << "\taverageLocal.x  " << averageLocal.x << "\tref_Left.x" << ref_Left.x << endl;
+		cerr << "\taverageLocal.y  " << averageLocal.y << "\tref_Top.y" << ref_Top.y << endl;
+		cerr << "\taverageLocal.y  " << averageLocal.y << "ref_Bottom.y" << ref_Bottom.y << endl;
+		*/
         return cv::Point(-1, -1);
 	}
 
@@ -281,9 +289,11 @@ bool EyeLogic::Calibrated(bool valid)
 {
 	if (valid)
 	{
-		if (ref_Bottom.y < ref_Top.y || ref_Left.x > ref_Right.x)
+		if (ref_Bottom.y > ref_Top.y || ref_Left.x > ref_Right.x)
 		{
 			logError("Error in Calibrated: Valid check failed.");
+			cerr << "ref_Bottom.y\t" << ref_Bottom.y << "\t ref_Top.y\t" << ref_Top.y << endl;
+			cerr << "ref_Left.x\t" << ref_Left.x << "\t ref_Right.x\t" << ref_Right.x << endl;
 			return false;
 		}
 	}
@@ -332,7 +342,6 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 	}
 
 	rightEyeBound = eyes[0]; //Class Variable
-
 	rightEyeBound.x += faceCrop.cols / 2; // this is to account for split in half above
 	rightEyeBound.y += (int)(faceCrop.rows*0.15);
 
@@ -370,6 +379,7 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 */
 cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 {
+
 	cv::Mat result;
 
 	cvtColor(eyeCrop, result, CV_BGR2GRAY);
@@ -464,6 +474,44 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 */
 cv::Point EyeLogic::findPupil(cv::Mat eyeCrop) {
 
+	cv::Mat eyeCropGray;
+	eyeCrop.copyTo(eyeCropGray);
+	cv::equalizeHist(eyeCropGray, eyeCropGray);
+	cv::add(eyeCropGray, cv::Scalar(50), eyeCropGray);
+	cv::equalizeHist(eyeCropGray, eyeCropGray);
+	cv::threshold(eyeCropGray, eyeCropGray, 10, 255, cv::THRESH_BINARY);
+	cv::GaussianBlur(eyeCropGray, eyeCropGray, cv::Size(9, 9), 0, 0);
+	cv::Mat erodeElement = getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(4, 4));
+	cv::dilate(eyeCropGray, eyeCropGray, erodeElement);
+
+	std::vector<cv::Vec4i> hierarchy;
+	std::vector<std::vector<cv::Point> > contours;
+	findContours(eyeCropGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+	if (contours.size())
+	{
+		double area = 0;
+		int largest = 0;
+		for (int i = 0; i < contours.size(); ++i)
+		{
+			double calculatedArea = contourArea(contours[i]);
+			if (calculatedArea > area)
+			{
+				largest = i;
+				area = calculatedArea;
+			}
+		}
+		cv::Moments mo = moments(contours[largest], false);
+		cv::Point eyeCenter = cv::Point((int)(mo.m10 / mo.m00), (int)(mo.m01 / mo.m00));
+
+		cv::Rect bounding = boundingRect(contours[largest]);
+		//Point eyeCenter = cv::Point(cvRound(bounding.x + bounding.width / 2), cvRound(bounding.y + bounding.height / 2));	
+		int eyeRadius = cvRound(bounding.height*1.05);
+
+		return eyeCenter;
+	}
+
+
+	/*
 	std::vector<cv::Vec4i> hierarchy;
 	std::vector<std::vector<cv::Point> > contours;
 

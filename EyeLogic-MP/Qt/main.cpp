@@ -47,6 +47,12 @@ const std::string refImageNames [] = {"left", "right", "top", "bottom"};
 // reference images path
 QString ref_images_path;
 
+std::vector<cv::Point>leftVectors;
+std::vector<cv::Point>rightVectors;
+std::vector<cv::Point>topVectors;
+std::vector<cv::Point>downVectors;
+
+
 
 /********************
  * GLOBAL FUNCTIONS *
@@ -99,42 +105,95 @@ bool runCalibrate(){
     
     int frame_count = 0;
 	bool found_reference = false;
-	while (!found_reference)
-	{
+	
+    for(int i = 0; i = MAXFRAMES; i++){
         frame_count++;
-        
-        // wasn't able to calibrate for a reference point in MAXFRAMES attempts
-        if(frame_count == MAXFRAMES){
-            restartCalibration();
-			printError((string) "Calibration failed, please make sure your face is centered in the frame and well lit.");
-            return false;
+        cap >> capture;
+        if(frame_count == 0){
+            found_reference = mainEntryPoint->insertFrame(capture, true);
         } else {
-            cap >> capture;
-            if(frame_count == 0){
-                found_reference = mainEntryPoint->insertFrame(capture, true);
-            } else {
-                found_reference = mainEntryPoint->insertFrame(capture);
-
+            found_reference = mainEntryPoint->insertFrame(capture);
+        }
+        
+        if(found_reference){
+            cv::Point refPoint = mainEntryPoint->getEyeVector();
+            switch (imageCount) {
+                case 0:
+//                    mainEntryPoint->setReferencePoint(refPoint, RefPoint::LEFT);
+                    leftVectors.push_back(refPoint);
+                    break;
+                case 1:
+//                    mainEntryPoint->setReferencePoint(refPoint, RefPoint::RIGHT);
+                    rightVectors.push_back(refPoint);
+                    break;
+                case 2:
+//                    mainEntryPoint->setReferencePoint(refPoint, RefPoint::TOP);
+                    topVectors.push_back(refPoint);
+                    break;
+                case 3:
+//                    mainEntryPoint->setReferencePoint(refPoint, RefPoint::BOTTOM);
+                    downVectors.push_back(refPoint);
+                    break;
             }
         }
-	}
-
-	cv::Point refPoint = mainEntryPoint->getEyeVector();
-	switch (imageCount) {
-	case 0:
-		mainEntryPoint->setReferencePoint(refPoint, RefPoint::LEFT);
-		break;
-	case 1:
-		mainEntryPoint->setReferencePoint(refPoint, RefPoint::RIGHT);
-		break;
-	case 2:	
-		mainEntryPoint->setReferencePoint(refPoint, RefPoint::TOP);
-		break;
-	case 3:
-		mainEntryPoint->setReferencePoint(refPoint, RefPoint::BOTTOM);
-		break;
-	}
+        
+    }
     
+//    	cv::Point refPoint = mainEntryPoint->getEyeVector();
+//    	switch (imageCount) {
+//    	case 0:
+//    		mainEntryPoint->setReferencePoint(refPoint, RefPoint::LEFT);
+//    		break;
+//    	case 1:
+//    		mainEntryPoint->setReferencePoint(refPoint, RefPoint::RIGHT);
+//    		break;
+//    	case 2:
+//    		mainEntryPoint->setReferencePoint(refPoint, RefPoint::TOP);
+//    		break;
+//    	case 3:
+//    		mainEntryPoint->setReferencePoint(refPoint, RefPoint::BOTTOM);
+//    		break;
+//    	}
+    
+    
+    
+    
+//    while (!found_reference)
+//	{
+//        frame_count++;
+//        
+//        // wasn't able to calibrate for a reference point in MAXFRAMES attempts
+//        if(frame_count == MAXFRAMES){
+//            restartCalibration();
+//			printError((string) "Calibration failed, please make sure your face is centered in the frame and well lit.");
+//            return false;
+//        } else {
+//            cap >> capture;
+//            if(frame_count == 0){
+//                found_reference = mainEntryPoint->insertFrame(capture, true);
+//            } else {
+//                found_reference = mainEntryPoint->insertFrame(capture);
+//
+//            }
+//        }
+//	}
+//
+//	cv::Point refPoint = mainEntryPoint->getEyeVector();
+//	switch (imageCount) {
+//	case 0:
+//		mainEntryPoint->setReferencePoint(refPoint, RefPoint::LEFT);
+//		break;
+//	case 1:
+//		mainEntryPoint->setReferencePoint(refPoint, RefPoint::RIGHT);
+//		break;
+//	case 2:	
+//		mainEntryPoint->setReferencePoint(refPoint, RefPoint::TOP);
+//		break;
+//	case 3:
+//		mainEntryPoint->setReferencePoint(refPoint, RefPoint::BOTTOM);
+//		break;
+//	}
+//    
 
     // If calibration is on last image, store to file
     

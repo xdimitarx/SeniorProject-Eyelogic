@@ -27,9 +27,14 @@
 
 #include "VoiceTool.hpp"
 
-
 using namespace std;
 using namespace cv;
+
+extern int imageCount;
+extern std::vector<cv::Point>leftVectors;
+extern std::vector<cv::Point>rightVectors;
+extern std::vector<cv::Point>topVectors;
+extern std::vector<cv::Point>downVectors;
 
 /********************
  * HELPER FUNCTIONS *
