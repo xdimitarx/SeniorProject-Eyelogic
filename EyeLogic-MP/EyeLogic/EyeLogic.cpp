@@ -623,7 +623,7 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 
 void EyeLogic::logError(std::string message, cv::Mat image)
 {
-    string fileName = std::to_string(rand());
+    /*string fileName = std::to_string(rand());
     string logPath = fileName + ".txt";
     
     cerr << fileName << " : " << message << endl;
@@ -659,7 +659,7 @@ void EyeLogic::logError(std::string message, cv::Mat image)
     if (!image.empty())
     {
         imwrite(fileName + "cust.jpg", image);
-    }
+    }*/
 }
 
 // return mean of data based on ref

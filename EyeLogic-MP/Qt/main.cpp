@@ -115,7 +115,6 @@ bool runCalibrate(){
     
     cout << "data size = " << refData.size() << endl;
     
-    int x = 0;
     switch (imageCount) {
     case 0:
         mainEntryPoint->setStabalizedPoint(refData, RefPoint::LEFT);
