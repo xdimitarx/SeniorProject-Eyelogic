@@ -55,7 +55,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 	}
 
 	cv::Mat cropFace = frame(faceCrop);
-	//logError("Debug", cropFace);
+	logError("Debug", cropFace);
 
 	// Check for force or if eye template does not exist
 	if (!eyeTemplatesExists || forceNewTemplate)
@@ -290,7 +290,7 @@ bool EyeLogic::Calibrated(bool valid)
 {
 	if (valid)
 	{
-		if (ref_Bottom.y > ref_Top.y || ref_Left.x > ref_Right.x)
+		if (ref_Bottom.y > ref_Top.y || ref_Left.x < ref_Right.x)
 		{
 			logError("Error in Calibrated: Valid check failed.");
 			cerr << "ref_Bottom.y\t" << ref_Bottom.y << "\t ref_Top.y\t" << ref_Top.y << endl;
@@ -401,6 +401,7 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
     if (left == cv::Point(-1, -1))
 	{
 		logError("Error in applyPupilFilters: No valid black pixels detected. SERIOUS ERROR.");
+		return cv::Mat();
 	}
 
 	//get farthest right noise
@@ -420,6 +421,7 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
     if (right == cv::Point(-1, -1))
 	{
 		logError("Error in applyPupilFilters: No valid black pixels detected. SERIOUS ERROR.");
+		return cv::Mat();
 	}
 
 	int slopeY = (right.y - left.y);
@@ -455,6 +457,12 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 		}
 	}
 
+	if (result.empty())
+	{
+		logError("Error in applyPupilFilters: Empty result crop", result);
+		return cv::Mat();
+	}
+
 	//dilates all black pixels in the image in a hopes to connect them, find pupil will look for the largest mass 
 	// and until this step the image looks grainy, this turns it more into a solid blob
 	Mat erodeElement = getStructuringElement(MORPH_ELLIPSE, cv::Size(4, 4));
@@ -480,6 +488,11 @@ cv::Point EyeLogic::findPupil(cv::Mat eyeCrop)
 	//cv::GaussianBlur(eyeCropGray, eyeCropGray, cv::Size(9, 9), 0, 0);
 	//cv::Mat erodeElement = getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(4, 4));
 	//cv::dilate(eyeCropGray, eyeCropGray, erodeElement);
+
+	if (eyeCrop.empty())
+	{
+		return cv::Point(-1, -1);
+	}
 
 	std::vector<cv::Vec4i> hierarchy;
 	std::vector<std::vector<cv::Point> > contours;

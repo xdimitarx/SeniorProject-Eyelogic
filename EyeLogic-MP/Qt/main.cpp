@@ -113,7 +113,7 @@ bool runCalibrate(){
         // wasn't able to calibrate for a reference point in MAXFRAMES attempts
         if(frame_count == MAXFRAMES){
             restartCalibration();
-			printError((string) "Calibration failed, please make sure your face is centered in the frame and well lit.");
+			printError((string)"Calibration failed, please make sure your face is centered in the frame and well lit.");
             return false;
         } else {
             cap >> capture;
