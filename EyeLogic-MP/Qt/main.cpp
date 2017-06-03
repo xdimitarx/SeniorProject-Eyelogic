@@ -102,7 +102,6 @@ bool runCalibrate(){
 	while (!found_reference)
 	{
         frame_count++;
-        
         // wasn't able to calibrate for a reference point in MAXFRAMES attempts
         if(frame_count == MAXFRAMES){
             restartCalibration();
@@ -114,7 +113,6 @@ bool runCalibrate(){
                 found_reference = mainEntryPoint->insertFrame(capture, true);
             } else {
                 found_reference = mainEntryPoint->insertFrame(capture);
-
             }
         }
 	}
