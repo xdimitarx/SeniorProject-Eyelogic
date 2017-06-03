@@ -621,6 +621,47 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 	return true;
 }
 
+void EyeLogic::logError(std::string message, cv::Mat image)
+{
+    string fileName = std::to_string(rand());
+    string logPath = fileName + ".txt";
+    
+    cerr << fileName << " : " << message << endl;
+    
+    std::ofstream outputfile(logPath, std::ios::out);
+    
+    outputfile << fileName << " : " << message << endl;
+    
+    outputfile << "FaceRect (x,y,w,h)" << endl;
+    outputfile << faceRect.x << " " << faceRect.y << " " << faceRect.width << " " << faceRect.height << endl;
+    
+    outputfile << "LeftEyeBound (x,y,w,h)" << endl;
+    outputfile << leftEyeBound.x << " " << leftEyeBound.y << " " << leftEyeBound.width << " " << leftEyeBound.height << endl;
+    
+    outputfile << "RightEyeBound (x,y,w,h)" << endl;
+    outputfile << rightEyeBound.x << " " << rightEyeBound.y << " " << rightEyeBound.width << " " << rightEyeBound.height << endl;
+    
+    if (Calibrated(false))
+    {
+        outputfile << "Bounds -- Left, Right, Top, Bottom" << endl;
+        outputfile << ref_Left.x << ", " << ref_Right.x << ", " << ref_Top.y << ", " << ref_Bottom.y;
+    }
+    
+    outputfile.close();
+    
+    if (faceTemplateExists)
+    {
+        imwrite(fileName + "t.jpg", userTemplate);
+    }
+    
+    imwrite(fileName + ".jpg", currentFrame);
+    
+    if (!image.empty())
+    {
+        imwrite(fileName + "cust.jpg", image);
+    }
+}
+
 // return mean of data based on ref
 cv::Point EyeLogic::findMean(std::vector<cv::Point>subData, RefPoint refPosition){
     double sum;

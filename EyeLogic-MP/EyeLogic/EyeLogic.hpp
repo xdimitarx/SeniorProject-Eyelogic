@@ -131,6 +131,9 @@ private:
 
 	//returns a faceCrop that matches the template if true and the difference between the two planes
 	bool checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * frameDifference);
+
+	//creates an error file
+	void logError(std::string message, cv::Mat image = cv::Mat());
     
     // find index of mean of vector data
     cv::Point findMean(std::vector<cv::Point> subData, RefPoint refPosition);
