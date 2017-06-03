@@ -88,6 +88,8 @@ public:
     
 	EyeLogic(cv::Point screenres);
 
+	cv::Point distance;
+
 private:
 
 	//Template Matching Vars
@@ -116,7 +118,7 @@ private:
 	CascadeClassifier rightEyeExtractor;
 
 	//Points that track previous frame information
-	cv::Point screenMap, destinationOld, direction, delta, distance;;
+	cv::Point screenMap, destinationOld, direction, delta;
 
 	//finds and sets eye bounds from faceCrop and sets eyeTemplatesExists = true
 	bool createEyeBounds(cv::Mat faceCrop);

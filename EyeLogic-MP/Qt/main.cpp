@@ -139,6 +139,13 @@ bool runCalibrate(){
     // store faceStrip in file
     if(imageCount == REFIMAGES - 1){
         
+		if (!mainEntryPoint->Calibrated(true))
+		{
+			restartCalibration();
+			printError((string)"Calibration failed, please make sure your face is centered in the frame and well lit.");
+			return false;
+		}
+
         std::ofstream outfile(toString(user_path) + "/parameters.txt", std::ios::app);
         
         std::vector<cv::Point>data = mainEntryPoint->getReferencePointData();
@@ -245,6 +252,7 @@ void captureLoop()
 				}
 				else
 				{
+					cout << "Made It" << screenCoord.x << ":" << screenCoord.y << endl;
 					systemSingleton->setCurPos(screenCoord);
 					errorCount = 0;
 				}
