@@ -55,6 +55,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 	}
 
 	cv::Mat cropFace = frame(faceCrop);
+	//logError("Debug", cropFace);
 
 	// Check for force or if eye template does not exist
 	if (!eyeTemplatesExists || forceNewTemplate)
@@ -124,8 +125,8 @@ void EyeLogic::storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEye
 	{
 		faceRect = faceBound; // rect set before template is extracted, template and rect have same width
 
-		faceBound.y += floor(faceBound.height*0.5);
-		faceBound.height = faceBound.height*0.2;
+		faceBound.y += floor(faceBound.height*0.55);
+		faceBound.height = faceBound.height*0.15;
 
 		userTemplate = image(faceBound); //userTemplate is a region around the upper lip that has been converted to gray scale and equalized historgrams
 		cvtColor(userTemplate, userTemplate, CV_BGR2GRAY);
@@ -328,8 +329,8 @@ EyeLogic::EyeLogic(cv::Point screenres)
 */
 bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 {
-	cv::Mat leftHalf = faceCrop(cv::Rect(0, (int)(faceCrop.rows*0.15), (int)(faceCrop.cols*0.5), (int)(faceCrop.rows*0.8)));
-	cv::Mat rightHalf = faceCrop(cv::Rect((int)(faceCrop.cols*0.5), (int)(faceCrop.rows*0.15), (int)(faceCrop.cols*0.5), (int)(faceCrop.rows*0.8)));
+	cv::Mat leftHalf = faceCrop(cv::Rect(0, 0, (int)(faceCrop.cols*0.5), faceCrop.rows));
+	cv::Mat rightHalf = faceCrop(cv::Rect((int)(faceCrop.cols*0.5), 0, (int)(faceCrop.cols*0.5), faceCrop.rows));
 
 	//Capture (our right) User's Left Eye Bound box
 	vector<cv::Rect_<int>> eyes;
@@ -343,10 +344,8 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 
 	rightEyeBound = eyes[0]; //Class Variable
 	rightEyeBound.x += faceCrop.cols / 2; // this is to account for split in half above
-	rightEyeBound.y += (int)(faceCrop.rows*0.15);
-
 	rightEyeBound.y = rightEyeBound.y + (int)(rightEyeBound.height*0.4); //Crop Eyebrow
-	rightEyeBound.height /= 2; //Crop Eyebrow
+	rightEyeBound.height *= 0.6; //Crop Eyebrow
 
 	//Capture (our left) User's Right Eye Bound box
 	eyes.clear();
@@ -359,10 +358,8 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 	}
 
 	leftEyeBound = eyes[0];
-	leftEyeBound.y += (int)(faceCrop.rows*0.15);
-
 	leftEyeBound.y = leftEyeBound.y + (int)(leftEyeBound.height*0.4);
-	leftEyeBound.height /= 2;
+	leftEyeBound.height *= 0.6;
 
 	eyeTemplatesExists = true;
 
@@ -472,21 +469,21 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 *
 *	returns the pupils location relative to faceRect*
 */
-cv::Point EyeLogic::findPupil(cv::Mat eyeCrop) {
-
-	cv::Mat eyeCropGray;
-	eyeCrop.copyTo(eyeCropGray);
-	cv::equalizeHist(eyeCropGray, eyeCropGray);
-	cv::add(eyeCropGray, cv::Scalar(50), eyeCropGray);
-	cv::equalizeHist(eyeCropGray, eyeCropGray);
-	cv::threshold(eyeCropGray, eyeCropGray, 10, 255, cv::THRESH_BINARY);
-	cv::GaussianBlur(eyeCropGray, eyeCropGray, cv::Size(9, 9), 0, 0);
-	cv::Mat erodeElement = getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(4, 4));
-	cv::dilate(eyeCropGray, eyeCropGray, erodeElement);
+cv::Point EyeLogic::findPupil(cv::Mat eyeCrop) 
+{
+	//cv::Mat eyeCropGray;
+	//eyeCrop.copyTo(eyeCropGray);
+	//cv::equalizeHist(eyeCropGray, eyeCropGray);
+	//cv::add(eyeCropGray, cv::Scalar(50), eyeCropGray);
+	//cv::equalizeHist(eyeCropGray, eyeCropGray);
+	//cv::threshold(eyeCropGray, eyeCropGray, 10, 255, cv::THRESH_BINARY);
+	//cv::GaussianBlur(eyeCropGray, eyeCropGray, cv::Size(9, 9), 0, 0);
+	//cv::Mat erodeElement = getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(4, 4));
+	//cv::dilate(eyeCropGray, eyeCropGray, erodeElement);
 
 	std::vector<cv::Vec4i> hierarchy;
 	std::vector<std::vector<cv::Point> > contours;
-	findContours(eyeCropGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+	findContours(eyeCrop, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 	if (contours.size())
 	{
 		double area = 0;
@@ -503,41 +500,12 @@ cv::Point EyeLogic::findPupil(cv::Mat eyeCrop) {
 		cv::Moments mo = moments(contours[largest], false);
 		cv::Point eyeCenter = cv::Point((int)(mo.m10 / mo.m00), (int)(mo.m01 / mo.m00));
 
-		cv::Rect bounding = boundingRect(contours[largest]);
-		//Point eyeCenter = cv::Point(cvRound(bounding.x + bounding.width / 2), cvRound(bounding.y + bounding.height / 2));	
-		int eyeRadius = cvRound(bounding.height*1.05);
-
-		return eyeCenter;
-	}
-
-
-	/*
-	std::vector<cv::Vec4i> hierarchy;
-	std::vector<std::vector<cv::Point> > contours;
-
-	//obtain contours of all black blobs in the image and determine the largest
-	findContours(eyeCrop, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-	if (contours.size() > 0)
-	{
-		double area = 0;
-		int largest = 0;
-		for (int i = 0; i < contours.size(); ++i)
-		{
-			double calculatedArea = contourArea(contours[i]);
-			if (calculatedArea > area)
-			{
-				largest = i;
-				area = calculatedArea;
-			}
-		}
-		// once largest is found, calculate image moments to approximate pupil location
-		cv::Moments mo = moments(contours[largest], false);
-		cv::Point eyeCenter = cv::Point((int)(mo.m10 / mo.m00), (int)(mo.m01 / mo.m00));
+		//cv::Rect bounding = boundingRect(contours[largest]);
+		//int eyeRadius = cvRound(bounding.height*1.05);
 
 		return eyeCenter;
 	}
 	logError("Error in findPupil: No contours detected.");
-
 	return cv::Point(-1, -1);
 }
 
@@ -583,25 +551,30 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 	//set return arguments
 	*faceCrop = faceRect;
 	faceCrop->x = matchLoc.x;
-	faceCrop->y = matchLoc.y - floor(faceRect.height*0.5); //this is because the actual template and faceRect don't share the same y value
+	faceCrop->y = matchLoc.y - floor(faceRect.height*0.55); //this is because the actual template and faceRect don't share the same y value
 	frameDifference->x = matchLoc.x - faceRect.x;
-	frameDifference->y = matchLoc.y - floor(faceRect.height*0.5) - faceRect.y;
+	frameDifference->y = matchLoc.y - floor(faceRect.height*0.55) - faceRect.y;
 	return true;
 }
 
-void EyeLogic::logError(std::string message)
-{
-	cerr << message << endl;
-	
+void EyeLogic::logError(std::string message, cv::Mat image)
+{	
 	string fileName = std::to_string(rand());
 	string logPath = fileName + ".txt";
+
+	cerr << fileName << " : " << message << endl;
 	
 	std::ofstream outputfile(logPath, std::ios::out);
 
+	outputfile << fileName << " : " << message << endl;
+
+	outputfile << "FaceRect (x,y,w,h)" << endl;
 	outputfile << faceRect.x << " " << faceRect.y << " " << faceRect.width << " " << faceRect.height << endl;
 
+	outputfile << "LeftEyeBound (x,y,w,h)" << endl;
 	outputfile << leftEyeBound.x << " " << leftEyeBound.y << " " << leftEyeBound.width << " " << leftEyeBound.height << endl;
 
+	outputfile << "RightEyeBound (x,y,w,h)" << endl;
 	outputfile << rightEyeBound.x << " " << rightEyeBound.y << " " << rightEyeBound.width << " " << rightEyeBound.height << endl;
 
 	if (Calibrated(false))
@@ -614,8 +587,13 @@ void EyeLogic::logError(std::string message)
 
 	if (faceTemplateExists)
 	{
-		imwrite("t" + fileName + ".jpg", userTemplate);
+		imwrite(fileName + "t.jpg", userTemplate);
 	}
 
 	imwrite(fileName + ".jpg", currentFrame);
+
+	if (!image.empty())
+	{
+		imwrite(fileName + "cust.jpg", image);
+	}
 }

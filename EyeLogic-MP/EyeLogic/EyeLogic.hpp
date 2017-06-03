@@ -133,7 +133,7 @@ private:
 	bool checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * frameDifference);
 
 	//creates an error file
-	void logError(std::string message);
+	void logError(std::string message, cv::Mat image = cv::Mat());
 };
 
 #endif
