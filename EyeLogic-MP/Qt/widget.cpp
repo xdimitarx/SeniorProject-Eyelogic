@@ -220,35 +220,37 @@ void Widget::calibrate()
     // new user
     QDir().mkdir(user_path);
 
-    // display red dot full screen
-    imageLabel = new QLabel();
-    QString ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "Before.jpg";
-    imageLabel->setPixmap(QPixmap(ref_image));
-    imageLabel->showFullScreen();
-
-    // move calibration box on top of image to bottom-middle of screen
-    calibrationPage->show();
-    calibrationPage->move(screenres.x/2 - calibrationPage->width()/2, screenres.y/2 - calibrationPage->height()/2);
-	
-    qApp->processEvents();
-	systemSingleton->sleep(2000);
-
-    //***************************
-    // CALL CALIBRATION FUNCTION
-    //***************************
-
-	if (!runCalibrate())
-	{
-		imageLabel->showNormal();
-		delete imageLabel;
-		calibrationPage->hide();
-		return;
-	}
-
-    // display green dot
-    ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "After.jpg";
-    imageLabel->setPixmap(QPixmap(ref_image));
-    imageLabel->showFullScreen();
+    runCalibrate();
+    
+//    // display red dot full screen
+//    imageLabel = new QLabel();
+//    QString ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "Before.jpg";
+//    imageLabel->setPixmap(QPixmap(ref_image));
+//    imageLabel->showFullScreen();
+//
+//    // move calibration box on top of image to bottom-middle of screen
+//    calibrationPage->show();
+//    calibrationPage->move(screenres.x/2 - calibrationPage->width()/2, screenres.y/2 - calibrationPage->height()/2);
+//	
+//    qApp->processEvents();
+//	systemSingleton->sleep(2000);
+//
+//    //***************************
+//    // CALL CALIBRATION FUNCTION
+//    //***************************
+//
+//	if (!runCalibrate())
+//	{
+//		imageLabel->showNormal();
+//		delete imageLabel;
+//		calibrationPage->hide();
+//		return;
+//	}
+//
+//    // display green dot
+//    ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "After.jpg";
+//    imageLabel->setPixmap(QPixmap(ref_image));
+//    imageLabel->showFullScreen();
 }
 
 /*
@@ -258,30 +260,33 @@ void Widget::next()
 {
     
     imageCount++;
+    
+    runCalibrate();
 
-	//display red dot
-    QString ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "Before.jpg";
-    imageLabel->setPixmap(QPixmap(ref_image));
-    imageLabel->showFullScreen();
-	
-    qApp->processEvents();
-	systemSingleton->sleep(2000);
+//	//display red dot
+//    QString ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "Before.jpg";
+//    imageLabel->setPixmap(QPixmap(ref_image));
+//    imageLabel->showFullScreen();
+//	
+//    qApp->processEvents();
+//	systemSingleton->sleep(2000);
     
     //***************************
     // CALL CALIBRATION FUNCTION
     //***************************
-	if (!runCalibrate())
-	{
-		imageLabel->showNormal();
-		delete imageLabel;
-		calibrationPage->hide();
-		return;
-	}
-    
-    // display green dot
-    ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "After.jpg";
-    imageLabel->setPixmap(QPixmap(ref_image));
-    imageLabel->showFullScreen();
+//	if (!runCalibrate())
+//	{
+//		imageLabel->showNormal();
+//		delete imageLabel;
+//		calibrationPage->hide();
+//        
+//		return;
+//	}
+//    
+//    // display green dot
+//    ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "After.jpg";
+//    imageLabel->setPixmap(QPixmap(ref_image));
+//    imageLabel->showFullScreen();
     
     if(imageCount == REFIMAGES - 1){
         QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");

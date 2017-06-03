@@ -45,7 +45,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 	}
 	else
 	{
-		//This uses template matching to determine the corresponding faceCrop in the new frame
+		// This uses template matching to determine the corresponding faceCrop in the new frame
 		// the data gathered is used to adjust the eyebounds accordingly for much faster processing then haarcascades
 		if (!checkTemplate(frame, &faceCrop, &frameDiff))
 		{
@@ -56,10 +56,10 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 
 	cv::Mat cropFace = frame(faceCrop);
 
-	//Check for force or if eye template does not exist
+	// Check for force or if eye template does not exist
 	if (!eyeTemplatesExists || forceNewTemplate)
 	{
-		//Generates the eyebounds from the image and sets them as a template
+		// Generates the eyebounds from the image and sets them as a template
 		if (!createEyeBounds(cropFace))
 		{
 			cerr << "Error in insertFrame: Could not create eye bounds." << endl;
@@ -91,6 +91,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 	rightPupil.y += rEyeB.y;
 
 	eyeVector = cv::Point((leftPupil.x + rightPupil.x)/2, (leftPupil.y + rightPupil.y)/2);
+    
 	return true;
 }
 
@@ -147,7 +148,7 @@ void EyeLogic::storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEye
 //To be implemented
 cv::Point EyeLogic::eyeVectorToScreenCoord()
 {
-	distance = Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
+    distance = cv::Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
 	if (!Calibrated(true))
 	{
 		cerr << "Error in eyeVectorToScreenCoord: EyeLogic not calibrated." << endl;
