@@ -1,4 +1,4 @@
-#include "widget.h"
+ #include "widget.h"
 #include "../EyeLogic/EyeLogic.hpp"
 #include "../EyeLogic/VoiceTool.hpp"
 
@@ -47,13 +47,6 @@ const std::string refImageNames [] = {"left", "right", "top", "bottom"};
 // reference images path
 QString ref_images_path;
 
-std::vector<cv::Point>leftVectors;
-std::vector<cv::Point>rightVectors;
-std::vector<cv::Point>topVectors;
-std::vector<cv::Point>downVectors;
-
-
-
 /********************
  * GLOBAL FUNCTIONS *
  ********************/
@@ -101,15 +94,13 @@ void printError(QString msg){
  */
 bool runCalibrate(){
     cv::Point referenceMean;
-    std::vector<cv::Point> data;
+    std::vector<cv::Point>refData;
     
-    int frame_count = 0;
 	bool found_reference = false;
 	
-    for(int i = 0; i = MAXFRAMES; i++){
-        frame_count++;
+    for(int i = 0; i < MAXFRAMES; i++){
         cap >> capture;
-        if(frame_count == 0){
+        if(i == 0){
             found_reference = mainEntryPoint->insertFrame(capture, true);
         } else {
             found_reference = mainEntryPoint->insertFrame(capture);
@@ -117,84 +108,30 @@ bool runCalibrate(){
         
         if(found_reference){
             cv::Point refPoint = mainEntryPoint->getEyeVector();
-            switch (imageCount) {
-                case 0:
-//                    mainEntryPoint->setReferencePoint(refPoint, RefPoint::LEFT);
-                    leftVectors.push_back(refPoint);
-                    break;
-                case 1:
-//                    mainEntryPoint->setReferencePoint(refPoint, RefPoint::RIGHT);
-                    rightVectors.push_back(refPoint);
-                    break;
-                case 2:
-//                    mainEntryPoint->setReferencePoint(refPoint, RefPoint::TOP);
-                    topVectors.push_back(refPoint);
-                    break;
-                case 3:
-//                    mainEntryPoint->setReferencePoint(refPoint, RefPoint::BOTTOM);
-                    downVectors.push_back(refPoint);
-                    break;
-            }
+            refData.push_back(refPoint);
         }
         
     }
     
-//    	cv::Point refPoint = mainEntryPoint->getEyeVector();
-//    	switch (imageCount) {
-//    	case 0:
-//    		mainEntryPoint->setReferencePoint(refPoint, RefPoint::LEFT);
-//    		break;
-//    	case 1:
-//    		mainEntryPoint->setReferencePoint(refPoint, RefPoint::RIGHT);
-//    		break;
-//    	case 2:
-//    		mainEntryPoint->setReferencePoint(refPoint, RefPoint::TOP);
-//    		break;
-//    	case 3:
-//    		mainEntryPoint->setReferencePoint(refPoint, RefPoint::BOTTOM);
-//    		break;
-//    	}
+    cout << "data size = " << refData.size() << endl;
     
+    int x = 0;
+    switch (imageCount) {
+    case 0:
+        mainEntryPoint->setStabalizedPoint(refData, RefPoint::LEFT);
+        break;
+    case 1:
+        mainEntryPoint->setStabalizedPoint(refData, RefPoint::RIGHT);
+        break;
+    case 2:
+        mainEntryPoint->setStabalizedPoint(refData, RefPoint::TOP);
+        break;
+    case 3:
+        mainEntryPoint->setStabalizedPoint(refData, RefPoint::BOTTOM);
+        break;
+    }
     
-    
-    
-//    while (!found_reference)
-//	{
-//        frame_count++;
-//        
-//        // wasn't able to calibrate for a reference point in MAXFRAMES attempts
-//        if(frame_count == MAXFRAMES){
-//            restartCalibration();
-//			printError((string) "Calibration failed, please make sure your face is centered in the frame and well lit.");
-//            return false;
-//        } else {
-//            cap >> capture;
-//            if(frame_count == 0){
-//                found_reference = mainEntryPoint->insertFrame(capture, true);
-//            } else {
-//                found_reference = mainEntryPoint->insertFrame(capture);
-//
-//            }
-//        }
-//	}
-//
-//	cv::Point refPoint = mainEntryPoint->getEyeVector();
-//	switch (imageCount) {
-//	case 0:
-//		mainEntryPoint->setReferencePoint(refPoint, RefPoint::LEFT);
-//		break;
-//	case 1:
-//		mainEntryPoint->setReferencePoint(refPoint, RefPoint::RIGHT);
-//		break;
-//	case 2:	
-//		mainEntryPoint->setReferencePoint(refPoint, RefPoint::TOP);
-//		break;
-//	case 3:
-//		mainEntryPoint->setReferencePoint(refPoint, RefPoint::BOTTOM);
-//		break;
-//	}
-//    
-
+        
     // If calibration is on last image, store to file
     
     // write all reference points out to file
@@ -203,10 +140,10 @@ bool runCalibrate(){
     if(imageCount == REFIMAGES - 1){
         
         std::ofstream outfile(toString(user_path) + "/parameters.txt", std::ios::app);
-
-        data = mainEntryPoint->getReferencePointData();
-		//mainEntryPoint->distance = Point(data[0].x - data[1].x, data[3].y - data[2].y);
-
+        
+        std::vector<cv::Point>data = mainEntryPoint->getReferencePointData();
+        //mainEntryPoint->distance = Point(data[0].x - data[1].x, data[3].y - data[2].y);
+        
         for(auto ref : data){
             outfile << ref.x << " " << ref.y << endl;
             outfile << endl;
@@ -221,38 +158,40 @@ bool runCalibrate(){
         
         if(faceStrip.empty()){
             std::cerr << "Error in runCalibrate: faceStrip was empty" << std::endl;
-			printError((string) "Calibration failed, please make sure your face is centered in the frame and well lit.");
-			return false;
+            printError((string) "Calibration failed, please make sure your face is centered in the frame and well lit.");
+            return false;
         }
         
         // faceCrop
-		outfile << faceCrop.x << std::endl;
-		outfile << faceCrop.y << std::endl;
+        outfile << faceCrop.x << std::endl;
+        outfile << faceCrop.y << std::endl;
         outfile << faceCrop.width << std::endl;
         outfile << faceCrop.height << std::endl;
         outfile << std::endl;
         
         // leftEyeCrop
-		outfile << leftEyeCrop.x << std::endl;
-		outfile << leftEyeCrop.y << std::endl;
+        outfile << leftEyeCrop.x << std::endl;
+        outfile << leftEyeCrop.y << std::endl;
         outfile << leftEyeCrop.width << std::endl;
         outfile << leftEyeCrop.height << std::endl;
         outfile << std::endl;
         
         // rightEyeCrop
-		outfile << rightEyeCrop.x << std::endl;
-		outfile << rightEyeCrop.y << std::endl;
+        outfile << rightEyeCrop.x << std::endl;
+        outfile << rightEyeCrop.y << std::endl;
         outfile << rightEyeCrop.width << std::endl;
         outfile << rightEyeCrop.height << std::endl;
         outfile << std::endl;
         
-		outfile.close();
-
+        outfile.close();
+        
         imwrite(toString(user_path) + "/template.png", faceStrip);
-
+        
         CALIBRATED = true;
     }
-	return true;
+    
+    return true;
+
 } 
 
 /*

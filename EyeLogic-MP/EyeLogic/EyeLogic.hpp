@@ -50,7 +50,7 @@ enum class RefPoint { LEFT, RIGHT, TOP, BOTTOM };
 class EyeLogic {
 
 public:
-
+    
 	//basic public function, forceNewTemplate forces a creation of new template images
 	bool insertFrame(Mat frame, bool forceNewTemplate = false);
 
@@ -75,7 +75,7 @@ public:
 	cv::Point getEyeVector();
 
 	// sets reference positions individually (LEFT, RIGHT, TOP, BOTTOM)
-	void setReferencePoint(cv::Point point, RefPoint refPosition);
+    void setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPosition);
 
 	// returns vector of points in order (LEFT, RIGHT, TOP, BOTTOM)
 	vector <cv::Point>  getReferencePointData();
@@ -85,7 +85,7 @@ public:
 
 	// valid = true also checks if reference points make a valid bounding box
 	bool Calibrated(bool valid);
-
+    
 	EyeLogic(cv::Point screenres);
 
 private:
@@ -129,6 +129,10 @@ private:
 
 	//returns a faceCrop that matches the template if true and the difference between the two planes
 	bool checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * frameDifference);
+    
+    // find index of mean of vector data
+    cv::Point findMean(std::vector<cv::Point> subData, RefPoint refPosition);
+    
 };
 
 #endif

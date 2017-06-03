@@ -225,31 +225,77 @@ cv::Point EyeLogic::getEyeVector()
 * setReferencePoint
 * Description: sets the reference point for the given enum
 */
-void EyeLogic::setReferencePoint(cv::Point point, RefPoint refPosition)
-{
-	if (point.x < 0 || point.y < 0)
-	{
-		cerr << "Error in setReferencePoint: Valid point was not given." << endl;
-		return;
-	}
-	switch (refPosition)
-	{
-	case RefPoint::LEFT:
-		ref_Left = point;
-		break;
-	case RefPoint::RIGHT:
-		ref_Right = point;
-		break;
-	case RefPoint::TOP:
-		ref_Top = point;
-		break;
-	case RefPoint::BOTTOM:
-		ref_Bottom = point;
-		break;
-	default:
-		cerr << "Error in setReferencePoint: enum is not valid." << endl;
-		break;
-	}
+
+// returns a stabalized eyeVector given a vector of eyeVectors
+void EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPosition){
+
+    std::vector<cv::Point>subData;
+    
+    // middle value index
+    int index = ceil(data.size() / 2);
+    
+    /*******************************
+     * get mean of larger X values *
+     *******************************/
+    if(refPosition == RefPoint::LEFT){
+        
+        // sort array by x
+        std::sort(data.begin(), data.end(),
+                      [](const cv::Point p1, const cv::Point p2){return p1.x < p2.x;});
+    
+        // Inputs: sub vector from [index, END] ; reference point
+        cv::Point newPoint  = findMean(   std::vector<cv::Point>(data.begin() + index, data.end()), RefPoint::LEFT );
+        
+        // set reference point
+        ref_Left = newPoint;
+        
+
+    /********************************
+     * get mean of smaller X values *
+     ********************************/
+    }  else if(refPosition == RefPoint::RIGHT){
+
+        // sort array by x
+        std::sort(data.begin(), data.end(),
+                  [](const cv::Point p1, const cv::Point p2){return p1.x < p2.x;});
+
+        // Inputs: sub vector from [index, END] ; reference point
+        cv::Point newPoint  = findMean( std::vector<cv::Point>(data.begin() , data.begin() + index), RefPoint::RIGHT );
+        
+        // set reference point
+        ref_Right = newPoint;
+        
+    /********************************
+     * get mean of smaller Y values *
+     ********************************/
+    }  else if(refPosition == RefPoint::TOP){
+
+        // sort array by y
+        std::sort(data.begin(), data.end(),
+                  [](const cv::Point p1, const cv::Point p2){return p1.y < p2.y; });
+        
+        // Inputs: sub vector from [index, END] ; reference point
+        cv::Point newPoint  = findMean(  std::vector<cv::Point>(data.begin(), data.begin() + index), RefPoint::TOP );
+        
+        // set reference point
+        ref_Top = newPoint;
+        
+    /*******************************
+     * get mean of larger Y values *
+     *******************************/
+    } else if(refPosition == RefPoint::BOTTOM){
+        
+        // sort array by y
+        std::sort(data.begin(), data.end(),
+                  [](const cv::Point p1, const cv::Point p2){return p1.y < p2.y; });
+        
+        // Inputs: sub vector from [index, END] ; reference point
+        cv::Point newPoint  = findMean(   std::vector<cv::Point>(data.begin() + index, data.end()), RefPoint::BOTTOM );
+        
+        // set reference point
+        ref_Bottom = newPoint;
+
+    }
 }
 
 // returns vector of reference point data in (LEFT,RIGHT,TOP,BOTTOM) order
@@ -299,6 +345,7 @@ bool EyeLogic::Calibrated(bool valid)
 	}
 	return (ref_Bottom != cv::Point(-1, -1) && ref_Left != cv::Point(-1, -1) && ref_Top != cv::Point(-1, -1) && ref_Right != cv::Point(-1, -1));
 }
+
 
 //loads cascades and stores screen resolution
 EyeLogic::EyeLogic(cv::Point screenres)
@@ -590,3 +637,32 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 	frameDifference->y = matchLoc.y - floor(faceRect.height*0.6) - faceRect.y;
 	return true;
 }
+
+// return mean of data based on ref
+cv::Point EyeLogic::findMean(std::vector<cv::Point>subData, RefPoint refPosition){
+    double sum;
+    cv::Point newPoint;
+    
+    
+    if( (refPosition == RefPoint::LEFT) || (refPosition == RefPoint::RIGHT) ){
+        
+        for(int i = 0; i < subData.size(); i++){
+            sum += subData[i].x;
+        }
+        
+        newPoint.x = sum / subData.size();
+        newPoint.y = -1;
+
+    } else if( (refPosition == RefPoint::TOP) || (refPosition == RefPoint::BOTTOM) ){
+        
+        for(int i = 0; i < subData.size(); i++){
+            sum += subData[i].y;
+        }
+        
+        newPoint.x = 0;
+        newPoint.y = sum / subData.size();
+    }
+    
+    return newPoint;
+}
+
