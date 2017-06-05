@@ -75,7 +75,7 @@ public:
 	cv::Point getEyeVector();
 
 	// sets reference positions individually (LEFT, RIGHT, TOP, BOTTOM)
-    void setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPosition);
+    bool setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPosition);
 
 	// returns vector of points in order (LEFT, RIGHT, TOP, BOTTOM)
 	vector <cv::Point>  getReferencePointData();

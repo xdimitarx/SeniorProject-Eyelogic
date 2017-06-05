@@ -220,7 +220,7 @@ void Widget::calibrate()
     // new user
     QDir().mkdir(user_path);
     
-//    // display red dot full screen
+    // display red dot full screen
     imageLabel = new QLabel();
     QString ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "Before.jpg";
     imageLabel->setPixmap(QPixmap(ref_image));

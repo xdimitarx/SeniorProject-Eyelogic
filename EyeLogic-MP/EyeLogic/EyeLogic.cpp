@@ -228,9 +228,14 @@ cv::Point EyeLogic::getEyeVector()
 */
 
 // returns a stabalized eyeVector given a vector of eyeVectors
-void EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPosition){
+bool EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPosition){
 
     std::vector<cv::Point>subData;
+    
+    if(data.size() == 0){
+        logError("Error in setStabalizedPoint: size of data is 0");
+        return false;
+    }
     
     // middle value index
     int index = ceil(data.size() / 2);
@@ -245,10 +250,14 @@ void EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPositi
                       [](const cv::Point p1, const cv::Point p2){return p1.x < p2.x;});
     
         // Inputs: sub vector from [index, END] ; reference point
-        cv::Point newPoint  = findMean(   std::vector<cv::Point>(data.begin() + index, data.end()), RefPoint::LEFT );
+        cv::Point newPoint  = findMean( std::vector<cv::Point>(data.begin() + index, data.end()), RefPoint::LEFT );
         
         // set reference point
-        ref_Left = newPoint;
+        if(newPoint != cv::Point(-1, -1)){
+            ref_Left = newPoint;
+        } else {
+            return false;
+        }
         
 
     /********************************
@@ -261,10 +270,15 @@ void EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPositi
                   [](const cv::Point p1, const cv::Point p2){return p1.x < p2.x;});
 
         // Inputs: sub vector from [index, END] ; reference point
-        cv::Point newPoint  = findMean( std::vector<cv::Point>(data.begin() , data.begin() + index), RefPoint::RIGHT );
+        
+        cv::Point newPoint = findMean( std::vector<cv::Point>(data.begin() , data.begin() + index), RefPoint::RIGHT );
         
         // set reference point
-        ref_Right = newPoint;
+        if(newPoint != cv::Point(-1, -1)){
+            ref_Right = newPoint;
+        } else {
+            return false;
+        }
         
     /********************************
      * get mean of smaller Y values *
@@ -278,8 +292,13 @@ void EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPositi
         // Inputs: sub vector from [index, END] ; reference point
         cv::Point newPoint  = findMean(  std::vector<cv::Point>(data.begin(), data.begin() + index), RefPoint::TOP );
         
+        
         // set reference point
-        ref_Top = newPoint;
+        if(newPoint != cv::Point(-1, -1)){
+            ref_Top = newPoint;
+        } else {
+            return false;
+        }
         
     /*******************************
      * get mean of larger Y values *
@@ -294,7 +313,11 @@ void EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPositi
         cv::Point newPoint  = findMean(   std::vector<cv::Point>(data.begin() + index, data.end()), RefPoint::BOTTOM );
         
         // set reference point
-        ref_Bottom = newPoint;
+        if(newPoint != cv::Point(-1, -1)){
+            ref_Bottom = newPoint;
+        } else {
+            return false;
+        }
 
     }
 }
@@ -667,6 +690,10 @@ cv::Point EyeLogic::findMean(std::vector<cv::Point>subData, RefPoint refPosition
     double sum;
     cv::Point newPoint;
     
+    if(subData.size() <= 0){
+        logError("Error in findMean: vector of size 0");
+        return cv::Point(-1, -1);
+    }
     
     if( (refPosition == RefPoint::LEFT) || (refPosition == RefPoint::RIGHT) ){
         
@@ -683,7 +710,7 @@ cv::Point EyeLogic::findMean(std::vector<cv::Point>subData, RefPoint refPosition
             sum += subData[i].y;
         }
         
-        newPoint.x = 0;
+        newPoint.x = -1;
         newPoint.y = sum / subData.size();
     }
     
