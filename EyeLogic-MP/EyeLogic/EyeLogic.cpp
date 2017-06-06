@@ -20,7 +20,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 {
 	if (frame.empty())
 	{
-		logError("Error in insertFrame: Frame was empty.");
+		//logError("Error in insertFrame: Frame was empty.");
 	}
 
 	currentFrame = frame;
@@ -36,7 +36,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 		faceExtractor.detectMultiScale(frame, faces); //Need to apply minimum size
 		if (faces.size() == 0)
 		{
-			logError("Error in insertFrame: No faces detected.");
+			//logError("Error in insertFrame: No faces detected.");
 			return false; //No Faces!!
 		}
 		faceCrop = faces[0];
@@ -49,13 +49,18 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 		// the data gathered is used to adjust the eyebounds accordingly for much faster processing then haarcascades
 		if (!checkTemplate(frame, &faceCrop, &frameDiff))
 		{
-			logError("Error in insertFrame: Template matching failed.");
+			//logError("Error in insertFrame: Template matching failed.");
 			return false;
 		}
 	}
 
+	if (faceCrop.x < 0 || faceCrop.y < 0 || faceCrop.width <= 0 || faceCrop.height <= 0) {
+		logError("Facecrop is a bad ROI for cropping mmatrix");
+		return false;
+	}
+
 	cv::Mat cropFace = frame(faceCrop);
-	logError("Debug", cropFace);
+	//logError("Debug", cropFace);
 
 	// Check for force or if eye template does not exist
 	if (!eyeTemplatesExists || forceNewTemplate)
@@ -63,7 +68,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 		// Generates the eyebounds from the image and sets them as a template
 		if (!createEyeBounds(cropFace))
 		{
-			logError("Error in insertFrame: Could not create eye bounds.");
+			//logError("Error in insertFrame: Could not create eye bounds.");
 			return false;
 		}
 	}
@@ -82,7 +87,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 
 	if (leftPupil == cv::Point(-1, -1) || rightPupil == cv::Point(-1, -1))
 	{
-		logError("Error in insertFrame: Could not detect pupils!");
+		//logError("Error in insertFrame: Could not detect pupils!");
 		return false;
 	}
 
@@ -146,13 +151,13 @@ void EyeLogic::storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEye
 	}
 }
 
-//To be implemented
 cv::Point EyeLogic::eyeVectorToScreenCoord()
 {
+	cout << "ScreenMap: " << screenMap.x << "  " << screenMap.y << "\t";
     distance = cv::Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
 	if (!Calibrated(true))
 	{
-		logError("Error in eyeVectorToScreenCoord: EyeLogic not calibrated.");
+		//logError("Error in eyeVectorToScreenCoord: EyeLogic not calibrated.");
 		return cv::Point(-1, -1);
 	}
 
@@ -166,13 +171,14 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 		//imshow("CAPTURE", capture);
 		//cv::waitKey(1);
 		//TODO: head moving things
-		logError("Error in eyeVectorToScreenCoord: EyeVector not in bounds of reference images.");
+		//logError("Error in eyeVectorToScreenCoord: EyeVector not in bounds of reference images.");
 		/*
 		cerr << "\taverageLocal.x  " << averageLocal.x << "\tref_Right.x" << ref_Right.x << endl;
 		cerr << "\taverageLocal.x  " << averageLocal.x << "\tref_Left.x" << ref_Left.x << endl;
 		cerr << "\taverageLocal.y  " << averageLocal.y << "\tref_Top.y" << ref_Top.y << endl;
 		cerr << "\taverageLocal.y  " << averageLocal.y << "ref_Bottom.y" << ref_Bottom.y << endl;
 		*/
+		cout << endl;
         return cv::Point(-1, -1);
 	}
 
@@ -182,38 +188,38 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 	if (destinationOld != destinationNew) {
 		destinationOld = destinationNew;
 		delta = cv::Point((destinationNew.x - screenMap.x) / screenResolution.x * 80, (destinationNew.y - screenMap.y) / screenResolution.y * 80);
-		if (delta.x > 0) { direction.x = 1; }
-		else { direction.x = -1; }
-		if (delta.y > 0) { direction.y = 1; }
-		else { direction.y = -1; }
 	}
 
-	if (direction.x > 0) {
-		screenMap.x = min(destinationNew.x, screenMap.x + delta.x);
+	if (delta.x > 0) {
+		//screenMap.x = min(destinationNew.x, screenMap.x + delta.x);
+		screenMap.x = min(destinationNew.x, screenMap.x + 1);
 	}
 	else {
-		screenMap.x = std::max(destinationNew.x, screenMap.x + delta.x);
+		//screenMap.x = std::max(destinationNew.x, screenMap.x + delta.x);
+		screenMap.x = std::max(destinationNew.x, screenMap.x - 1);
 	}
-	if (direction.y > 0) {
-		screenMap.y = min(destinationNew.y, screenMap.y + delta.y);
+	if (delta.y > 0) {
+		//screenMap.y = min(destinationNew.y, screenMap.y + delta.y);
+		screenMap.y = min(destinationNew.y, screenMap.y + 1);
 	}
 	else {
-		screenMap.y = std::max(destinationNew.y, screenMap.y + delta.y);
+		//screenMap.y = std::max(destinationNew.y, screenMap.y + delta.y);
+		screenMap.y = std::max(destinationNew.y, screenMap.y - 1);
 	}
 
-	//point on screen: 
-	screenMap.x = (screenResolution.x - ((averageLocal.x - ref_Right.x) * screenResolution.x / distance.x));
-	screenMap.y = (averageLocal.y - ref_Top.y) * screenResolution.y / distance.y;
+	cv::rectangle(currentFrame, cv::Rect(ref_Right.x, ref_Top.y, ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y), cv::Scalar(0x80, 0x0, 0xff));
 
 	//Enforce screen resolution as boundaries for movement of cursor
 	if (screenMap.x >= 0 && screenMap.y >= 0 && screenMap.x <= screenResolution.x && screenMap.y <= screenResolution.y) {
+		cout << screenMap.x << "   " << screenMap.y << endl;
 		return screenMap;
 
 	}
 	else {
-		logError("Error in eyeVectorToScreenCoord: Coordinates not within screen bounds.");
+		//logError("Error in eyeVectorToScreenCoord: Coordinates not within screen bounds.");
 		cerr << "\tScreenMap.x: " << screenMap.x << "\tScreenMap.y: " << screenMap.y << endl;
 	}
+	cout << endl;
 	return cv::Point(-1, -1);
 }
 
@@ -323,7 +329,7 @@ vector <cv::Point>  EyeLogic::getReferencePointData()
 	vector <cv::Point>  referencePoints;
 	if (!Calibrated(false))
 	{
-		logError("Error in getReferencePointData: EyeLogic not calibrated.");
+		//logError("Error in getReferencePointData: EyeLogic not calibrated.");
 		return referencePoints;
 	}
 	referencePoints.push_back(ref_Left);
@@ -338,7 +344,7 @@ void EyeLogic::setReferencePointData(vector <cv::Point> * data)
 {
 	if (data->size() != 4)
 	{
-		logError("Error in setReferencePointData: Input vector does not contain exactly 4 reference points.");
+		//logError("Error in setReferencePointData: Input vector does not contain exactly 4 reference points.");
 		return;
 	}
 
@@ -356,9 +362,9 @@ bool EyeLogic::Calibrated(bool valid)
 	{
 		if (ref_Bottom.y < ref_Top.y || ref_Left.x < ref_Right.x) //CERTIFIED RIGHT PLEASE DON'T CHANGE, THINK ABOUT IT REALLY HARD TRUE ON ERROR
 		{
-			logError("Error in Calibrated: Valid check failed.");
-			cerr << "ref_Bottom.y\t" << ref_Bottom.y << "\t ref_Top.y\t" << ref_Top.y << endl;
-			cerr << "ref_Left.x\t" << ref_Left.x << "\t ref_Right.x\t" << ref_Right.x << endl;
+			//logError("Error in Calibrated: Valid check failed.");
+			//cerr << "ref_Bottom.y\t" << ref_Bottom.y << "\t ref_Top.y\t" << ref_Top.y << endl;
+			//cerr << "ref_Left.x\t" << ref_Left.x << "\t ref_Right.x\t" << ref_Right.x << endl;
 			return false;
 		}
 	}
@@ -403,7 +409,7 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 
 	if (eyes.size() == 0)
 	{
-		logError("Error in createEyeBounds: Right Eye could not be detected.");
+		//logError("Error in createEyeBounds: Right Eye could not be detected.");
 		return false;
 	}
 
@@ -418,7 +424,7 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 
 	if (eyes.size() == 0)
 	{
-		logError("Error in createEyeBounds: Left Eye could not be detected.");
+		//logError("Error in createEyeBounds: Left Eye could not be detected.");
 		return false;
 	}
 
@@ -448,7 +454,7 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 	equalizeHist(result, result);
 	threshold(result, result, 10, 255, THRESH_BINARY_INV); //Only keeps darkest pixels
 
-	logError("apply pupil before", result);
+	//logError("apply pupil before", result);
 
 	//get farthest left noise
 	cv::Point left(-1,-1), right(-1,-1);
@@ -467,7 +473,7 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 
     if (left == cv::Point(-1, -1))
 	{
-		logError("Error in applyPupilFilters: No valid black pixels detected. SERIOUS ERROR.");
+		//logError("Error in applyPupilFilters: No valid black pixels detected. SERIOUS ERROR.");
 		return cv::Mat();
 	}
 
@@ -487,7 +493,7 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 
     if (right == cv::Point(-1, -1))
 	{
-		logError("Error in applyPupilFilters: No valid black pixels detected. SERIOUS ERROR.");
+		//logError("Error in applyPupilFilters: No valid black pixels detected. SERIOUS ERROR.");
 		return cv::Mat();
 	}
 
@@ -526,11 +532,11 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 
 	if (result.empty())
 	{
-		logError("Error in applyPupilFilters: Empty result crop", result);
+		//logError("Error in applyPupilFilters: Empty result crop", result);
 		return cv::Mat();
 	}
 	
-	logError("Debug-Apply Pupil After", result);
+	//logError("Debug-Apply Pupil After", result);
 
 	//dilates all black pixels in the image in a hopes to connect them, find pupil will look for the largest mass 
 	// and until this step the image looks grainy, this turns it more into a solid blob
@@ -587,7 +593,7 @@ cv::Point EyeLogic::findPupil(cv::Mat eyeCrop)
 
 		return eyeCenter;
 	}
-	logError("Error in findPupil: No contours detected.", eyeCrop);
+	//logError("Error in findPupil: No contours detected.", eyeCrop);
 	return cv::Point(-1, -1);
 }
 
@@ -605,7 +611,7 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 
 	if (frame.empty())
 	{
-		logError("Error in checkTemplate: input frame was empty.");
+		//logError("Error in checkTemplate: input frame was empty.");
 		return false;
 	}
 
@@ -636,12 +642,14 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 	faceCrop->y = matchLoc.y - floor(faceRect.height*0.55); //this is because the actual template and faceRect don't share the same y value
 	frameDifference->x = matchLoc.x - faceRect.x;
 	frameDifference->y = matchLoc.y - floor(faceRect.height*0.55) - faceRect.y;
+
+	logError(to_string(maxVal));
 	return true;
 }
 
 void EyeLogic::logError(std::string message, cv::Mat image)
 {
-    /*string fileName = std::to_string(rand());
+    string fileName = std::to_string(rand());
     string logPath = fileName + ".txt";
     
     cerr << fileName << " : " << message << endl;
@@ -677,7 +685,7 @@ void EyeLogic::logError(std::string message, cv::Mat image)
     if (!image.empty())
     {
         imwrite(fileName + "cust.jpg", image);
-    }*/
+    }
 }
 
 // return mean of data based on ref
