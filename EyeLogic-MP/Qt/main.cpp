@@ -80,13 +80,6 @@ void printError(std::string msg){
     messageBox.exec();
 }
 
-// prints error message - input: QString
-void printError(QString msg){
-    QMessageBox messageBox;
-    messageBox.setText(msg);
-    messageBox.setFixedSize(msgBoxSize.x(), msgBoxSize.y());
-    messageBox.exec();
-}
 
 /*
  *  Calibration method that will start calibration process
@@ -113,31 +106,47 @@ bool runCalibrate(){
         
     }
     
-    cout << "data size = " << refData.size() << endl;
-    
     switch (imageCount) {
     case 0:
-        mainEntryPoint->setStabalizedPoint(refData, RefPoint::LEFT);
+        if(!mainEntryPoint->setStabalizedPoint(refData, RefPoint::LEFT)){
+            printError("Could not calibrate for LEFT reference point.");
+            restartCalibration();
+            return false;
+        }
         break;
     case 1:
-        mainEntryPoint->setStabalizedPoint(refData, RefPoint::RIGHT);
-        break;
+        if(!mainEntryPoint->setStabalizedPoint(refData, RefPoint::RIGHT)){
+            printError("Could not calibrate for RIGHT reference point.");
+            restartCalibration();
+            return false;
+        }
+        break;  
     case 2:
-        mainEntryPoint->setStabalizedPoint(refData, RefPoint::TOP);
+        if(!mainEntryPoint->setStabalizedPoint(refData, RefPoint::TOP)){
+            printError("Could not calibrate for TOP reference point.");
+            restartCalibration();
+            return false;
+        }
         break;
     case 3:
-        mainEntryPoint->setStabalizedPoint(refData, RefPoint::BOTTOM);
+        if(!mainEntryPoint->setStabalizedPoint(refData, RefPoint::BOTTOM)){
+            printError("Could not calibrate for BOTTOM reference point.");
+            restartCalibration();
+            return false;
+        }
         break;
     }
+
     
-        
-    // If calibration is on last image, store to file
+    /*******************************
+    * CALIBRATION IS ON LAST IMAGE *
+    ********************************/
     
     // write all reference points out to file
     // write faceCrop, leftEyeCrop, rightEyeCrop
-    // store faceStrip in file
+    // store faceStrip image in file
     if(imageCount == REFIMAGES - 1){
-        
+    
 		if (!mainEntryPoint->Calibrated(true))
 		{
 			restartCalibration();
@@ -239,6 +248,8 @@ void captureLoop()
 			RUN = false;
 			printError((string)"Too many errors, exiting program, please recalibrate and try again.");
 		}
+        
+        // find a new template
 		else if (errorCount > 100)
 		{
 			cap >> capture;
@@ -364,6 +375,8 @@ void runMain(){
                 
         mainEntryPoint->storeTemplate(image, faceCrop, leftEyeBounds, rightEyeBounds);                            
     }
+    
+    
 	std::unique_ptr<boost::thread> t(new boost::thread(&captureLoop));
 }
 
