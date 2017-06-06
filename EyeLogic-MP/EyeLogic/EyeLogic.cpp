@@ -448,7 +448,7 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 */
 cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 {
-
+	
 	cv::Mat result;
 
 	cvtColor(eyeCrop, result, CV_BGR2GRAY);
@@ -457,77 +457,51 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 
 	//logError("apply pupil before", result);
 
-	//get farthest left noise
-	cv::Point left(-1,-1), right(-1,-1);
+	bool rowSet = false;
+	int keepY = -1;
+	int keepLength = -1;
+	int finalY = -1;
+	int finalLength = -1;
+
 	for (int i = 0; i < result.cols; i++)
 	{
 		for (int j = 0; j < result.rows; j++)
 		{
-			if (result.at<uchar>(j, i) == 255)
+			if (!rowSet)
 			{
-				left = cv::Point(i, j);
-				j = result.rows;
-				i = result.cols;
+				if (result.at<uchar>(j, i) == 255)
+				{
+					rowSet = true;
+					keepY = j;
+					keepLength = 1;
+				}
+			}
+			else
+			{
+				if (result.at<uchar>(j, i) == 255)
+				{
+					keepLength++;
+					if (keepLength > finalLength)
+					{
+						finalLength = keepLength;
+						finalY = keepY;
+					}
+				}
+				else
+				{
+					rowSet = false;
+				}
 			}
 		}
 	}
 
-    if (left == cv::Point(-1, -1))
+	int cutPoint = finalY + floor(finalLength / 6);
+
+	for (int i = 0; i < result.cols; i++)
 	{
-		//logError("Error in applyPupilFilters: No valid black pixels detected. SERIOUS ERROR.");
-		return cv::Mat();
-	}
-
-	//get farthest right noise
-	for (int i = result.cols - 1; i >= 0; i--)
-	{
-		for (int j = 0; j < result.rows; j++)
-		{
-			if (result.at<uchar>(j, i) == 255)
-			{
-				right = cv::Point(i, j);
-				j = result.rows;
-				i = 0;
-			}
-		}
-	}
-
-    if (right == cv::Point(-1, -1))
-	{
-		//logError("Error in applyPupilFilters: No valid black pixels detected. SERIOUS ERROR.");
-		return cv::Mat();
-	}
-
-	int slopeY = (right.y - left.y);
-	int slopeX = (right.x - left.x);
-
-	double deltY = (double)slopeY / (double)slopeX;
-
-	double limitY = left.y;
-
-	//create a line between the two points above and make everything above it white
-	//this appears to cut the top portions of the eye and eyebrow off due to the shape of our eye sockets
-	// the bottome portion can then be flipped which usually means the bottom half of the pupil mirrored
-	for (int i = left.x; i <= right.x; i++)
-	{
-		for (int j = 0; j <= round(limitY); j++)
+		for (int j = 0; j < cutPoint; j++)
 		{
 			result.at<uchar>(j, i) = 0;
-		}
-		limitY += deltY;
-	}
-
-	//take the bottom half of the image and flip it up
-	cv::Rect crop = cv::Rect(0, result.rows / 2, result.cols, result.rows - result.rows / 2);
-	Mat bottomHalf = Mat(result, crop);
-	Mat topHalf;
-	flip(bottomHalf, topHalf, 0);
-
-	for (int i = 0; i < bottomHalf.cols; i++)
-	{
-		for (int j = 0; j < bottomHalf.rows; j++)
-		{
-			result.at<uchar>(j, i) = max(topHalf.at<uchar>(j, i), result.at<uchar>(j,i));
 		}
 	}
 
@@ -643,8 +617,6 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 	faceCrop->y = matchLoc.y - floor(faceRect.height*0.55); //this is because the actual template and faceRect don't share the same y value
 	frameDifference->x = matchLoc.x - faceRect.x;
 	frameDifference->y = matchLoc.y - floor(faceRect.height*0.55) - faceRect.y;
-
-	//logError(to_string(maxVal));
 	return true;
 }
 
