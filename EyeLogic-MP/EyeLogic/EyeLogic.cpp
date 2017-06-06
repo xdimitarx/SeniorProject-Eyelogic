@@ -54,6 +54,11 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 		}
 	}
 
+	if (faceCrop.x < 0 || faceCrop.y < 0 || faceCrop.width <= 0 || faceCrop.height <= 0) {
+		logError("Facecrop is a bad ROI for cropping mmatrix");
+		return false;
+	}
+
 	cv::Mat cropFace = frame(faceCrop);
 	logError("Debug", cropFace);
 
