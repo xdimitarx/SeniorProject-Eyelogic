@@ -231,7 +231,7 @@ void Widget::calibrate()
     calibrationPage->move(screenres.x/2 - calibrationPage->width()/2, screenres.y/2 - calibrationPage->height()/2);
 	
     qApp->processEvents();
-	systemSingleton->sleep(2000);
+	//systemSingleton->sleep(2000);
 
     //***************************
     // CALL CALIBRATION FUNCTION
@@ -265,7 +265,7 @@ void Widget::next()
     imageLabel->showFullScreen();
 	
     qApp->processEvents();
-	systemSingleton->sleep(2000);
+	//systemSingleton->sleep(2000);
     
     //***************************
     // CALL CALIBRATION FUNCTION

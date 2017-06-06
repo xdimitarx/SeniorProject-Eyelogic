@@ -151,9 +151,9 @@ void EyeLogic::storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEye
 	}
 }
 
-//To be implemented
 cv::Point EyeLogic::eyeVectorToScreenCoord()
 {
+	cout << "ScreenMap: " << screenMap.x << "  " << screenMap.y << "\t";
     distance = cv::Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
 	if (!Calibrated(true))
 	{
@@ -178,6 +178,7 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 		cerr << "\taverageLocal.y  " << averageLocal.y << "\tref_Top.y" << ref_Top.y << endl;
 		cerr << "\taverageLocal.y  " << averageLocal.y << "ref_Bottom.y" << ref_Bottom.y << endl;
 		*/
+		cout << endl;
         return cv::Point(-1, -1);
 	}
 
@@ -187,31 +188,30 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 	if (destinationOld != destinationNew) {
 		destinationOld = destinationNew;
 		delta = cv::Point((destinationNew.x - screenMap.x) / screenResolution.x * 80, (destinationNew.y - screenMap.y) / screenResolution.y * 80);
-		if (delta.x > 0) { direction.x = 1; }
-		else { direction.x = -1; }
-		if (delta.y > 0) { direction.y = 1; }
-		else { direction.y = -1; }
 	}
 
-	if (direction.x > 0) {
-		screenMap.x = min(destinationNew.x, screenMap.x + delta.x);
+	if (delta.x > 0) {
+		//screenMap.x = min(destinationNew.x, screenMap.x + delta.x);
+		screenMap.x = min(destinationNew.x, screenMap.x + 1);
 	}
 	else {
-		screenMap.x = std::max(destinationNew.x, screenMap.x + delta.x);
+		//screenMap.x = std::max(destinationNew.x, screenMap.x + delta.x);
+		screenMap.x = std::max(destinationNew.x, screenMap.x - 1);
 	}
-	if (direction.y > 0) {
-		screenMap.y = min(destinationNew.y, screenMap.y + delta.y);
+	if (delta.y > 0) {
+		//screenMap.y = min(destinationNew.y, screenMap.y + delta.y);
+		screenMap.y = min(destinationNew.y, screenMap.y + 1);
 	}
 	else {
-		screenMap.y = std::max(destinationNew.y, screenMap.y + delta.y);
+		//screenMap.y = std::max(destinationNew.y, screenMap.y + delta.y);
+		screenMap.y = std::max(destinationNew.y, screenMap.y - 1);
 	}
 
-	//point on screen: 
-	screenMap.x = (screenResolution.x - ((averageLocal.x - ref_Right.x) * screenResolution.x / distance.x));
-	screenMap.y = (averageLocal.y - ref_Top.y) * screenResolution.y / distance.y;
+	cv::rectangle(currentFrame, cv::Rect(ref_Right.x, ref_Top.y, ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y), cv::Scalar(0x80, 0x0, 0xff));
 
 	//Enforce screen resolution as boundaries for movement of cursor
 	if (screenMap.x >= 0 && screenMap.y >= 0 && screenMap.x <= screenResolution.x && screenMap.y <= screenResolution.y) {
+		cout << screenMap.x << "   " << screenMap.y << endl;
 		return screenMap;
 
 	}
@@ -219,6 +219,7 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 		logError("Error in eyeVectorToScreenCoord: Coordinates not within screen bounds.");
 		cerr << "\tScreenMap.x: " << screenMap.x << "\tScreenMap.y: " << screenMap.y << endl;
 	}
+	cout << endl;
 	return cv::Point(-1, -1);
 }
 
