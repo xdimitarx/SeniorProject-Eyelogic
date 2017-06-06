@@ -1,33 +1,6 @@
 #include "widget.h"
 #include "ui_widget.h"
 
-
-void Widget::calibrationProcessOrDie()
-{
-	if (!runCalibrate())
-	{
-		imageLabel->showNormal();
-		delete imageLabel;
-		calibrationPage->hide();
-		return;
-	}
-
-	// display green dot
-	QString ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "After.jpg";
-	if (!canceled)
-	{
-		imageLabel->setPixmap(QPixmap(ref_image));
-		imageLabel->showFullScreen();
-
-		if (imageCount == REFIMAGES - 1) {
-			QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");
-			QPushButton *cancelOrDoneBtn = calibBox->findChild<QPushButton *>("cancelOrDone");
-			nextButton->setEnabled(false);
-			cancelOrDoneBtn->setText("Done");
-		}
-	}
-}
-
 /*
  * Returns groupbox for user name
  */
@@ -206,8 +179,6 @@ Widget::~Widget()
  */
 void Widget::calibrate()
 {
-	canceled = false;
-
     imageCount = 0;
 
     QString user = userBox->findChild<QLineEdit *>("userName")->text();
@@ -219,7 +190,8 @@ void Widget::calibrate()
 
     // enable next button
     QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");
-    nextButton->setEnabled(true);
+	nextButton->setEnabled(false);
+
 
     // error message box
     QMessageBox messageBox;
@@ -260,14 +232,26 @@ void Widget::calibrate()
     calibrationPage->move(screenres.x/2 - calibrationPage->width()/2, screenres.y/2 - calibrationPage->height()/2);
 	
     qApp->processEvents();
-	//systemSingleton->sleep(2000);
+	systemSingleton->sleep(2000);
 
     //***************************
     // CALL CALIBRATION FUNCTION
     //***************************
 
-	boost::thread calibration(boost::bind(&Widget::calibrationProcessOrDie, this));
-	calibration.detach();
+	if (!runCalibrate())
+	{
+		imageLabel->showNormal();
+		delete imageLabel;
+		calibrationPage->hide();
+		return;
+	}
+
+	// display green dot
+	ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "After.jpg";
+	imageLabel->setPixmap(QPixmap(ref_image));
+	imageLabel->showFullScreen();
+
+	nextButton->setEnabled(true);
 }
 
 /*
@@ -275,7 +259,9 @@ void Widget::calibrate()
  */
 void Widget::next()
 {
-    
+	QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");
+	nextButton->setEnabled(false);
+
     imageCount++;
     
 	//display red dot
@@ -284,14 +270,33 @@ void Widget::next()
     imageLabel->showFullScreen();
 	
     qApp->processEvents();
-	//systemSingleton->sleep(2000);
+	systemSingleton->sleep(2000);
 
 	//***************************
 	// CALL CALIBRATION FUNCTION
 	// ***************************
 
-	boost::thread calibration(boost::bind(&Widget::calibrationProcessOrDie, this));
-	calibration.detach();
+	if (!runCalibrate())
+	{
+		imageLabel->showNormal();
+		delete imageLabel;
+		calibrationPage->hide();
+		return;
+	}
+
+	// display green dot
+	ref_image = ref_images_path + QString::fromStdString(refImageNames[imageCount]) + "After.jpg";
+	imageLabel->setPixmap(QPixmap(ref_image));
+	imageLabel->showFullScreen();
+
+	if (imageCount == REFIMAGES - 1) {
+		QPushButton *nextButton = calibBox->findChild<QPushButton *>("next");
+		QPushButton *cancelOrDoneBtn = calibBox->findChild<QPushButton *>("cancelOrDone");
+		nextButton->setEnabled(false);
+		cancelOrDoneBtn->setText("Done");
+	}
+
+	nextButton->setEnabled(true);
 }
 
 
@@ -364,8 +369,6 @@ void Widget::run()
  */
 void Widget::cancel()
 {
-	canceled = true;
-
     QPushButton *cancelOrDoneBtn = calibBox->findChild<QPushButton *>("cancelOrDone");
 
 	if (cancelOrDoneBtn->text() == "Cancel") {

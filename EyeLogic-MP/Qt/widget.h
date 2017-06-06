@@ -60,6 +60,8 @@ public:
     QGroupBox *startOrStopBox();
     QGroupBox *getCalibBox();
 
+	QPushButton *nextButton;
+
 public slots:
     void calibrate();
     void run();
@@ -82,10 +84,6 @@ private:
 
     QGroupBox *calibBox;
     QLabel *imageLabel;
-
-	void calibrationProcessOrDie();
-	bool canceled;
-
 };
 
 #endif  // WIDGET_H

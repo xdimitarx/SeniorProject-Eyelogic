@@ -54,13 +54,14 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 		}
 	}
 
-	if (faceCrop.x < 0 || faceCrop.y < 0 || faceCrop.width <= 0 || faceCrop.height <= 0) {
+	if (faceCrop.x < 0 || faceCrop.x > frame.cols || faceCrop.y < 0 || faceCrop.y > frame.rows ||  faceCrop.width <= 0 || faceCrop.height <= 0) {
 		logError("Facecrop is a bad ROI for cropping mmatrix");
 		return false;
 	}
-
+	
 	cv::Mat cropFace = frame(faceCrop);
-	//logError("Debug", cropFace);
+
+	
 
 	// Check for force or if eye template does not exist
 	if (!eyeTemplatesExists || forceNewTemplate)
@@ -153,7 +154,7 @@ void EyeLogic::storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEye
 
 cv::Point EyeLogic::eyeVectorToScreenCoord()
 {
-	cout << "ScreenMap: " << screenMap.x << "  " << screenMap.y << "\t";
+	//cout << "ScreenMap: " << screenMap.x << "  " << screenMap.y << "\t";
     distance = cv::Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
 	if (!Calibrated(true))
 	{
@@ -635,11 +636,11 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 	double minVal; double maxVal; cv::Point minLoc; cv::Point matchLoc;
 	minMaxLoc(result, &minVal, &maxVal, &minLoc, &matchLoc, cv::Mat());
 
-	/*if (maxVal < 0.9) //this threshold needs to be tinkered with!!!
+	if (maxVal < 0.73) //initial testing showed that good matches are .75 up
 	{
-		logError("Error in checkTemplate: No suitable match was found.");
+		//logError("Error in checkTemplate: No suitable match was found.");
 		return false;
-	}*/
+	}
 
 	//set return arguments
 	*faceCrop = faceRect;
@@ -648,7 +649,7 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 	frameDifference->x = matchLoc.x - faceRect.x;
 	frameDifference->y = matchLoc.y - floor(faceRect.height*0.55) - faceRect.y;
 
-	logError(to_string(maxVal));
+	//logError(to_string(maxVal));
 	return true;
 }
 
