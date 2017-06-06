@@ -239,11 +239,6 @@ bool EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPositi
 
     std::vector<cv::Point>subData;
     
-    if(data.size() == 0){
-        logError("Error in setStabalizedPoint: size of data is 0");
-        return false;
-    }
-    
     // middle value index
     int index = ceil(data.size() / 2);
     
@@ -256,7 +251,7 @@ bool EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPositi
         std::sort(data.begin(), data.end(),
                       [](const cv::Point p1, const cv::Point p2){return p1.x < p2.x;});
     
-        // Inputs: sub vector from [index, END] ; reference point
+        // Inputs: sub vector from [index, END] ; output: reference point
         cv::Point newPoint  = findMean( std::vector<cv::Point>(data.begin() + index, data.end()), RefPoint::LEFT );
         
         // set reference point
@@ -276,7 +271,7 @@ bool EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPositi
         std::sort(data.begin(), data.end(),
                   [](const cv::Point p1, const cv::Point p2){return p1.x < p2.x;});
 
-        // Inputs: sub vector from [index, END] ; reference point
+        // Inputs: sub vector from [index, END] ; output: reference point
         
         cv::Point newPoint = findMean( std::vector<cv::Point>(data.begin() , data.begin() + index), RefPoint::RIGHT );
         
@@ -296,7 +291,7 @@ bool EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPositi
         std::sort(data.begin(), data.end(),
                   [](const cv::Point p1, const cv::Point p2){return p1.y < p2.y; });
         
-        // Inputs: sub vector from [index, END] ; reference point
+        // Inputs: sub vector from [index, END] ; output:  reference point
         cv::Point newPoint  = findMean(  std::vector<cv::Point>(data.begin(), data.begin() + index), RefPoint::TOP );
         
         
@@ -316,7 +311,7 @@ bool EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPositi
         std::sort(data.begin(), data.end(),
                   [](const cv::Point p1, const cv::Point p2){return p1.y < p2.y; });
         
-        // Inputs: sub vector from [index, END] ; reference point
+        // Inputs: sub vector from [index, END] ; output: reference point
         cv::Point newPoint  = findMean(   std::vector<cv::Point>(data.begin() + index, data.end()), RefPoint::BOTTOM );
         
         // set reference point

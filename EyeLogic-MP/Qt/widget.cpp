@@ -371,16 +371,21 @@ void Widget::cancel()
 {
     QPushButton *cancelOrDoneBtn = calibBox->findChild<QPushButton *>("cancelOrDone");
 
-	if (cancelOrDoneBtn->text() == "Cancel") {
-		// delete directory
-		QString user = userBox->findChild<QLineEdit *>("userName")->text();
-		QString user_path = QDir::currentPath() + "/" + user;
-		QDir dir(user_path);
-		dir.removeRecursively();
-	}
-        imageLabel->showNormal();
-        delete imageLabel;
-        calibrationPage->hide();
+    if(cancelOrDoneBtn->text() == "Cancel"){
+        // delete directory
+        QString user = userBox->findChild<QLineEdit *>("userName")->text();
+        QString user_path = QDir::currentPath() + "/" + user;
+        QDir dir(user_path);
+        dir.removeRecursively();
+
+    }
+    
+    imageLabel->showNormal();
+    delete imageLabel;
+    calibrationPage->hide();
+    
+
+
 }
 
 void Widget::stop(){

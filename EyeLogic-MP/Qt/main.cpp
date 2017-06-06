@@ -95,6 +95,7 @@ bool runCalibrate(){
         cap >> capture;
         if(i == 0){
             found_reference = mainEntryPoint->insertFrame(capture, true);
+            
         } else {
             found_reference = mainEntryPoint->insertFrame(capture);
         }
@@ -105,6 +106,7 @@ bool runCalibrate(){
         }
         
     }
+    
     
     switch (imageCount) {
     case 0:
