@@ -154,7 +154,6 @@ void EyeLogic::storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEye
 
 cv::Point EyeLogic::eyeVectorToScreenCoord()
 {
-	//cout << "ScreenMap: " << screenMap.x << "  " << screenMap.y << "\t";
     distance = cv::Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
 	if (!Calibrated(true))
 	{
@@ -162,23 +161,11 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 		return cv::Point(-1, -1);
 	}
 
-	//distance = Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
-
 	cv::Point averageLocal = getEyeVector();
 	cv::Point destinationNew;
 
 	//check if detected point is out of maximum bounds
 	if (averageLocal.x < ref_Right.x || averageLocal.x > ref_Left.x || averageLocal.y < ref_Top.y || averageLocal.y > ref_Bottom.y) {
-		//imshow("CAPTURE", capture);
-		//cv::waitKey(1);
-		//TODO: head moving things
-		//logError("Error in eyeVectorToScreenCoord: EyeVector not in bounds of reference images.");
-		/*
-		cerr << "\taverageLocal.x  " << averageLocal.x << "\tref_Right.x" << ref_Right.x << endl;
-		cerr << "\taverageLocal.x  " << averageLocal.x << "\tref_Left.x" << ref_Left.x << endl;
-		cerr << "\taverageLocal.y  " << averageLocal.y << "\tref_Top.y" << ref_Top.y << endl;
-		cerr << "\taverageLocal.y  " << averageLocal.y << "ref_Bottom.y" << ref_Bottom.y << endl;
-		*/
 		cout << endl;
         return cv::Point(-1, -1);
 	}
@@ -192,23 +179,19 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 	}
 
 	if (delta.x > 0) {
-		//screenMap.x = min(destinationNew.x, screenMap.x + delta.x);
-		screenMap.x = min(destinationNew.x, screenMap.x + 1);
+		screenMap.x = min(destinationNew.x, screenMap.x + delta.x);
 	}
 	else {
-		//screenMap.x = std::max(destinationNew.x, screenMap.x + delta.x);
-		screenMap.x = std::max(destinationNew.x, screenMap.x - 1);
+		screenMap.x = std::max(destinationNew.x, screenMap.x + delta.x);
 	}
 	if (delta.y > 0) {
-		//screenMap.y = min(destinationNew.y, screenMap.y + delta.y);
-		screenMap.y = min(destinationNew.y, screenMap.y + 1);
+		screenMap.y = min(destinationNew.y, screenMap.y + delta.y);
 	}
 	else {
-		//screenMap.y = std::max(destinationNew.y, screenMap.y + delta.y);
-		screenMap.y = std::max(destinationNew.y, screenMap.y - 1);
+		screenMap.y = std::max(destinationNew.y, screenMap.y + delta.y);
 	}
 
-	cv::rectangle(currentFrame, cv::Rect(ref_Right.x, ref_Top.y, ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y), cv::Scalar(0x80, 0x0, 0xff));
+	//cv::rectangle(currentFrame, cv::Rect(ref_Right.x, ref_Top.y, ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y), cv::Scalar(0x80, 0x0, 0xff));
 
 	//Enforce screen resolution as boundaries for movement of cursor
 	if (screenMap.x >= 0 && screenMap.y >= 0 && screenMap.x <= screenResolution.x && screenMap.y <= screenResolution.y) {
