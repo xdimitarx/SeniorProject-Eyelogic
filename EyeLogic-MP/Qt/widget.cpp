@@ -372,16 +372,12 @@ void Widget::cancel()
         QDir dir(user_path);
         dir.removeRecursively();
 
-        imageLabel->showNormal();
-        delete imageLabel;
-        calibrationPage->hide();
-
     }
-    else if(cancelOrDoneBtn->text() == "Done"){
-        imageLabel->showNormal();
-        delete imageLabel;
-        calibrationPage->hide();
-    }
+    
+    imageLabel->showNormal();
+    delete imageLabel;
+    calibrationPage->hide();
+    
 
 
 }
