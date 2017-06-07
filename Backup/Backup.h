@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef POUNEH
-#define POUNEH
+#ifndef BACKUP
+#define BACKUP
 #include "windows.h"
 
 #include <opencv2/core.hpp>
