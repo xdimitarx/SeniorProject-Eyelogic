@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef BACKUP
-#define BACKUP
+#ifndef POUNEH
+#define POUNEH
 #include "windows.h"
 
 #include <opencv2/core.hpp>
@@ -28,6 +28,6 @@ bool startCap();
 
 cv::Mat createForeheadTemplate();
 cv::Point matchTemplate( cv::Mat templ);
-
+//void MatchingMethod(int, void*);
 
 #endif

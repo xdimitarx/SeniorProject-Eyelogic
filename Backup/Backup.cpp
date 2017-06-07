@@ -1,4 +1,4 @@
-#include "Backup.h"
+#include "pouneh.h"
 #include <time.h> 
 #include <iostream>
 #include <windows.h>
@@ -86,8 +86,7 @@ int getReferenceImage(std::vector<cv::Rect_<int>>& eyes, cv::Point center, cv::M
 		cv::Mat flash(vertical, horizontal, CV_8UC3);
 		flash = cv::Scalar(255, 255, 255);
 		cue = cv::Scalar(0, 0, 0);
-		//Center Bottom
-		cue = cv::Scalar(0, 0, 0);
+
 		cv::circle(cue, center, horizontal / 50, cv::Scalar(0, 255, 0), -1);
 		cv::imshow("", cue);
 		cv::moveWindow("", 0, 0);
@@ -101,6 +100,20 @@ int getReferenceImage(std::vector<cv::Rect_<int>>& eyes, cv::Point center, cv::M
 
 		//Detect eyes in relevant region
 		eyeDetector.detectMultiScale(refImage, eyes);
+		if (eyes.size() > 2) {
+			int pickeyes[2] = { 0, 1 };
+			for (int i = 0; i < eyes.size(); i++) {
+				if (eyes[i].width >= eyes[pickeyes[0]].width) {
+					pickeyes[1] = pickeyes[0];
+					pickeyes[0] = i;
+				}
+			}
+			for (int i = (int)eyes.size() - 1; i >= 0; i--) {
+				if (i != pickeyes[0] && i != pickeyes[1]) {
+					eyes.erase(eyes.begin() + i);
+				}
+			}
+		}
 		if (eyes.size() == 2) {
 			//Loop to operate stuff for each eye
 			for (int i = 0; i < 2; i++) {
@@ -113,7 +126,9 @@ int getReferenceImage(std::vector<cv::Rect_<int>>& eyes, cv::Point center, cv::M
 				pupil[i] = findPupil(eyeCrop);
 				//Making sure pupil is detected - if not, repeat process
 				if (pupil[i].x == -1 && pupil[i].y == -1) {
-					std::cout << "Fail " << name << " : Cannot find pupil" << std::endl;
+					cv::imshow("Eyecrop", eyeCrop);
+					cv::imshow("whole frame", refImage);
+					cv::waitKey(1);
 					i--;
 					continue;
 				}
@@ -164,14 +179,15 @@ void updateBoundaryWindows(std::vector<cv::Rect_<int>>& eyes , cv::Rect_<int>& r
 }
 
 int calibrate(std::vector<cv::Rect_<int>>& eyes , cv::Point& top, cv::Point& bottom, cv::Point& farLeft, cv::Point& farRight, 	cv::Point& distance, cv::Point& referenceMean, cv::Rect_<int>& rightEyeBounds, cv::Rect_<int>& leftEyeBounds, int& distanceBetweenPupil) {
-	//make forehead template. use it if eyeaverage moves outside of bounding box
-	foreheadTemplate = createForeheadTemplate();
-	
+
 	//do reference image things
 	if ((getReferenceImage(eyes, cv::Point(screenRes.x / 2, 0), ref_top, "Top", top, distanceBetweenPupil)) == 1) { return 1; }
 	if ((getReferenceImage(eyes, cv::Point(screenRes.x / 2, screenRes.y - screenRes.x / 50), ref_bottom, "Bottom", bottom, distanceBetweenPupil)) == 1) { return 1; }
 	if ((getReferenceImage(eyes, cv::Point(screenRes.x / 50, screenRes.y / 2), ref_farLeft, "Left", farLeft, distanceBetweenPupil)) == 1) { return 1; }
 	if ((getReferenceImage(eyes, cv::Point(screenRes.x - screenRes.x / 50, screenRes.y / 2), ref_farRight, "Right", farRight, distanceBetweenPupil)) == 1) { return 1; }
+
+	//make forehead template. use it if eyeaverage moves outside of bounding box
+	foreheadTemplate = createForeheadTemplate();
 
 	distance.x = farLeft.x - farRight.x;
 	distance.y = bottom.y - top.y;
@@ -225,7 +241,7 @@ void averageEyeCenterMethod() {
 			if (releaseR != GetKeyState(0x52)) {
 				// if previous toggle state was 0 and current state is 1 OR previous toggle state was 1 and current state is 0
 				releaseR = (GetKeyState(0x52) << 7) >> 7;
-
+				cvDestroyWindow("CAPTURE");
 				//Recalibrate
 				calibrate(eyes, top, bottom, farLeft, farRight, distance, referenceMean, rightEyeBounds, leftEyeBounds, distanceBetweenPupils);
 			}
@@ -275,9 +291,30 @@ void averageEyeCenterMethod() {
 		if (eyeLeft.size() != 1 || eyeRight.size() != 1) {
 			eyeLeft.clear();
 			eyeRight.clear();
-			cv::equalizeHist(capture, capture);
 			cv::rectangle(capture, leftEyeBounds, cv::Scalar(0xff, 0xff, 0x0));
 			cv::rectangle(capture, rightEyeBounds, cv::Scalar(0xde, 0xe8, 0x0c));
+
+			eyeDetector.detectMultiScale(capture, eyes);
+			if (eyes.size() > 2) {
+				int pickeyes[2] = { 0, 1 };
+				for (int i = 0; i < eyes.size(); i++) {
+					if (eyes[i].width >= eyes[pickeyes[0]].width) {
+						pickeyes[1] = pickeyes[0];
+						pickeyes[0] = i;
+					}
+				}
+				for (int i = (int)eyes.size() - 1; i >= 0; i--) {
+					if (i != pickeyes[0] && i != pickeyes[1]) {
+						eyes.erase(eyes.begin() + i);
+					}
+				}
+			}
+			if (eyes.size() == 2) {
+				updateBoundaryWindows(eyes, rightEyeBounds, leftEyeBounds);
+			}
+			else {
+				//TODO: deal with too few eyes detected
+			}
 		}
 
 		if (eyeLeft.size() == 1 && eyeRight.size() == 1) {
@@ -290,10 +327,10 @@ void averageEyeCenterMethod() {
 			eyes.push_back(eyeRight[0]);
 			tempDistanceBetweenPupils = std::abs(eyeLeft[0].x - eyeRight[0].x) + std::abs(eyeLeft[0].y - eyeRight[0].y);
 			if (tempDistanceBetweenPupils > 5 + distanceBetweenPupils) {
-				//Head moved in towards screen
+				//TODO: Head moved in towards screen
 			}
 			else if (tempDistanceBetweenPupils < distanceBetweenPupils - 5) {
-				//head moved out away from screen
+				//TODO: head moved out away from screen
 			}
 			else {
 				distanceBetweenPupils = tempDistanceBetweenPupils;
@@ -338,15 +375,19 @@ void averageEyeCenterMethod() {
 			averageLocal = cv::Point((int)((pupil[0].x + pupil[1].x) / 2), (int)((pupil[0].y + pupil[1].y) / 2));
 			cv::circle(capture, averageLocal, 2, cv::Scalar(0x0c, 0x8f, 0xe8), -1);
 			cv::rectangle(capture, cv::Rect(farRight.x, top.y, farLeft.x - farRight.x, bottom.y - top.y), cv::Scalar(0x80, 0x0, 0xff));
-			if (averageLocal.x < farRight.x || averageLocal.x > farLeft.x || averageLocal.y < top.y || averageLocal.y > bottom.y) {	
+			if (averageLocal.x < farRight.x - 5 || averageLocal.x  > farLeft.x + 5 || averageLocal.y < top.y - 5 || averageLocal.y > bottom.y + 5) {	
 				//Eye average is outside of bounds. Most likely happens because head moves
 				//Template matching to find out how far head moved, and adjust bounding box accordingly
+				
+				/*
 				newTemplateLocation = matchTemplate(foreheadTemplate);
 				farRight.x += newTemplateLocation.x - templateCoordinates.x;
 				farLeft.x += newTemplateLocation.x - templateCoordinates.x;
 				top.y += newTemplateLocation.y - templateCoordinates.y;
 				bottom.y += newTemplateLocation.y - templateCoordinates.y;
 				templateCoordinates = newTemplateLocation;
+				*/
+
 				continue;
 			}
 
@@ -414,8 +455,8 @@ bool startCap() {
 
 	bool videofeed = cap.open(0);
 	if (videofeed) {
-		cap.set(CV_CAP_PROP_FRAME_WIDTH, 1920);
-		cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1080);
+		//cap.set(CV_CAP_PROP_FRAME_WIDTH, 1920);
+		//cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1080);
 	}
 
 	return videofeed;
@@ -426,14 +467,13 @@ cv::Mat createForeheadTemplate() {
 	cv::Mat frame;
 	cap >> frame;
 	std::vector<cv::Rect_<int>> faces;
-	faceDetector.detectMultiScale(frame, faces); //Need to apply minimum size
+	faceDetector.detectMultiScale(frame, faces);
 	if (faces.size() == 0)
 	{
-		//logError("Error in insertFrame: No faces detected.");
-		return cv::Mat(); //No Faces!!
+		return cv::Mat(); 
 	}
 	cv::Rect faceCrop = faces[0];
-	faceCrop.height = 0.2 * faceCrop.height;
+	faceCrop.height = (int)(0.25* faceCrop.height);
 	cv::rectangle(frame, faceCrop, cv::Scalar(0, 0, 255));
 
 	templateCoordinates = cv:: Point(faceCrop.x, faceCrop.y);
@@ -444,6 +484,27 @@ cv::Point matchTemplate(cv::Mat templ) {
 	cv::Mat frame, result;
 	cap >> frame;
 
+	std::vector<cv::Rect_<int>> faces;
+	faceDetector.detectMultiScale(frame, faces);
+	if (faces.size() == 0)
+	{
+		return cv::Mat();
+	}
+	cv::Rect faceCrop = faces[0];
+	
+
+	//In Testing
+	faceCrop.x = std::max(faceCrop.x - ( faceCrop.x << 2 ), 0);
+	faceCrop.y = std::max(faceCrop.y - ( faceCrop.y << 2 ), 0);
+	if (faceCrop.x + (faceCrop.width << 1) <= frame.cols) {
+		faceCrop.width = faceCrop.x + (faceCrop.width << 1);
+	}
+	else {
+		faceCrop.width = frame.cols - faceCrop.x;
+	}
+	//only look at top portion of face when looking for template
+	faceCrop.height = faceCrop.y - (faceCrop.height << 2);
+		
 	/// Create the result matrix
 	int result_cols = frame.cols - templ.cols + 1;
 	int result_rows = frame.rows - templ.rows + 1;
@@ -461,6 +522,7 @@ cv::Point matchTemplate(cv::Mat templ) {
 	minMaxLoc(result, &minVal, &maxVal, &minLoc, &maxLoc, cv::Mat());
 	matchLoc = maxLoc;
 
+	cv::rectangle(frame, faceCrop, cv::Scalar(0, 0, 255));
 	cv::waitKey(1);
 
 	return matchLoc;
