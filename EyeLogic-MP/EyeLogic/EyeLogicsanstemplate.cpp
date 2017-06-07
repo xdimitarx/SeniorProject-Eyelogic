@@ -1,5 +1,4 @@
 #include "EyeLogic.hpp"
-//stores template location
 
 
 /*
@@ -30,8 +29,8 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 	cv::Point frameDiff = cv::Point(0, 0);
 
 	//Create template or check template
-	if (!faceTemplateExists || !eyeTemplatesExists || forceNewTemplate)
-	{
+	//if (!faceTemplateExists || !eyeTemplatesExists || forceNewTemplate)
+	//{
 		//Presumably slower then template matching
 		vector<cv::Rect_<int>> faces;
 		faceExtractor.detectMultiScale(frame, faces); //Need to apply minimum size
@@ -43,17 +42,17 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 		faceCrop = faces[0];
 		storeTemplate(frame, faceCrop);
 		eyeTemplatesExists = false; //create new eyes if new face template
-	}
-	else
-	{
+	//}
+	//else
+	//{
 		// This uses template matching to determine the corresponding faceCrop in the new frame
 		// the data gathered is used to adjust the eyebounds accordingly for much faster processing then haarcascades
-		if (!checkTemplate(frame, &faceCrop, &frameDiff))
-		{
+		//if (!checkTemplate(frame, &faceCrop, &frameDiff))
+		//{
 			//logError("Error in insertFrame: Template matching failed.");
-			return false;
-		}
-	}
+			//return false;
+		//}
+	//}
 
 	if (faceCrop.x < 0 || faceCrop.x > frame.cols || faceCrop.y < 0 || faceCrop.y > frame.rows ||  faceCrop.width <= 0 || faceCrop.height <= 0) {
 		logError("Facecrop is a bad ROI for cropping mmatrix");
@@ -97,13 +96,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 	rightPupil.y += rEyeB.y;
 
 	eyeVector = cv::Point((leftPupil.x + rightPupil.x)/2, (leftPupil.y + rightPupil.y)/2);
-
-	rectangle(currentFrame, Rect(faceCrop.x, faceCrop.y, userTemplate.cols,userTemplate.rows), Scalar(0, 255, 0));
-	circle(currentFrame, leftPupil, 3, Scalar(0, 0, 255), -1);
-	circle(currentFrame, rightPupil, 3, Scalar(0, 0, 255), -1);
-	imshow("Template", userTemplate);
-	imshow("frame", currentFrame);
-	waitKey(5);
+    
 	return true;
 }
 
@@ -159,7 +152,6 @@ void EyeLogic::storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEye
 
 cv::Point EyeLogic::eyeVectorToScreenCoord()
 {
-	int boxChange = 5;
     distance = cv::Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
 	if (!Calibrated(true))
 	{
@@ -171,7 +163,7 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 	cv::Point destinationNew;
 
 	//check if detected point is out of maximum bounds
-	if (averageLocal.x < ref_Right.x- boxChange || averageLocal.x > ref_Left.x + boxChange|| averageLocal.y < ref_Top.y - boxChange || averageLocal.y > ref_Bottom.y + boxChange) {
+	if (averageLocal.x < ref_Right.x || averageLocal.x > ref_Left.x || averageLocal.y < ref_Top.y || averageLocal.y > ref_Bottom.y) {
 		cout << endl;
         return cv::Point(-1, -1);
 	}
@@ -437,7 +429,18 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 */
 cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 {
-	
+
+	cv::Mat eyeCropGray;
+	cvtColor(eyeCrop, eyeCropGray, CV_BGR2GRAY);
+	cv::equalizeHist(eyeCropGray, eyeCropGray);
+	cv::add(eyeCropGray, cv::Scalar(50), eyeCropGray);
+	cv::equalizeHist(eyeCropGray, eyeCropGray);
+	cv::threshold(eyeCropGray, eyeCropGray, 10, 255, cv::THRESH_BINARY);
+	cv::GaussianBlur(eyeCropGray, eyeCropGray, cv::Size(9, 9), 0, 0);
+	cv::Mat erodeElement = getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(4, 4));
+	cv::dilate(eyeCropGray, eyeCropGray, erodeElement);
+	return eyeCropGray;
+	/*
 	cv::Mat result;
 
 	cvtColor(eyeCrop, result, CV_BGR2GRAY);
@@ -508,6 +511,8 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 	dilate(result, result, erodeElement);
 
 	return result;
+
+	*/
 }
 
 /*
@@ -518,24 +523,13 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 */
 cv::Point EyeLogic::findPupil(cv::Mat eyeCrop) 
 {
-	//cv::Mat eyeCropGray;
-	//eyeCrop.copyTo(eyeCropGray);
-	//cv::equalizeHist(eyeCropGray, eyeCropGray);
-	//cv::add(eyeCropGray, cv::Scalar(50), eyeCropGray);
-	//cv::equalizeHist(eyeCropGray, eyeCropGray);
-	//cv::threshold(eyeCropGray, eyeCropGray, 10, 255, cv::THRESH_BINARY);
-	//cv::GaussianBlur(eyeCropGray, eyeCropGray, cv::Size(9, 9), 0, 0);
-	//cv::Mat erodeElement = getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(4, 4));
-	//cv::dilate(eyeCropGray, eyeCropGray, erodeElement);
-
 	if (eyeCrop.empty())
 	{
 		return cv::Point(-1, -1);
 	}
-
 	std::vector<cv::Vec4i> hierarchy;
 	std::vector<std::vector<cv::Point> > contours;
-	findContours(eyeCrop, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
+	findContours(eyeCropGray, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
 	if (contours.size())
 	{
 		double area = 0;
@@ -552,8 +546,9 @@ cv::Point EyeLogic::findPupil(cv::Mat eyeCrop)
 		cv::Moments mo = moments(contours[largest], false);
 		cv::Point eyeCenter = cv::Point((int)(mo.m10 / mo.m00), (int)(mo.m01 / mo.m00));
 
-		//cv::Rect bounding = boundingRect(contours[largest]);
-		//int eyeRadius = cvRound(bounding.height*1.05);
+		cv::Rect bounding = boundingRect(contours[largest]);
+		//Point eyeCenter = cv::Point(cvRound(bounding.x + bounding.width / 2), cvRound(bounding.y + bounding.height / 2));	
+		int eyeRadius = cvRound(bounding.height*1.05);
 
 		return eyeCenter;
 	}
@@ -570,13 +565,14 @@ cv::Point EyeLogic::findPupil(cv::Mat eyeCrop)
 */
 bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * frameDifference)
 {
+	//simple filtering
+	cv::Mat filteredFrame;
+
 	if (frame.empty())
 	{
 		//logError("Error in checkTemplate: input frame was empty.");
 		return false;
 	}
-	//simple filtering
-	cv::Mat filteredFrame;
 
 	cvtColor(frame, filteredFrame, CV_BGR2GRAY);
 	equalizeHist(filteredFrame, filteredFrame);
@@ -588,16 +584,16 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 	result.create(result_rows, result_cols, CV_32FC1);
 
 	matchTemplate(filteredFrame, userTemplate, result, CV_TM_CCOEFF_NORMED);
+	
 	//gather the match location and other metrics
 	double minVal; double maxVal; cv::Point minLoc; cv::Point matchLoc;
 	minMaxLoc(result, &minVal, &maxVal, &minLoc, &matchLoc, cv::Mat());
-
 
 	if (maxVal < 0.73) //initial testing showed that good matches are .75 up
 	{
 		//logError("Error in checkTemplate: No suitable match was found.");
 		return false;
-	}	
+	}
 
 	//set return arguments
 	*faceCrop = faceRect;

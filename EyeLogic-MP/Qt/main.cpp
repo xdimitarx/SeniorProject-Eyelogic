@@ -80,7 +80,6 @@ void printError(std::string msg){
     messageBox.exec();
 }
 
-
 /*
  *  Calibration method that will start calibration process
  *  Tied to event listener and called when button is clicked
@@ -169,8 +168,7 @@ bool runCalibrate(){
         cv::Rect faceCrop;
         cv::Rect leftEyeCrop;
         cv::Rect rightEyeCrop;
-        
-        
+               
         cv::Mat faceStrip =  mainEntryPoint->getTemplate(&faceCrop, &leftEyeCrop, &rightEyeCrop);
         
         if(faceStrip.empty()){
@@ -219,16 +217,17 @@ bool startCam(){
         printError((string)"No webcam detected! Exiting the program...");
         return false;
     }
-    try{
-        
+    try{    
         // defaults to max size of camera
-        cap.set(CV_CAP_PROP_FRAME_WIDTH, 1280);
-        cap.set(CV_CAP_PROP_FRAME_HEIGHT, 720);
+        cap.set(CV_CAP_PROP_FRAME_WIDTH, 1920);
+        cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1080);
     }
+
     catch(Exception ex){
 		printError((string)"Webcam could not be initialized properly! Exiting the program...");
         return false;
     }
+
     systemSingleton->sleep(2000);
     return true;
 }
