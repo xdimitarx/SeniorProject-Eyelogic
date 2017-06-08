@@ -3,11 +3,11 @@
 
 
 /*
- *  Reads in image from given path
- */
-Mat loadImageAtPath(string path){
-    Mat result = imread(path, CV_LOAD_IMAGE_COLOR);
-    return result;
+*  Reads in image from given path
+*/
+Mat loadImageAtPath(string path) {
+	Mat result = imread(path, CV_LOAD_IMAGE_COLOR);
+	return result;
 }
 
 /*
@@ -55,11 +55,11 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 		}
 	}
 
-	if (faceCrop.x < 0 || faceCrop.y < 0 ||  faceCrop.width <= 0 || faceCrop.height <= 0 || faceCrop.x + faceCrop.width > frame.cols ||  faceCrop.y + faceCrop.height > frame.rows) {
+	if (faceCrop.x < 0 || faceCrop.y < 0 || faceCrop.width <= 0 || faceCrop.height <= 0 || faceCrop.x + faceCrop.width > frame.cols || faceCrop.y + faceCrop.height > frame.rows) {
 		logError("Facecrop is a bad ROI for cropping mmatrix");
 		return false;
 	}
-	
+
 	cv::Mat cropFace = frame(faceCrop);
 
 	// Check for force or if eye template does not exist
@@ -96,21 +96,18 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 	rightPupil.x += rEyeB.x;
 	rightPupil.y += rEyeB.y;
 
-	eyeVector = cv::Point((leftPupil.x + rightPupil.x)/2, (leftPupil.y + rightPupil.y)/2);
+	eyeVector = cv::Point((leftPupil.x + rightPupil.x) / 2, (leftPupil.y + rightPupil.y) / 2);
 
 	cv::Point drawnLeftPupil(leftPupil.x + faceCrop.x, leftPupil.y + faceCrop.y);
 	cv::Point drawnRightPupil(rightPupil.x + faceCrop.x, rightPupil.y + faceCrop.y);
 
-	
-	/*
-
-	circle(currentFrame, drawnLeftPupil , 3, Scalar(0, 0, 255), -1);
+	circle(currentFrame, drawnLeftPupil, 3, Scalar(0, 0, 255), -1);
 	circle(currentFrame, drawnRightPupil, 3, Scalar(0, 0, 255), -1);
-	imshow("frame", currentFrame);
-	waitKey(5);
+	//imshow("frame", currentFrame);
+	//waitKey(5);
 
-	*/
-	
+
+
 	return true;
 }
 
@@ -149,7 +146,7 @@ void EyeLogic::storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEye
 		userTemplate = image(faceBound); //userTemplate is a region around the upper lip that has been converted to gray scale and equalized historgrams
 		cvtColor(userTemplate, userTemplate, CV_BGR2GRAY);
 		equalizeHist(userTemplate, userTemplate);
-		
+
 		faceTemplateExists = true;
 	}
 	else
@@ -167,7 +164,7 @@ void EyeLogic::storeTemplate(cv::Mat image, cv::Rect faceBound, cv::Rect leftEye
 cv::Point EyeLogic::eyeVectorToScreenCoord()
 {
 	int boxChange = 5;
-    distance = cv::Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
+	distance = cv::Point(ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y);
 	if (!Calibrated(true))
 	{
 		//logError("Error in eyeVectorToScreenCoord: EyeLogic not calibrated.");
@@ -178,10 +175,10 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 	cv::Point destinationNew;
 
 	//check if detected point is out of maximum bounds
-	if (averageLocal.x < ref_Right.x- boxChange || averageLocal.x > ref_Left.x + boxChange|| averageLocal.y < ref_Top.y - boxChange || averageLocal.y > ref_Bottom.y + boxChange) {
+	if (averageLocal.x < ref_Right.x - boxChange || averageLocal.x > ref_Left.x + boxChange || averageLocal.y < ref_Top.y - boxChange || averageLocal.y > ref_Bottom.y + boxChange) {
 		cout << endl;
-        return cv::Point(-1, -1);
-	}	
+		return cv::Point(-1, -1);
+	}
 
 	destinationNew.x = (screenResolution.x - ((averageLocal.x - ref_Right.x) * screenResolution.x / distance.x));
 	destinationNew.y = (averageLocal.y - ref_Top.y) * screenResolution.y / distance.y;
@@ -215,12 +212,11 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 
 	screenMap = destinationNew;
 
-
-	//cv::rectangle(currentFrame, cv::Rect(ref_Right.x, ref_Top.y, ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y), cv::Scalar(0x80, 0x0, 0xff));
-
 	//Enforce screen resolution as boundaries for movement of cursor
 	if (screenMap.x >= 0 && screenMap.y >= 0 && screenMap.x <= screenResolution.x && screenMap.y <= screenResolution.y) {
 		//cout << screenMap.x << "   " << screenMap.y << endl;
+		cv::imshow("CAPTURE", currentFrame);
+		cv::waitKey(1);
 		return screenMap;
 
 	}
@@ -243,93 +239,100 @@ cv::Point EyeLogic::getEyeVector()
 */
 
 // returns a stabalized eyeVector given a vector of eyeVectors
-bool EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPosition){
+bool EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPosition) {
 
-    std::vector<cv::Point>subData;
-    
-    // middle value index
-    int index = ceil(data.size() / 2);
-    
-    /*******************************
-     * get mean of larger X values *
-     *******************************/
-    if(refPosition == RefPoint::LEFT){
-        
-        // sort array by x
-        std::sort(data.begin(), data.end(),
-                      [](const cv::Point p1, const cv::Point p2){return p1.x < p2.x;});
-    
-        // Inputs: sub vector from [index, END] ; output: reference point
-        cv::Point newPoint  = findMean( std::vector<cv::Point>(data.begin() + index, data.end()), RefPoint::LEFT );
-        
-        // set reference point
-        if(newPoint != cv::Point(-1, -1)){
-            ref_Left = newPoint;
-        } else {
-            return false;
-        }
-        
+	std::vector<cv::Point>subData;
 
-    /********************************
-     * get mean of smaller X values *
-     ********************************/
-    }  else if(refPosition == RefPoint::RIGHT){
+	// middle value index
+	int index = ceil(data.size() / 2);
 
-        // sort array by x
-        std::sort(data.begin(), data.end(),
-                  [](const cv::Point p1, const cv::Point p2){return p1.x < p2.x;});
+	/*******************************
+	* get mean of larger X values *
+	*******************************/
+	if (refPosition == RefPoint::LEFT) {
 
-        // Inputs: sub vector from [index, END] ; output: reference point
-        
-        cv::Point newPoint = findMean( std::vector<cv::Point>(data.begin() , data.begin() + index), RefPoint::RIGHT );
-        
-        // set reference point
-        if(newPoint != cv::Point(-1, -1)){
-            ref_Right = newPoint;
-        } else {
-            return false;
-        }
-        
-    /********************************
-     * get mean of smaller Y values *
-     ********************************/
-    }  else if(refPosition == RefPoint::TOP){
+		// sort array by x
+		std::sort(data.begin(), data.end(),
+			[](const cv::Point p1, const cv::Point p2) {return p1.x < p2.x; });
 
-        // sort array by y
-        std::sort(data.begin(), data.end(),
-                  [](const cv::Point p1, const cv::Point p2){return p1.y < p2.y; });
-        
-        // Inputs: sub vector from [index, END] ; output:  reference point
-        cv::Point newPoint  = findMean(  std::vector<cv::Point>(data.begin(), data.begin() + index), RefPoint::TOP );
-        
-        
-        // set reference point
-        if(newPoint != cv::Point(-1, -1)){
-            ref_Top = newPoint;
-        } else {
-            return false;
-        }
-        
-    /*******************************
-     * get mean of larger Y values *
-     *******************************/
-    } else if(refPosition == RefPoint::BOTTOM){
-        
-        // sort array by y
-        std::sort(data.begin(), data.end(),
-                  [](const cv::Point p1, const cv::Point p2){return p1.y < p2.y; });
-        
-        // Inputs: sub vector from [index, END] ; output: reference point
-        cv::Point newPoint  = findMean(   std::vector<cv::Point>(data.begin() + index, data.end()), RefPoint::BOTTOM );
-        
-        // set reference point
-        if(newPoint != cv::Point(-1, -1)){
-            ref_Bottom = newPoint;
-        } else {
-            return false;
-        }
+		// Inputs: sub vector from [index, END] ; output: reference point
+		cv::Point newPoint = findMean(std::vector<cv::Point>(data.begin() + index, data.end()), RefPoint::LEFT);
 
-    }
+		// set reference point
+		if (newPoint != cv::Point(-1, -1)) {
+			ref_Left = newPoint;
+		}
+		else {
+			return false;
+		}
+
+
+		/********************************
+		* get mean of smaller X values *
+		********************************/
+	}
+	else if (refPosition == RefPoint::RIGHT) {
+
+		// sort array by x
+		std::sort(data.begin(), data.end(),
+			[](const cv::Point p1, const cv::Point p2) {return p1.x < p2.x; });
+
+		// Inputs: sub vector from [index, END] ; output: reference point
+
+		cv::Point newPoint = findMean(std::vector<cv::Point>(data.begin(), data.begin() + index), RefPoint::RIGHT);
+
+		// set reference point
+		if (newPoint != cv::Point(-1, -1)) {
+			ref_Right = newPoint;
+		}
+		else {
+			return false;
+		}
+
+		/********************************
+		* get mean of smaller Y values *
+		********************************/
+	}
+	else if (refPosition == RefPoint::TOP) {
+
+		// sort array by y
+		std::sort(data.begin(), data.end(),
+			[](const cv::Point p1, const cv::Point p2) {return p1.y < p2.y; });
+
+		// Inputs: sub vector from [index, END] ; output:  reference point
+		cv::Point newPoint = findMean(std::vector<cv::Point>(data.begin(), data.begin() + index), RefPoint::TOP);
+
+
+		// set reference point
+		if (newPoint != cv::Point(-1, -1)) {
+			ref_Top = newPoint;
+		}
+		else {
+			return false;
+		}
+
+		/*******************************
+		* get mean of larger Y values *
+		*******************************/
+	}
+	else if (refPosition == RefPoint::BOTTOM) {
+
+		// sort array by y
+		std::sort(data.begin(), data.end(),
+			[](const cv::Point p1, const cv::Point p2) {return p1.y < p2.y; });
+
+		// Inputs: sub vector from [index, END] ; output: reference point
+		cv::Point newPoint = findMean(std::vector<cv::Point>(data.begin() + index, data.end()), RefPoint::BOTTOM);
+
+		// set reference point
+		if (newPoint != cv::Point(-1, -1)) {
+			ref_Bottom = newPoint;
+		}
+		else {
+			return false;
+		}
+
+	}
 	return true;
 }
 
@@ -387,9 +390,9 @@ EyeLogic::EyeLogic(cv::Point screenres)
 {
 	screenResolution = screenres;
 
-    destinationOld = cv::Point(-1, -1);
-    direction = cv::Point(0, 0);
-    delta = cv::Point(0,0);
+	destinationOld = cv::Point(-1, -1);
+	direction = cv::Point(0, 0);
+	delta = cv::Point(0, 0);
 
 	ref_Right = cv::Point(-1, -1);
 	ref_Left = cv::Point(-1, -1);
@@ -428,7 +431,7 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 	rightEyeBound.y = rightEyeBound.y + (int)(rightEyeBound.height*0.3); //Crop Eyebrow
 	rightEyeBound.height *= 0.6; //Crop Eyebrow
 
-	//Capture (our left) User's Right Eye Bound box
+								 //Capture (our left) User's Right Eye Bound box
 	eyes.clear();
 	leftEyeExtractor.detectMultiScale(leftHalf, eyes);
 
@@ -481,7 +484,7 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 *
 *	returns the pupils location relative to faceRect*
 */
-cv::Point EyeLogic::findPupil(cv::Mat eyeCrop) 
+cv::Point EyeLogic::findPupil(cv::Mat eyeCrop)
 {
 	if (eyeCrop.empty())
 	{
@@ -496,15 +499,15 @@ cv::Point EyeLogic::findPupil(cv::Mat eyeCrop)
 	{
 		cv::Rect bounding;
 		std::sort(contours.begin(), contours.end(),
-                      [](const std::vector<cv::Point> p1, const std::vector<cv::Point> p2){return boundingRect(p1).y+boundingRect(p1).height >  boundingRect(p2).y+boundingRect(p2).height;});
+			[](const std::vector<cv::Point> p1, const std::vector<cv::Point> p2) {return boundingRect(p1).y + boundingRect(p1).height >  boundingRect(p2).y + boundingRect(p2).height; });
 
 
-		int interestingContours = -1 ;
+		int interestingContours = -1;
 
 		int index = 0;
 		double maxArea = 0;
 
-		for (index = 0; index < contours.size(); index ++) {
+		for (index = 0; index < contours.size(); index++) {
 			if (contourArea(contours[index]) > maxArea) {
 				maxArea = contourArea(contours[index]);
 			}
@@ -512,12 +515,12 @@ cv::Point EyeLogic::findPupil(cv::Mat eyeCrop)
 		index = 0;
 
 		while (index < contours.size() && maxArea > 0) {
-			if ( contourArea(contours[index]) > maxArea/3) {
+			if (contourArea(contours[index]) > maxArea / 3) {
 				interestingContours = index;
 				break;
 			}
 			index++;
-		} 
+		}
 		if (maxArea == 0) {
 			return cv::Point(-1, -1);
 		}
@@ -566,7 +569,7 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 	{
 		//logError("Error in checkTemplate: No suitable match was found.");
 		return false;
-	}	
+	}
 
 	//set return arguments
 	*faceCrop = faceRect;
@@ -580,74 +583,75 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 void EyeLogic::logError(std::string message, cv::Mat image)
 {
 	/*
-    string fileName = std::to_string(rand());
-    string logPath = fileName + ".txt";
-    
-    cerr << fileName << " : " << message << endl;
-    
-    std::ofstream outputfile(logPath, std::ios::out);
-    
-    outputfile << fileName << " : " << message << endl;
-    
-    outputfile << "FaceRect (x,y,w,h)" << endl;
-    outputfile << faceRect.x << " " << faceRect.y << " " << faceRect.width << " " << faceRect.height << endl;
-    
-    outputfile << "LeftEyeBound (x,y,w,h)" << endl;
-    outputfile << leftEyeBound.x << " " << leftEyeBound.y << " " << leftEyeBound.width << " " << leftEyeBound.height << endl;
-    
-    outputfile << "RightEyeBound (x,y,w,h)" << endl;
-    outputfile << rightEyeBound.x << " " << rightEyeBound.y << " " << rightEyeBound.width << " " << rightEyeBound.height << endl;
-    
-    if (Calibrated(false))
-    {
-        outputfile << "Bounds -- Left, Right, Top, Bottom" << endl;
-        outputfile << ref_Left.x << ", " << ref_Right.x << ", " << ref_Top.y << ", " << ref_Bottom.y;
-    }
-    
-    outputfile.close();
-    
-    if (faceTemplateExists)
-    {
-        imwrite(fileName + "t.jpg", userTemplate);
-    }
-    
-    imwrite(fileName + ".jpg", currentFrame);
-    
-    if (!image.empty())
-    {
-        imwrite(fileName + "cust.jpg", image);
-    }
+	string fileName = std::to_string(rand());
+	string logPath = fileName + ".txt";
+
+	cerr << fileName << " : " << message << endl;
+
+	std::ofstream outputfile(logPath, std::ios::out);
+
+	outputfile << fileName << " : " << message << endl;
+
+	outputfile << "FaceRect (x,y,w,h)" << endl;
+	outputfile << faceRect.x << " " << faceRect.y << " " << faceRect.width << " " << faceRect.height << endl;
+
+	outputfile << "LeftEyeBound (x,y,w,h)" << endl;
+	outputfile << leftEyeBound.x << " " << leftEyeBound.y << " " << leftEyeBound.width << " " << leftEyeBound.height << endl;
+
+	outputfile << "RightEyeBound (x,y,w,h)" << endl;
+	outputfile << rightEyeBound.x << " " << rightEyeBound.y << " " << rightEyeBound.width << " " << rightEyeBound.height << endl;
+
+	if (Calibrated(false))
+	{
+	outputfile << "Bounds -- Left, Right, Top, Bottom" << endl;
+	outputfile << ref_Left.x << ", " << ref_Right.x << ", " << ref_Top.y << ", " << ref_Bottom.y;
+	}
+
+	outputfile.close();
+
+	if (faceTemplateExists)
+	{
+	imwrite(fileName + "t.jpg", userTemplate);
+	}
+
+	imwrite(fileName + ".jpg", currentFrame);
+
+	if (!image.empty())
+	{
+	imwrite(fileName + "cust.jpg", image);
+	}
 	*/
 }
 
 // return mean of data based on ref
-cv::Point EyeLogic::findMean(std::vector<cv::Point>subData, RefPoint refPosition){
-    double sum = 0;
-    cv::Point newPoint;
-    
-    if(subData.size() <= 0){
-        //logError("Error in findMean: vector of size 0");
-        return cv::Point(-1, -1);
-    }
-    
-    if( (refPosition == RefPoint::LEFT) || (refPosition == RefPoint::RIGHT) ){
-        
-        for(int i = 0; i < subData.size(); i++){
-            sum += subData[i].x;
-        }
-        
-        newPoint.x = sum / subData.size();
-        newPoint.y = -1;
+cv::Point EyeLogic::findMean(std::vector<cv::Point>subData, RefPoint refPosition) {
+	double sum = 0;
+	cv::Point newPoint;
 
-    } else if( (refPosition == RefPoint::TOP) || (refPosition == RefPoint::BOTTOM) ){
-        
-        for(int i = 0; i < subData.size(); i++){
-            sum += subData[i].y;
-        }
-        
-        newPoint.x = -1;
-        newPoint.y = sum / subData.size();
-    }
-    
-    return newPoint;
+	if (subData.size() <= 0) {
+		//logError("Error in findMean: vector of size 0");
+		return cv::Point(-1, -1);
+	}
+
+	if ((refPosition == RefPoint::LEFT) || (refPosition == RefPoint::RIGHT)) {
+
+		for (int i = 0; i < subData.size(); i++) {
+			sum += subData[i].x;
+		}
+
+		newPoint.x = sum / subData.size();
+		newPoint.y = -1;
+
+	}
+	else if ((refPosition == RefPoint::TOP) || (refPosition == RefPoint::BOTTOM)) {
+
+		for (int i = 0; i < subData.size(); i++) {
+			sum += subData[i].y;
+		}
+
+		newPoint.x = -1;
+		newPoint.y = sum / subData.size();
+	}
+
+	return newPoint;
 }
