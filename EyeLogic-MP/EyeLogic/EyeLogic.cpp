@@ -220,13 +220,13 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 
 	//Enforce screen resolution as boundaries for movement of cursor
 	if (screenMap.x >= 0 && screenMap.y >= 0 && screenMap.x <= screenResolution.x && screenMap.y <= screenResolution.y) {
-		cout << screenMap.x << "   " << screenMap.y << endl;
+		//cout << screenMap.x << "   " << screenMap.y << endl;
 		return screenMap;
 
 	}
 	else {
 		//logError("Error in eyeVectorToScreenCoord: Coordinates not within screen bounds.");
-		cerr << "\tScreenMap.x: " << screenMap.x << "\tScreenMap.y: " << screenMap.y << endl;
+		//cerr << "\tScreenMap.x: " << screenMap.x << "\tScreenMap.y: " << screenMap.y << endl;
 	}
 
 	return cv::Point(-1, -1);
@@ -459,7 +459,7 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 {
 	Mat result;
 	if (eyeCrop.rows > 0) {
-		imshow("before", eyeCrop);
+		//imshow("before", eyeCrop);
 
 		cvtColor(eyeCrop, result, CV_BGR2GRAY);
 		cv::equalizeHist(result, result);
@@ -469,7 +469,7 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 		//cv::GaussianBlur(result, result, cv::Size(9, 9), 0, 0);
 		cv::dilate(result, result, erodeElement);
 
-		imshow("after", result);
+		//imshow("after", result);
 		waitKey(5);
 	}
 	return result;
@@ -491,12 +491,9 @@ cv::Point EyeLogic::findPupil(cv::Mat eyeCrop)
 	std::vector<cv::Vec4i> hierarchy;
 	std::vector<std::vector<cv::Point> > contours;
 	findContours(eyeCrop, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-	imshow("before", eyeCrop);
+	//imshow("before", eyeCrop);
 	if (contours.size() > 0)
 	{
-		double area = 0;
-		int largest = 0;
-
 		cv::Rect bounding;
 		std::sort(contours.begin(), contours.end(),
                       [](const std::vector<cv::Point> p1, const std::vector<cv::Point> p2){return boundingRect(p1).y+boundingRect(p1).height >  boundingRect(p2).y+boundingRect(p2).height;});

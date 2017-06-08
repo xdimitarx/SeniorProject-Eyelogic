@@ -157,7 +157,7 @@ public:
 		}
 
 		click();
-		Sleep(200);
+		Sleep(50);
 		click();
 	}
 

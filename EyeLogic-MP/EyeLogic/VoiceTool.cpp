@@ -55,7 +55,7 @@ void VoiceTool::monitor()
 
 		if (enabled)
 		{
-			if (command.compare("click"))
+			if (command.compare("click") == 0)
 			{
 				systemSingleton->click();
 			}

@@ -244,14 +244,14 @@ void captureLoop()
 
 	while (RUN)
 	{
-		if (errorCount > 200)
+		if (errorCount > 50)
 		{
 			RUN = false;
 			printError((string)"Too many errors, exiting program, please recalibrate and try again.");
 		}
         
         // find a new template
-		else if (errorCount > 100)
+		else if (errorCount > 15)
 		{
 			cap >> capture;
 			if (mainEntryPoint->insertFrame(capture, true))
@@ -456,7 +456,7 @@ int main(int argc, char *argv[])
 	if (!startCam()) return -1;
 
 	// voice only works on windows
-	//if (!VoiceTool::voiceSingleton().initVoice()) cerr << "Voice could not be started" << endl;
+	if (!VoiceTool::voiceSingleton().initVoice()) cerr << "Voice could not be started" << endl;
 	//VoiceTool::voiceSingleton().enableVoice();
 
     screenres = systemSingleton->getScreenResolution();
