@@ -98,12 +98,19 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 
 	eyeVector = cv::Point((leftPupil.x + rightPupil.x)/2, (leftPupil.y + rightPupil.y)/2);
 
-	rectangle(currentFrame, Rect(faceCrop.x, faceCrop.y, userTemplate.cols,userTemplate.rows), Scalar(0, 255, 0));
-	circle(currentFrame, leftPupil, 3, Scalar(0, 0, 255), -1);
-	circle(currentFrame, rightPupil, 3, Scalar(0, 0, 255), -1);
-	imshow("Template", userTemplate);
+	cv::Point drawnLeftPupil(leftPupil.x + faceCrop.x, leftPupil.y + faceCrop.y);
+	cv::Point drawnRightPupil(rightPupil.x + faceCrop.x, rightPupil.y + faceCrop.y);
+
+	
+	/*
+
+	circle(currentFrame, drawnLeftPupil , 3, Scalar(0, 0, 255), -1);
+	circle(currentFrame, drawnRightPupil, 3, Scalar(0, 0, 255), -1);
 	imshow("frame", currentFrame);
 	waitKey(5);
+
+	*/
+	
 	return true;
 }
 
@@ -405,7 +412,7 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 
 	rightEyeBound = eyes[0]; //Class Variable
 	rightEyeBound.x += faceCrop.cols / 2; // this is to account for split in half above
-	rightEyeBound.y = rightEyeBound.y + (int)(rightEyeBound.height*0.4); //Crop Eyebrow
+	rightEyeBound.y = rightEyeBound.y + (int)(rightEyeBound.height*0.45); //Crop Eyebrow
 	rightEyeBound.height *= 0.6; //Crop Eyebrow
 
 	//Capture (our left) User's Right Eye Bound box
@@ -419,7 +426,7 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 	}
 
 	leftEyeBound = eyes[0];
-	leftEyeBound.y = leftEyeBound.y + (int)(leftEyeBound.height*0.4);
+	leftEyeBound.y = leftEyeBound.y + (int)(leftEyeBound.height*0.45);
 	leftEyeBound.height *= 0.6;
 
 	eyeTemplatesExists = true;
@@ -437,75 +444,20 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 */
 cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 {
-	
-	cv::Mat result;
+	Mat result;
+
+	imshow("before", eyeCrop);
 
 	cvtColor(eyeCrop, result, CV_BGR2GRAY);
-	equalizeHist(result, result);
-	threshold(result, result, 10, 255, THRESH_BINARY_INV); //Only keeps darkest pixels
+	cv::equalizeHist(result, result);
+	cv::threshold(result, result, 10, 255, cv::THRESH_BINARY_INV);
+	cv::Mat erodeElement = getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(2, 2));
+	//cv::erode(result, result, erodeElement);
+	//cv::GaussianBlur(result, result, cv::Size(9, 9), 0, 0);
+	cv::dilate(result, result, erodeElement);
 
-	//logError("apply pupil before", result);
-
-	bool rowSet = false;
-	int keepY = -1;
-	int keepLength = -1;
-	int finalY = -1;
-	int finalLength = -1;
-
-	for (int i = 0; i < result.cols; i++)
-	{
-		for (int j = 0; j < result.rows; j++)
-		{
-			if (!rowSet)
-			{
-				if (result.at<uchar>(j, i) == 255)
-				{
-					rowSet = true;
-					keepY = j;
-					keepLength = 1;
-				}
-			}
-			else
-			{
-				if (result.at<uchar>(j, i) == 255)
-				{
-					keepLength++;
-					if (keepLength > finalLength)
-					{
-						finalLength = keepLength;
-						finalY = keepY;
-					}
-				}
-				else
-				{
-					rowSet = false;
-				}
-			}
-		}
-	}
-
-	int cutPoint = finalY + floor(finalLength / 6);
-
-	for (int i = 0; i < result.cols; i++)
-	{
-		for (int j = 0; j < cutPoint; j++)
-		{
-			result.at<uchar>(j, i) = 0;
-		}
-	}
-
-	if (result.empty())
-	{
-		//logError("Error in applyPupilFilters: Empty result crop", result);
-		return cv::Mat();
-	}
-	
-	//logError("Debug-Apply Pupil After", result);
-
-	//dilates all black pixels in the image in a hopes to connect them, find pupil will look for the largest mass 
-	// and until this step the image looks grainy, this turns it more into a solid blob
-	Mat erodeElement = getStructuringElement(MORPH_ELLIPSE, cv::Size(4, 4));
-	dilate(result, result, erodeElement);
+	imshow("after", result);
+	waitKey(5);
 
 	return result;
 }
@@ -610,6 +562,7 @@ bool EyeLogic::checkTemplate(cv::Mat frame, cv::Rect * faceCrop, cv::Point * fra
 
 void EyeLogic::logError(std::string message, cv::Mat image)
 {
+	/*
     string fileName = std::to_string(rand());
     string logPath = fileName + ".txt";
     
@@ -647,6 +600,7 @@ void EyeLogic::logError(std::string message, cv::Mat image)
     {
         imwrite(fileName + "cust.jpg", image);
     }
+	*/
 }
 
 // return mean of data based on ref
@@ -655,7 +609,7 @@ cv::Point EyeLogic::findMean(std::vector<cv::Point>subData, RefPoint refPosition
     cv::Point newPoint;
     
     if(subData.size() <= 0){
-        logError("Error in findMean: vector of size 0");
+        //logError("Error in findMean: vector of size 0");
         return cv::Point(-1, -1);
     }
     

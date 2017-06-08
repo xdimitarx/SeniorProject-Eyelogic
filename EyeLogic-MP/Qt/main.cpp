@@ -219,8 +219,8 @@ bool startCam(){
     }
     try{    
         // defaults to max size of camera
-        cap.set(CV_CAP_PROP_FRAME_WIDTH, 1920);
-        cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1080);
+        //cap.set(CV_CAP_PROP_FRAME_WIDTH, 1920);
+        //cap.set(CV_CAP_PROP_FRAME_HEIGHT, 1080);
     }
 
     catch(Exception ex){
