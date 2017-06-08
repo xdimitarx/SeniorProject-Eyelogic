@@ -28,6 +28,6 @@ bool startCap();
 
 cv::Mat createForeheadTemplate();
 cv::Point matchTemplate( cv::Mat templ);
-
+//void MatchingMethod(int, void*);
 
 #endif
