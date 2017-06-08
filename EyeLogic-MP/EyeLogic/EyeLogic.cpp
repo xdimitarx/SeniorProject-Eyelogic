@@ -55,7 +55,7 @@ bool EyeLogic::insertFrame(Mat frame, bool forceNewTemplate)
 		}
 	}
 
-	if (faceCrop.x < 0 || faceCrop.x > frame.cols || faceCrop.y < 0 || faceCrop.y > frame.rows ||  faceCrop.width <= 0 || faceCrop.height <= 0) {
+	if (faceCrop.x < 0 || faceCrop.y < 0 ||  faceCrop.width <= 0 || faceCrop.height <= 0 || faceCrop.x + faceCrop.width > frame.cols ||  faceCrop.y + faceCrop.height > frame.rows) {
 		logError("Facecrop is a bad ROI for cropping mmatrix");
 		return false;
 	}
@@ -181,28 +181,40 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 	if (averageLocal.x < ref_Right.x- boxChange || averageLocal.x > ref_Left.x + boxChange|| averageLocal.y < ref_Top.y - boxChange || averageLocal.y > ref_Bottom.y + boxChange) {
 		cout << endl;
         return cv::Point(-1, -1);
-	}
+	}	
 
 	destinationNew.x = (screenResolution.x - ((averageLocal.x - ref_Right.x) * screenResolution.x / distance.x));
-	destinationNew.y = (averageLocal.y - ref_Top.y) * screenResolution.y / distance.y; //screenRes.y / 2;
+	destinationNew.y = (averageLocal.y - ref_Top.y) * screenResolution.y / distance.y;
 
 	if (destinationOld != destinationNew) {
 		destinationOld = destinationNew;
 		delta = cv::Point((destinationNew.x - screenMap.x) / screenResolution.x * 80, (destinationNew.y - screenMap.y) / screenResolution.y * 80);
+		if (delta.x > 0) { direction.x = 1; }
+		else { direction.x = -1; }
+		if (delta.y > 0) { direction.y = 1; }
+		else { direction.y = -1; }
 	}
 
-	if (delta.x > 0) {
+	delta = direction;
+	if (direction.x > 0) {
 		screenMap.x = min(destinationNew.x, screenMap.x + delta.x);
 	}
 	else {
 		screenMap.x = std::max(destinationNew.x, screenMap.x + delta.x);
 	}
-	if (delta.y > 0) {
+	if (direction.y > 0) {
 		screenMap.y = min(destinationNew.y, screenMap.y + delta.y);
 	}
 	else {
 		screenMap.y = std::max(destinationNew.y, screenMap.y + delta.y);
 	}
+
+	//point on screen: 
+	screenMap.x = (screenResolution.x - ((averageLocal.x - ref_Right.x) * screenResolution.x / distance.x));
+	screenMap.y = (averageLocal.y - ref_Top.y) * screenResolution.y / distance.y;
+
+	screenMap = destinationNew;
+
 
 	//cv::rectangle(currentFrame, cv::Rect(ref_Right.x, ref_Top.y, ref_Left.x - ref_Right.x, ref_Bottom.y - ref_Top.y), cv::Scalar(0x80, 0x0, 0xff));
 
@@ -216,7 +228,7 @@ cv::Point EyeLogic::eyeVectorToScreenCoord()
 		//logError("Error in eyeVectorToScreenCoord: Coordinates not within screen bounds.");
 		cerr << "\tScreenMap.x: " << screenMap.x << "\tScreenMap.y: " << screenMap.y << endl;
 	}
-	cout << endl;
+
 	return cv::Point(-1, -1);
 }
 
@@ -318,6 +330,7 @@ bool EyeLogic::setStabalizedPoint(std::vector<cv::Point>data, RefPoint refPositi
         }
 
     }
+	return true;
 }
 
 // returns vector of reference point data in (LEFT,RIGHT,TOP,BOTTOM) order
@@ -412,7 +425,7 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 
 	rightEyeBound = eyes[0]; //Class Variable
 	rightEyeBound.x += faceCrop.cols / 2; // this is to account for split in half above
-	rightEyeBound.y = rightEyeBound.y + (int)(rightEyeBound.height*0.45); //Crop Eyebrow
+	rightEyeBound.y = rightEyeBound.y + (int)(rightEyeBound.height*0.3); //Crop Eyebrow
 	rightEyeBound.height *= 0.6; //Crop Eyebrow
 
 	//Capture (our left) User's Right Eye Bound box
@@ -426,7 +439,7 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 	}
 
 	leftEyeBound = eyes[0];
-	leftEyeBound.y = leftEyeBound.y + (int)(leftEyeBound.height*0.45);
+	leftEyeBound.y = leftEyeBound.y + (int)(leftEyeBound.height*0.3);
 	leftEyeBound.height *= 0.6;
 
 	eyeTemplatesExists = true;
@@ -445,20 +458,20 @@ bool EyeLogic::createEyeBounds(cv::Mat faceCrop)
 cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 {
 	Mat result;
+	if (eyeCrop.rows > 0) {
+		imshow("before", eyeCrop);
 
-	imshow("before", eyeCrop);
+		cvtColor(eyeCrop, result, CV_BGR2GRAY);
+		cv::equalizeHist(result, result);
+		cv::threshold(result, result, 10, 255, cv::THRESH_BINARY_INV);
+		cv::Mat erodeElement = getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(2, 2));
+		//cv::erode(result, result, erodeElement);
+		//cv::GaussianBlur(result, result, cv::Size(9, 9), 0, 0);
+		cv::dilate(result, result, erodeElement);
 
-	cvtColor(eyeCrop, result, CV_BGR2GRAY);
-	cv::equalizeHist(result, result);
-	cv::threshold(result, result, 10, 255, cv::THRESH_BINARY_INV);
-	cv::Mat erodeElement = getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(2, 2));
-	//cv::erode(result, result, erodeElement);
-	//cv::GaussianBlur(result, result, cv::Size(9, 9), 0, 0);
-	cv::dilate(result, result, erodeElement);
-
-	imshow("after", result);
-	waitKey(5);
-
+		imshow("after", result);
+		waitKey(5);
+	}
 	return result;
 }
 
@@ -470,16 +483,6 @@ cv::Mat EyeLogic::applyPupilFilters(cv::Mat eyeCrop)
 */
 cv::Point EyeLogic::findPupil(cv::Mat eyeCrop) 
 {
-	//cv::Mat eyeCropGray;
-	//eyeCrop.copyTo(eyeCropGray);
-	//cv::equalizeHist(eyeCropGray, eyeCropGray);
-	//cv::add(eyeCropGray, cv::Scalar(50), eyeCropGray);
-	//cv::equalizeHist(eyeCropGray, eyeCropGray);
-	//cv::threshold(eyeCropGray, eyeCropGray, 10, 255, cv::THRESH_BINARY);
-	//cv::GaussianBlur(eyeCropGray, eyeCropGray, cv::Size(9, 9), 0, 0);
-	//cv::Mat erodeElement = getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(4, 4));
-	//cv::dilate(eyeCropGray, eyeCropGray, erodeElement);
-
 	if (eyeCrop.empty())
 	{
 		return cv::Point(-1, -1);
@@ -488,24 +491,41 @@ cv::Point EyeLogic::findPupil(cv::Mat eyeCrop)
 	std::vector<cv::Vec4i> hierarchy;
 	std::vector<std::vector<cv::Point> > contours;
 	findContours(eyeCrop, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0));
-	if (contours.size())
+	imshow("before", eyeCrop);
+	if (contours.size() > 0)
 	{
 		double area = 0;
 		int largest = 0;
-		for (int i = 0; i < contours.size(); ++i)
-		{
-			double calculatedArea = contourArea(contours[i]);
-			if (calculatedArea > area)
-			{
-				largest = i;
-				area = calculatedArea;
+
+		cv::Rect bounding;
+		std::sort(contours.begin(), contours.end(),
+                      [](const std::vector<cv::Point> p1, const std::vector<cv::Point> p2){return boundingRect(p1).y+boundingRect(p1).height >  boundingRect(p2).y+boundingRect(p2).height;});
+
+
+		int interestingContours = -1 ;
+
+		int index = 0;
+		double maxArea = 0;
+
+		for (index = 0; index < contours.size(); index ++) {
+			if (contourArea(contours[index]) > maxArea) {
+				maxArea = contourArea(contours[index]);
 			}
 		}
-		cv::Moments mo = moments(contours[largest], false);
-		cv::Point eyeCenter = cv::Point((int)(mo.m10 / mo.m00), (int)(mo.m01 / mo.m00));
+		index = 0;
 
-		//cv::Rect bounding = boundingRect(contours[largest]);
-		//int eyeRadius = cvRound(bounding.height*1.05);
+		while (index < contours.size() && maxArea > 0) {
+			if ( contourArea(contours[index]) > maxArea/3) {
+				interestingContours = index;
+				break;
+			}
+			index++;
+		} 
+		if (maxArea == 0) {
+			return cv::Point(-1, -1);
+		}
+		cv::Moments mo = moments(contours[interestingContours], false);
+		cv::Point eyeCenter = cv::Point((int)(mo.m10 / mo.m00), (int)(mo.m01 / mo.m00));
 
 		return eyeCenter;
 	}
@@ -605,7 +625,7 @@ void EyeLogic::logError(std::string message, cv::Mat image)
 
 // return mean of data based on ref
 cv::Point EyeLogic::findMean(std::vector<cv::Point>subData, RefPoint refPosition){
-    double sum;
+    double sum = 0;
     cv::Point newPoint;
     
     if(subData.size() <= 0){

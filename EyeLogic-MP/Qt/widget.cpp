@@ -65,7 +65,7 @@ QGroupBox *Widget::clickSettingsBox()
     QObject::connect(offVoice, SIGNAL(toggled(bool)), this, SLOT(toggleVoiceOff()));
 
     // set first radio button checked by default
-    onVoice->setChecked(true);
+    offVoice->setChecked(true);
 
     // add buttons to layout to widget, return widget
     vbox->addWidget(onVoice);
@@ -152,6 +152,7 @@ Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
     frontPageLayout->addWidget(calibSettingsBox);
     frontPageLayout->addWidget(clickBox);
     frontPageLayout->addWidget(runBox);
+	frontPageLayout->setSizeConstraint(QLayout::SetFixedSize);
 
     // get groupbox and add to calibrationPageLayout
     calibBox = getCalibBox();
